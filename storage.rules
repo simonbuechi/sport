@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Rules for our technique images
+    match /techniques/{userId}/{fileName} {
+      // Allow anyone to view the images
+      allow read: if true;
+      
+      // Allow users to upload or delete only within their own UID folder
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default rule: block everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

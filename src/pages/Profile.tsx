@@ -44,7 +44,7 @@ const Profile = () => {
                     getExercises()
                 ]);
 
-                setAllExercises(exercisesData);
+                setAllExercises(exercisesData.exercises);
 
                 if (userData) {
                     setProfile(userData);

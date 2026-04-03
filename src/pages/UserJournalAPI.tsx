@@ -17,8 +17,8 @@ const UserJournalAPI = () => {
             getJournalEntries(userId),
             getExercises()
         ])
-            .then(([entries, exercises]) => {
-                const exercisesMap = new Map(exercises.map((e: any) => [e.id, e.name]));
+            .then(([entries, exercisesResult]) => {
+                const exercisesMap = new Map(exercisesResult.exercises.map((e: any) => [e.id, e.name]));
                 
                 const enrichedEntries = entries.map((entry: any) => {
                     const { exerciseIds, ...rest } = entry;

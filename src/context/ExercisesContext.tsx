@@ -1,12 +1,16 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
 import { getExercises as fetchExercises } from '../services/db';
 import type { Exercise } from '../types';
+import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
 interface ExercisesContextType {
     exercises: Exercise[];
     loading: boolean;
+    loadingMore: boolean;
     error: string;
+    hasMore: boolean;
     loadExercises: () => Promise<void>;
+    loadMore: () => Promise<void>;
     refreshExercises: () => Promise<void>;
 }
 
@@ -24,8 +28,13 @@ export const useExercises = () => {
 export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState('');
+    const [hasMore, setHasMore] = useState(true);
+    const lastVisibleRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
     const hasFetched = useRef(false);
+
+    const PAGE_SIZE = 20;
 
     const loadExercises = useCallback(async (force = false) => {
         // Return cached data if already fetched and not forced
@@ -34,49 +43,11 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
         try {
             setLoading(true);
             setError('');
-            let data = await fetchExercises();
+            const result = await fetchExercises(PAGE_SIZE);
             
-            // Add some sample gym exercises if the database is empty
-            if (data.length === 0) {
-                const { createExercise } = await import('../services/db');
-                const sampleExercises = [
-                    {
-                        name: "Barbell Squat",
-                        description: "A compound, full-body exercise that trains primarily the muscles of the thighs, hips and buttocks, quadriceps femoris muscle, and hamstrings.",
-                        type: "strength" as const,
-                        images: [],
-                        connectedExercises: [],
-                        videos: [],
-                        resources: []
-                    },
-                    {
-                        name: "Bench Press",
-                        description: "An upper-body weight training exercise in which the trainee presses a weight upwards while lying on a weight training bench.",
-                        type: "strength" as const,
-                        images: [],
-                        connectedExercises: [],
-                        videos: [],
-                        resources: []
-                    },
-                    {
-                        name: "Treadmill Running",
-                        description: "Running on a treadmill at various speeds and inclines for cardiovascular fitness.",
-                        type: "cardio" as const,
-                        images: [],
-                        connectedExercises: [],
-                        videos: [],
-                        resources: []
-                    }
-                ];
-                
-                for (const exercise of sampleExercises) {
-                    await createExercise(exercise);
-                }
-                
-                data = await fetchExercises(); // Re-fetch after seeding
-            }
-
-            setExercises(data);
+            setExercises(result.exercises);
+            lastVisibleRef.current = result.lastVisible;
+            setHasMore(result.exercises.length === PAGE_SIZE);
             hasFetched.current = true;
         } catch (err) {
             console.error(err);
@@ -86,12 +57,43 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
+    const loadMore = useCallback(async () => {
+        if (!hasMore || loadingMore || loading) return;
+
+        try {
+            setLoadingMore(true);
+            setError('');
+            const result = await fetchExercises(PAGE_SIZE, lastVisibleRef.current || undefined);
+            
+            setExercises(prev => [...prev, ...result.exercises]);
+            lastVisibleRef.current = result.lastVisible;
+            setHasMore(result.exercises.length === PAGE_SIZE);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to load more exercises.');
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [hasMore, loadingMore, loading]);
+
     const refreshExercises = useCallback(async () => {
+        hasFetched.current = false;
+        lastVisibleRef.current = null;
+        setHasMore(true);
         await loadExercises(true);
     }, [loadExercises]);
 
     return (
-        <ExercisesContext.Provider value={{ exercises, loading, error, loadExercises: () => loadExercises(false), refreshExercises }}>
+        <ExercisesContext.Provider value={{ 
+            exercises, 
+            loading, 
+            loadingMore, 
+            error, 
+            hasMore, 
+            loadExercises: () => loadExercises(false), 
+            loadMore, 
+            refreshExercises 
+        }}>
             {children}
         </ExercisesContext.Provider>
     );

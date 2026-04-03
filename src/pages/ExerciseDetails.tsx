@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
     Typography, Box, CircularProgress, Container,
     Chip, Grid, Paper, Divider, Button, ToggleButton,
     ToggleButtonGroup, List, ListItem, ListItemText,
     ListItemIcon, Rating, TextField
 } from '@mui/material';
-import { Favorite, MenuBook, School, EventNote, ArrowBack, EditNote, Flag } from '@mui/icons-material';
-import { getExerciseById, getUserProfile, updateUserProfile, getJournalEntries } from '../services/db';
+import { Favorite, MenuBook, School, EventNote, ArrowBack, EditNote, Flag, Delete } from '@mui/icons-material';
+import { getExerciseById, getUserProfile, updateUserProfile, getJournalEntries, deleteExercise } from '../services/db';
 import type { Exercise, UserProfile, MarkedStatus, ActivityLog as JournalEntry } from '../types';
 import { useAuth } from '../context/AuthContext';
 
@@ -33,9 +33,9 @@ const updateExerciseStatus = (
 const ExerciseDetails = () => {
     const { id } = useParams<{ id: string }>();
     const { currentUser } = useAuth();
+    const navigate = useNavigate();
 
     const [exercise, setExercise] = useState<Exercise | null>(null);
-    const [connected, setConnected] = useState<Exercise[]>([]);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [sessions, setSessions] = useState<JournalEntry[]>([]);
     const [notes, setNotes] = useState('');
@@ -55,11 +55,6 @@ const ExerciseDetails = () => {
                 }
                 setExercise(techData);
 
-                if (techData.connectedExercises && techData.connectedExercises.length > 0) {
-                    const connectedPromises = techData.connectedExercises.map((cid: string) => getExerciseById(cid));
-                    const connectedResults = await Promise.all(connectedPromises);
-                    setConnected(connectedResults.filter((t: Exercise | null): t is Exercise => t !== null));
-                }
 
                 if (currentUser) {
                     const userProf = await getUserProfile(currentUser.uid);
@@ -134,6 +129,18 @@ const ExerciseDetails = () => {
         }
     };
 
+    const handleDelete = async () => {
+        if (!id || !window.confirm('Are you sure you want to delete this exercise?')) return;
+
+        try {
+            await deleteExercise(id);
+            navigate('/exercises');
+        } catch (err) {
+            console.error("Failed to delete exercise", err);
+            setError('Failed to delete exercise');
+        }
+    };
+
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;
     if (error || !exercise) return <Container><Typography color="error" mt={4}>{error || 'Not found'}</Typography></Container>;
@@ -158,130 +165,78 @@ const ExerciseDetails = () => {
                                 <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
                                     {exercise.name}
                                 </Typography>
-                                <Chip
-                                    label={exercise.type}
-                                    color="primary"
-                                    variant="outlined"
-                                />
+                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                                    <Chip
+                                        label={exercise.type}
+                                        color="primary"
+                                        variant="outlined"
+                                        size="small"
+                                        sx={{ textTransform: 'capitalize' }}
+                                    />
+                                    <Chip
+                                        label={exercise.bodypart}
+                                        color="secondary"
+                                        variant="outlined"
+                                        size="small"
+                                    />
+                                    <Chip
+                                        label={exercise.category}
+                                        color="info"
+                                        variant="outlined"
+                                        size="small"
+                                    />
+                                </Box>
+                                {exercise.aliases && exercise.aliases.length > 0 && (
+                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
+                                        {exercise.aliases.map((alias, index) => (
+                                            <Typography key={index} variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                                {alias}{index < exercise.aliases.length - 1 ? ', ' : ''}
+                                            </Typography>
+                                        ))}
+                                    </Box>
+                                )}
+                                {exercise.icon_url && (
+                                    <Typography variant="caption" color="text.secondary" display="block">
+                                        Icon: {exercise.icon_url}
+                                    </Typography>
+                                )}
+                                {exercise.name_url && (
+                                    <Typography variant="caption" color="text.secondary" display="block">
+                                        URL Name: {exercise.name_url}
+                                    </Typography>
+                                )}
                             </Box>
                             {currentUser && (
-                                <Button
-                                    component={RouterLink}
-                                    to={`/exercises/${exercise.id}/edit`}
-                                    variant="outlined"
-                                    color="primary"
-                                    size="small"
-                                >
-                                    Edit
-                                </Button>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Button
+                                        component={RouterLink}
+                                        to={`/exercises/${exercise.id}/edit`}
+                                        variant="outlined"
+                                        color="primary"
+                                        size="small"
+                                        startIcon={<EditNote />}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        size="small"
+                                        startIcon={<Delete />}
+                                        onClick={handleDelete}
+                                    >
+                                        Delete
+                                    </Button>
+                                </Box>
                             )}
                         </Box>
 
 
                         <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Description</Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
-                            {exercise.description}
+                            {exercise.description || 'No description available.'}
                         </Typography>
 
-                        {exercise.videos && exercise.videos.length > 0 && (
-                            <Box mt={4}>
-                                <Typography variant="h5" gutterBottom>Videos</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                                <Grid container spacing={2}>
-                                    {exercise.videos.map((vid: string, index: number) => {
-                                        // Simple check to try and embed youtube, otherwise just a link
-                                        const isYoutube = vid.includes('youtube.com/watch') || vid.includes('youtu.be/');
-                                        if (isYoutube) {
-                                            const videoId = vid.includes('youtube.com')
-                                                ? new URL(vid).searchParams.get('v')
-                                                : vid.split('youtu.be/')[1]?.split('?')[0];
-
-                                            return (
-                                                <Grid size={{ xs: 12, sm: 6 }} key={index}>
-                                                    <Box sx={{ position: 'relative', paddingTop: '56.25%', width: '100%', borderRadius: 2, overflow: 'hidden' }}>
-                                                        <iframe
-                                                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-                                                            src={`https://www.youtube.com/embed/${videoId}`}
-                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                            allowFullScreen
-                                                            title={`Video ${index + 1}`}
-                                                        />
-                                                    </Box>
-                                                </Grid>
-                                            );
-                                        }
-                                        return (
-                                            <Grid size={{ xs: 12 }} key={index}>
-                                                <Button href={vid} target="_blank" rel="noopener noreferrer" variant="outlined" sx={{ justifyContent: 'flex-start', textTransform: 'none' }} fullWidth>
-                                                    {vid}
-                                                </Button>
-                                            </Grid>
-                                        );
-                                    })}
-                                </Grid>
-                            </Box>
-                        )}
-
-                        {exercise.resources && exercise.resources.length > 0 && (
-                            <Box mt={4}>
-                                <Typography variant="h5" gutterBottom>Resources</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                                <List disablePadding>
-                                    {exercise.resources.map((res: string, index: number) => (
-                                        <ListItem key={index} disablePadding sx={{ mb: 1 }}>
-                                            <Button href={res} target="_blank" rel="noopener noreferrer" variant="text" sx={{ justifyContent: 'flex-start', textTransform: 'none', textAlign: 'left' }} fullWidth>
-                                                {res}
-                                            </Button>
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            </Box>
-                        )}
-
-                        {connected.length > 0 && (
-                            <Box mt={6}>
-                                <Typography variant="h5" gutterBottom>Connected Exercises</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                                    {connected.map(tech => (
-                                        <Paper
-                                            key={tech.id}
-                                            component={RouterLink}
-                                            to={`/exercises/${tech.id}`}
-                                            variant="outlined"
-                                            sx={{
-                                                px: 2,
-                                                py: 1,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 1,
-                                                textDecoration: 'none',
-                                                color: 'inherit',
-                                                borderRadius: 10,
-                                                transition: '0.2s',
-                                                '&:hover': {
-                                                    borderColor: 'primary.main',
-                                                    bgcolor: 'action.hover',
-                                                    transform: 'translateY(-1px)',
-                                                    boxShadow: 1
-                                                }
-                                            }}
-                                        >
-                                            <Typography variant="body1" fontWeight={600}>
-                                                {tech.name}
-                                            </Typography>
-                                            <Chip
-                                                label={tech.type}
-                                                size="small"
-                                                variant="outlined"
-                                                color="primary"
-                                                sx={{ pointerEvents: 'none' }}
-                                            />
-                                        </Paper>
-                                    ))}
-                                </Box>
-                            </Box>
-                        )}
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>

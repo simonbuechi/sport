@@ -1,34 +1,25 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import type { Exercise, UserProfile, ActivityLog } from '../types';
 
-export const uploadImage = async (file: File, path: string): Promise<string> => {
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
-};
-
-export const deleteImage = async (url: string): Promise<void> => {
-    try {
-        const decodedUrl = decodeURIComponent(url);
-        const startIndex = decodedUrl.indexOf('/o/') + 3;
-        const endIndex = decodedUrl.indexOf('?');
-
-        if (startIndex > 2 && endIndex > startIndex) {
-            const filePath = decodedUrl.substring(startIndex, endIndex);
-            const storageRef = ref(storage, filePath);
-            await deleteObject(storageRef);
-        }
-    } catch (error) {
-        console.error("Error deleting image from storage:", error);
-    }
-};
 
 // Exercises
-export const getExercises = async (): Promise<Exercise[]> => {
-    const querySnapshot = await getDocs(collection(db, 'exercises'));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
+export const getExercises = async (pageSize = 20, lastVisible?: QueryDocumentSnapshot<DocumentData>): Promise<{ exercises: Exercise[], lastVisible: QueryDocumentSnapshot<DocumentData> | null }> => {
+    let q = query(
+        collection(db, 'exercises'),
+        orderBy('name'),
+        limit(pageSize)
+    );
+
+    if (lastVisible) {
+        q = query(q, startAfter(lastVisible));
+    }
+
+    const querySnapshot = await getDocs(q);
+    const exercises = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
+    const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+    
+    return { exercises, lastVisible: lastDoc };
 };
 
 export const getExerciseById = async (id: string): Promise<Exercise | null> => {
@@ -51,17 +42,8 @@ export const updateExercise = async (id: string, data: Partial<Exercise>): Promi
 };
 
 export const deleteExercise = async (id: string): Promise<void> => {
-    const exe = await getExerciseById(id);
     const docRef = doc(db, 'exercises', id);
     await deleteDoc(docRef);
-
-    if (exe && exe.images && exe.images.length > 0) {
-        for (const url of exe.images) {
-            if (url.includes('firebasestorage')) {
-                await deleteImage(url);
-            }
-        }
-    }
 };
 
 // User Profiles

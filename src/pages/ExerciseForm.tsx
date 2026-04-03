@@ -1,34 +1,23 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     Typography, Box, Container, Paper, TextField,
-    Button, CircularProgress, Alert, Grid, MenuItem, Autocomplete
+    Button, CircularProgress, Alert, Grid, MenuItem, Chip
 } from '@mui/material';
-import { PhotoCamera } from '@mui/icons-material';
-import imageCompression from 'browser-image-compression';
-import { getExerciseById, createExercise, updateExercise, uploadImage, deleteImage } from '../services/db';
-import type { Exercise, ExerciseType } from '../types';
-import { useAuth } from '../context/AuthContext';
+import { getExerciseById, createExercise, updateExercise } from '../services/db';
+import type { Exercise, ExerciseType, BodyPart, ExerciseCategory } from '../types';
 import { useExercises } from '../context/ExercisesContext';
 
-const EXERCISE_TYPES: ExerciseType[] = ['strength', 'cardio', 'flexibility', 'mobility', 'other'];
+const EXERCISE_TYPES: ExerciseType[] = ['strength', 'cardio', 'flexibility', 'other'];
+const BODY_PARTS: BodyPart[] = ['Whole Body', 'Legs', 'Back', 'Shoulders', 'Chest', 'Biceps', 'Triceps', 'Core', 'Forearms'];
+const CATEGORIES: ExerciseCategory[] = ['Bodyweight', 'Barbell', 'Dumbbell', 'Machine', 'Cable', 'Kettlebell'];
 
-const isValidUrl = (str: string): boolean => {
-    try {
-        const url = new URL(str);
-        return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-        return false;
-    }
-};
 
 export default function ExerciseForm() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
-    const { exercises: allExercises, loadExercises, refreshExercises } = useExercises();
+    const { loadExercises, refreshExercises } = useExercises();
     const isEditing = Boolean(id);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(isEditing);
     const [submitting, setSubmitting] = useState(false);
@@ -36,32 +25,16 @@ export default function ExerciseForm() {
 
     const [formData, setFormData] = useState<Omit<Exercise, 'id'>>({
         name: '',
+        name_url: '',
         type: 'strength',
+        bodypart: 'Whole Body',
+        category: 'Bodyweight',
         description: '',
-        images: [],
-        videos: [],
-        resources: [],
-        connectedExercises: []
+        icon_url: '',
+        aliases: []
     });
 
-    const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
-    const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
-
-    const [videoInput, setVideoInput] = useState('');
-    const [resourceInput, setResourceInput] = useState('');
-    const [videoInputError, setVideoInputError] = useState('');
-    const [resourceInputError, setResourceInputError] = useState('');
-
-    // Create stable object URLs for image previews and revoke on cleanup
-    const previewUrls = useMemo(() => {
-        return newImageFiles.map(file => URL.createObjectURL(file));
-    }, [newImageFiles]);
-
-    useEffect(() => {
-        return () => {
-            previewUrls.forEach(url => URL.revokeObjectURL(url));
-        };
-    }, [previewUrls]);
+    const [aliasInput, setAliasInput] = useState('');
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -74,12 +47,13 @@ export default function ExerciseForm() {
                     if (tech) {
                         setFormData({
                             name: tech.name,
+                            name_url: tech.name_url || '',
                             type: tech.type,
-                            description: tech.description,
-                            images: tech.images || [],
-                            videos: tech.videos || [],
-                            resources: tech.resources || [],
-                            connectedExercises: tech.connectedExercises || []
+                            bodypart: tech.bodypart || 'Whole Body',
+                            category: tech.category || 'Bodyweight',
+                            description: tech.description || '',
+                            icon_url: tech.icon_url || '',
+                            aliases: tech.aliases || []
                         });
                     } else {
                         setError('Exercise not found');
@@ -100,136 +74,39 @@ export default function ExerciseForm() {
         setFormData({ ...formData, [field]: e.target.value });
     };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            try {
-                const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 2000,
-                    useWebWorker: true,
-                    fileType: 'image/webp' as string, // Force conversion to webp
-                    initialQuality: 0.6
-                };
-
-                const compressedFile = await imageCompression(file, options);
-
-                // Keep the file in state to upload during submit
-                setNewImageFiles(prev => [...prev, compressedFile]);
-
-                // Reset standard file input
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                }
-            } catch (error) {
-                console.error("Error compressing image:", error);
-                setError("Failed to process image.");
-            }
-        }
-    };
-
-    const handleRemoveExistingImage = (indexToRemove: number) => {
-        const urlToRemove = formData.images[indexToRemove];
-        setImagesToRemove(prev => [...prev, urlToRemove]);
-
-        setFormData({
-            ...formData,
-            images: formData.images.filter((_: string, index: number) => index !== indexToRemove)
-        });
-    };
-
-    const handleRemoveNewImage = (indexToRemove: number) => {
-        setNewImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-    };
-
-    const handleAddVideo = () => {
-        const trimmed = videoInput.trim();
+    const handleAddAlias = () => {
+        const trimmed = aliasInput.trim();
         if (!trimmed) return;
-        if (!isValidUrl(trimmed)) {
-            setVideoInputError('Please enter a valid URL (https://...)');
-            return;
-        }
-        if (formData.videos?.includes(trimmed)) {
-            setVideoInputError('This URL has already been added');
+        if (formData.aliases.includes(trimmed)) {
+            setAliasInput('');
             return;
         }
         setFormData({
             ...formData,
-            videos: [...(formData.videos || []), trimmed]
+            aliases: [...formData.aliases, trimmed]
         });
-        setVideoInput('');
-        setVideoInputError('');
+        setAliasInput('');
     };
 
-    const handleRemoveVideo = (indexToRemove: number) => {
+    const handleRemoveAlias = (indexToRemove: number) => {
         setFormData({
             ...formData,
-            videos: formData.videos?.filter((_: string, index: number) => index !== indexToRemove) || []
-        });
-    };
-
-    const handleAddResource = () => {
-        const trimmed = resourceInput.trim();
-        if (!trimmed) return;
-        if (!isValidUrl(trimmed)) {
-            setResourceInputError('Please enter a valid URL (https://...)');
-            return;
-        }
-        if (formData.resources?.includes(trimmed)) {
-            setResourceInputError('This URL has already been added');
-            return;
-        }
-        setFormData({
-            ...formData,
-            resources: [...(formData.resources || []), trimmed]
-        });
-        setResourceInput('');
-        setResourceInputError('');
-    };
-
-    const handleRemoveResource = (indexToRemove: number) => {
-        setFormData({
-            ...formData,
-            resources: formData.resources?.filter((_: string, index: number) => index !== indexToRemove) || []
+            aliases: formData.aliases.filter((_, index) => index !== indexToRemove)
         });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!currentUser) {
-            setError("You must be logged in to save techniques.");
-            return;
-        }
-
         try {
             setSubmitting(true);
             setError('');
 
-            // 1. Delete removed images from storage
-            for (const url of imagesToRemove) {
-                if (url.includes('firebasestorage')) {
-                    await deleteImage(url);
-                }
-            }
-
-            // 2. Upload new images
-            const newImageUrls = [];
-            for (const file of newImageFiles) {
-                // Create a unique filename based on time and user ID
-                const timestamp = new Date().getTime();
-                const path = `exercises/${currentUser.uid}/${timestamp}_${file.name}`;
-                const url = await uploadImage(file, path);
-                newImageUrls.push(url);
-            }
-
-            // 3. Combine existing remaining images with new ones
             const finalData = {
                 ...formData,
-                images: [...formData.images, ...newImageUrls]
             };
 
-            // 4. Save to firestore
+            // Save to firestore
             if (isEditing && id) {
                 await updateExercise(id, finalData);
                 await refreshExercises();
@@ -241,17 +118,13 @@ export default function ExerciseForm() {
             }
         } catch (err) {
             console.error(err);
-            setError(`Failed to ${isEditing ? 'update' : 'create'} technique`);
+            setError(`Failed to ${isEditing ? 'update' : 'create'} exercise`);
         } finally {
             setSubmitting(false);
         }
     };
 
     if (loading) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
-
-    const selectedConnectedExercises = allExercises.filter((t: Exercise) =>
-        formData.connectedExercises.includes(t.id) && t.id !== id
-    );
 
     return (
         <Container maxWidth="md">
@@ -264,7 +137,7 @@ export default function ExerciseForm() {
 
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
-                        <Grid size={{ xs: 12, sm: 8 }}>
+                        <Grid size={{ xs: 12, sm: 12 }}>
                             <TextField
                                 label="Exercise Name"
                                 fullWidth
@@ -273,6 +146,27 @@ export default function ExerciseForm() {
                                 onChange={handleChange('name')}
                             />
                         </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                label="Name URL"
+                                fullWidth
+                                value={formData.name_url}
+                                onChange={handleChange('name_url')}
+                                placeholder="bench-press"
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                label="Icon URL"
+                                fullWidth
+                                value={formData.icon_url}
+                                onChange={handleChange('icon_url')}
+                                placeholder="bench-press.png"
+                            />
+                        </Grid>
+
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 select
@@ -291,162 +185,86 @@ export default function ExerciseForm() {
                             </TextField>
                         </Grid>
 
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                            <TextField
+                                select
+                                label="Body Part"
+                                fullWidth
+                                required
+                                value={formData.bodypart}
+                                onChange={handleChange('bodypart')}
+                            >
+                                {BODY_PARTS.map((bp) => (
+                                    <MenuItem key={bp} value={ bp}>
+                                        {bp}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                            <TextField
+                                select
+                                label="Category"
+                                fullWidth
+                                required
+                                value={formData.category}
+                                onChange={handleChange('category')}
+                            >
+                                {CATEGORIES.map((cat) => (
+                                    <MenuItem key={cat} value={cat}>
+                                        {cat}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+
                         <Grid size={{ xs: 12 }}>
                             <TextField
                                 label="Description"
                                 multiline
-                                rows={6}
+                                rows={4}
                                 fullWidth
-                                required
                                 value={formData.description}
                                 onChange={handleChange('description')}
                             />
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" gutterBottom>Images</Typography>
-                            <Box display="flex" gap={1} mb={2}>
-                                <input
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    id="icon-button-file"
-                                    type="file"
-                                    onChange={handleFileChange}
-                                    ref={fileInputRef}
-                                />
-                                <label htmlFor="icon-button-file">
-                                    <Button
-                                        variant="outlined"
-                                        component="span"
-                                        startIcon={<PhotoCamera />}
-                                    >
-                                        Upload Image
-                                    </Button>
-                                </label>
-                            </Box>
-
-                            {(formData.images.length > 0 || newImageFiles.length > 0) && (
-                                <Box display="flex" flexWrap="wrap" gap={2}>
-                                    {/* Existing Images */}
-                                    {formData.images.map((img: string, index: number) => (
-                                        <Box key={`existing-${img}`} position="relative" width={100} height={100}>
-                                            <img src={img} alt={`Existing ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }} />
-                                            <Button
-                                                size="small"
-                                                color="error"
-                                                variant="contained"
-                                                sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'auto', p: 0.5 }}
-                                                onClick={() => handleRemoveExistingImage(index)}
-                                            >
-                                                X
-                                            </Button>
-                                        </Box>
-                                    ))}
-
-                                    {/* New Images Pending Upload */}
-                                    {newImageFiles.map((file: File, index: number) => (
-                                        <Box key={`new-${file.name}-${file.size}`} position="relative" width={100} height={100}>
-                                            <img src={previewUrls[index]} alt={`New ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4, filter: 'brightness(0.7)' }} />
-                                            <Typography variant="caption" sx={{ position: 'absolute', bottom: 4, left: 4, color: 'white', fontWeight: 600 }}>New</Typography>
-                                            <Button
-                                                size="small"
-                                                color="error"
-                                                variant="contained"
-                                                sx={{ position: 'absolute', top: 0, right: 0, minWidth: 'auto', p: 0.5 }}
-                                                onClick={() => handleRemoveNewImage(index)}
-                                            >
-                                                X
-                                            </Button>
-                                        </Box>
-                                    ))}
-                                </Box>
-                            )}
-                        </Grid>
-
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" gutterBottom>Videos (YouTube)</Typography>
-                            <Box display="flex" gap={1} mb={2}>
+                            <Typography variant="subtitle2" gutterBottom>Aliases</Typography>
+                            <Box display="flex" gap={1} mb={1}>
                                 <TextField
-                                    label="Video URL"
+                                    label="Add Alias"
                                     fullWidth
                                     size="small"
-                                    value={videoInput}
-                                    onChange={(e) => { setVideoInput(e.target.value); setVideoInputError(''); }}
-                                    placeholder="https://youtube.com/watch?v=..."
-                                    error={!!videoInputError}
-                                    helperText={videoInputError}
+                                    value={aliasInput}
+                                    onChange={(e) => setAliasInput(e.target.value)}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddAlias();
+                                        }
+                                    }}
                                 />
-                                <Button variant="outlined" onClick={handleAddVideo}>Add</Button>
+                                <Button variant="outlined" onClick={handleAddAlias}>Add</Button>
                             </Box>
-
-                            {formData.videos && formData.videos.length > 0 && (
-                                <Box display="flex" flexDirection="column" gap={1}>
-                                    {formData.videos.map((vid: string, index: number) => (
-                                        <Box key={index} display="flex" alignItems="center" gap={2}>
-                                            <Typography variant="body2" sx={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{vid}</Typography>
-                                            <Button size="small" color="error" onClick={() => handleRemoveVideo(index)}>Remove</Button>
-                                        </Box>
-                                    ))}
-                                </Box>
-                            )}
-                        </Grid>
-
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" gutterBottom>Other Resources</Typography>
-                            <Box display="flex" gap={1} mb={2}>
-                                <TextField
-                                    label="Resource URL"
-                                    fullWidth
-                                    size="small"
-                                    value={resourceInput}
-                                    onChange={(e) => { setResourceInput(e.target.value); setResourceInputError(''); }}
-                                    placeholder="https://example.com/article"
-                                    error={!!resourceInputError}
-                                    helperText={resourceInputError}
-                                />
-                                <Button variant="outlined" onClick={handleAddResource}>Add</Button>
-                            </Box>
-
-                            {formData.resources && formData.resources.length > 0 && (
-                                <Box display="flex" flexDirection="column" gap={1}>
-                                    {formData.resources.map((res: string, index: number) => (
-                                        <Box key={index} display="flex" alignItems="center" gap={2}>
-                                            <Typography variant="body2" sx={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{res}</Typography>
-                                            <Button size="small" color="error" onClick={() => handleRemoveResource(index)}>Remove</Button>
-                                        </Box>
-                                    ))}
-                                </Box>
-                            )}
-                        </Grid>
-
-                        <Grid size={{ xs: 12 }}>
-                            <Autocomplete
-                                multiple
-                                options={allExercises.filter((t: Exercise) => t.id !== id)} // don't allow connecting to itself
-                                getOptionLabel={(option) => option.name}
-                                value={selectedConnectedExercises}
-                                onChange={(_, newValue: Exercise[]) => {
-                                    setFormData({
-                                        ...formData,
-                                        connectedExercises: newValue.map((t: Exercise) => t.id)
-                                    });
-                                }}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        variant="outlined"
-                                        label="Connected Exercises"
-                                        placeholder="Select techniques..."
+                            <Box display="flex" flexWrap="wrap" gap={1}>
+                                {formData.aliases.map((alias, index) => (
+                                    <Chip 
+                                        key={index} 
+                                        label={alias} 
+                                        onDelete={() => handleRemoveAlias(index)}
+                                        size="small"
                                     />
-                                )}
-                            />
+                                ))}
+                            </Box>
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
                             <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
                                 <Button
                                     variant="outlined"
-                                    onClick={() => navigate(isEditing ? `/exercises/${id}` : '/')}
+                                    onClick={() => navigate(isEditing ? `/exercises/${id}` : '/exercises')}
                                 >
                                     Cancel
                                 </Button>

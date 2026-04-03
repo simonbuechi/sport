@@ -1,14 +1,20 @@
-export type ExerciseType = 'strength' | 'cardio' | 'flexibility' | 'mobility' | 'other';
+export type ExerciseType = 'strength' | 'cardio' | 'flexibility' | 'other';
+
+export type BodyPart = 'Whole Body' | 'Legs' | 'Back' | 'Shoulders' | 'Chest' | 'Biceps' | 'Triceps' | 'Core' | 'Forearms';
+
+export type ExerciseCategory = 'Bodyweight' | 'Barbell' | 'Dumbbell' | 'Machine' | 'Cable' | 'Kettlebell';
 
 export interface Exercise {
     id: string;
+    show?: boolean;
     name: string;
-    description: string;
+    name_url?: string;
+    description?: string;
     type: ExerciseType;
-    images: string[];
-    videos?: string[];
-    resources?: string[];
-    connectedExercises: string[]; // IDs of exercises this can lead to or combine with
+    bodypart: BodyPart;
+    category: ExerciseCategory;
+    icon_url?: string;
+    aliases: string[];
 }
 
 export interface MarkedStatus {

@@ -1,5 +1,4 @@
-import { Card, CardActionArea, CardContent, Typography, Chip, Box, Tooltip } from '@mui/material';
-import { PlayCircleOutline, Link as LinkIcon } from '@mui/icons-material';
+import { Card, CardActionArea, CardContent, Typography, Chip, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import type { Exercise, UserProfile } from '../../types';
 import MarkerIcons from './MarkerIcons';
@@ -18,23 +17,22 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
             <CardActionArea onClick={() => navigate(`/exercises/${exercise.id}`)} sx={{ flexGrow: 1 }}>
                 <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                        <Chip
-                            label={exercise.type}
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                        />
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                            <Chip
+                                label={exercise.type}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ textTransform: 'capitalize' }}
+                            />
+                            <Chip
+                                label={exercise.bodypart}
+                                size="small"
+                                color="secondary"
+                                variant="outlined"
+                            />
+                        </Box>
                         <Box sx={{ display: 'flex', gap: 0.5, color: 'text.secondary' }}>
-                            {exercise.videos && exercise.videos.length > 0 && (
-                                <Tooltip title="Has Video">
-                                    <PlayCircleOutline fontSize="small" />
-                                </Tooltip>
-                            )}
-                            {exercise.resources && exercise.resources.length > 0 && (
-                                <Tooltip title="Has External Link">
-                                    <LinkIcon fontSize="small" />
-                                </Tooltip>
-                            )}
                         </Box>
                     </Box>
 
@@ -44,13 +42,13 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
 
                     <Typography variant="body2" color="text.secondary" sx={{
                         display: '-webkit-box',
-                        WebkitLineClamp: 3,
+                        WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                         flexGrow: 1,
                         mb: 2
                     }}>
-                        {exercise.description}
+                        {exercise.description || `Category: ${exercise.category}`}
                     </Typography>
 
                     {markerStatus && (

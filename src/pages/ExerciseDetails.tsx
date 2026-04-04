@@ -4,7 +4,7 @@ import {
     Typography, Box, CircularProgress, Container,
     Chip, Grid, Paper, Divider, Button, ToggleButton,
     ToggleButtonGroup, List, ListItem, ListItemText,
-    ListItemIcon, Rating, TextField
+    ListItemIcon, Rating, TextField, Avatar
 } from '@mui/material';
 import { Favorite, MenuBook, School, EventNote, ArrowBack, EditNote, Flag, Delete } from '@mui/icons-material';
 import { getExerciseById, getUserProfile, updateUserProfile, getJournalEntries, deleteExercise } from '../services/db';
@@ -162,6 +162,19 @@ const ExerciseDetails = () => {
                                 >
                                     Back to Overview
                                 </Button>
+                                <Avatar 
+                                    src={exercise.icon_url ? 
+                                        `${import.meta.env.BASE_URL}exercises/${exercise.icon_url.replace(/^exercises\//, '').replace(/-icon-128(?=\.\w+$)/, '')}` 
+                                        : undefined}
+                                    alt={exercise.name}
+                                    sx={{ 
+                                        width: 100, 
+                                        height: 100, 
+                                        mb: 2, 
+                                    }}
+                                >
+                                    {exercise.name.charAt(0)}
+                                </Avatar>
                                 <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
                                     {exercise.name}
                                 </Typography>
@@ -194,11 +207,6 @@ const ExerciseDetails = () => {
                                             </Typography>
                                         ))}
                                     </Box>
-                                )}
-                                {exercise.icon_url && (
-                                    <Typography variant="caption" color="text.secondary" display="block">
-                                        Icon: {exercise.icon_url}
-                                    </Typography>
                                 )}
                                 {exercise.name_url && (
                                     <Typography variant="caption" color="text.secondary" display="block">

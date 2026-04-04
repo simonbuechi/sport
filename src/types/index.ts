@@ -61,6 +61,30 @@ export interface UserProfile {
     measurements?: MeasurementEntry[];
 }
 
+export interface ExerciseSet {
+    id: string; // Internal management ID
+    weight?: number;
+    reps?: number;
+    notes?: string;
+}
+
+export interface SessionExercise {
+    exerciseId: string;
+    sets: ExerciseSet[];
+}
+
+export interface TemplateExercise {
+    exerciseId: string;
+    note?: string;
+}
+
+export interface TrainingTemplate {
+    id: string;
+    userId: string;
+    name: string;
+    exercises: TemplateExercise[];
+}
+
 export type SessionType = 'Gym' | 'Run' | 'Cycle' | 'Swim' | 'Yoga' | 'Other';
 
 export interface ActivityLog {
@@ -71,6 +95,8 @@ export interface ActivityLog {
     length?: number; // in minutes
     sessionType?: SessionType;
     intensity?: number; // 1-5
+    maxPulse?: number; // Optional max pulse
     comment: string;
     exerciseIds: string[];
+    exercises?: SessionExercise[]; // New structured data
 }

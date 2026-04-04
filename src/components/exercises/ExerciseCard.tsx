@@ -1,4 +1,4 @@
-import { Card, CardActionArea, CardContent, Typography, Chip, Box } from '@mui/material';
+import { Card, CardActionArea, CardContent, Typography, Chip, Box, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import type { Exercise, UserProfile } from '../../types';
 import MarkerIcons from './MarkerIcons';
@@ -28,7 +28,13 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                             <Chip
                                 label={exercise.bodypart}
                                 size="small"
-                                color="secondary"
+                                color="primary"
+                                variant="outlined"
+                            />
+                            <Chip
+                                label={exercise.category}
+                                size="small"
+                                color="primary"
                                 variant="outlined"
                             />
                         </Box>
@@ -36,9 +42,23 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                         </Box>
                     </Box>
 
-                    <Typography gutterBottom variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                        {exercise.name}
-                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+                        <Avatar 
+                            src={exercise.icon_url ? 
+                                `${import.meta.env.BASE_URL}exercises/${exercise.icon_url.replace(/^exercises\//, '').replace(/-icon-128(?=\.\w+$)/, '')}` 
+                                : undefined}
+                            alt={exercise.name}
+                            sx={{ 
+                                width: 56, 
+                                height: 56, 
+                            }}
+                        >
+                            {exercise.name.charAt(0)}
+                        </Avatar>
+                        <Typography variant="h5" component="div" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                            {exercise.name}
+                        </Typography>
+                    </Box>
 
                     <Typography variant="body2" color="text.secondary" sx={{
                         display: '-webkit-box',

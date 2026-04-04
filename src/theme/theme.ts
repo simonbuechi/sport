@@ -120,5 +120,17 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                 }
             ]
         },
+        MuiAvatar: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                }),
+                img: {
+                    padding: '6px',
+                    objectFit: 'contain',
+                },
+            },
+        },
     },
 });

@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import type { Exercise, UserProfile, ActivityLog } from '../types';
+import type { Exercise, UserProfile, ActivityLog, TrainingTemplate } from '../types';
 
 
 // Exercises
@@ -86,4 +86,28 @@ export const updateJournalEntry = async (userId: string, entryId: string, data: 
 export const deleteJournalEntry = async (userId: string, entryId: string): Promise<void> => {
     const entryRef = doc(db, 'users', userId, 'activities', entryId);
     await deleteDoc(entryRef);
+};
+
+
+// Training Templates
+export const getTemplates = async (userId: string): Promise<TrainingTemplate[]> => {
+    const templatesRef = collection(db, 'users', userId, 'templates');
+    const querySnapshot = await getDocs(templatesRef);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TrainingTemplate));
+};
+
+export const createTemplate = async (userId: string, template: Omit<TrainingTemplate, 'id' | 'userId'>): Promise<string> => {
+    const templatesRef = collection(db, 'users', userId, 'templates');
+    const docRef = await addDoc(templatesRef, { ...template, userId });
+    return docRef.id;
+};
+
+export const updateTemplate = async (userId: string, templateId: string, data: Partial<TrainingTemplate>): Promise<void> => {
+    const templateRef = doc(db, 'users', userId, 'templates', templateId);
+    await updateDoc(templateRef, data);
+};
+
+export const deleteTemplate = async (userId: string, templateId: string): Promise<void> => {
+    const templateRef = doc(db, 'users', userId, 'templates', templateId);
+    await deleteDoc(templateRef);
 };

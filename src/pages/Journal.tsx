@@ -3,13 +3,14 @@ import {
     Typography, Box, Container, Paper, TextField,
     Button, CircularProgress, Alert, Grid, Divider, IconButton,
     List, Chip, Autocomplete, MenuItem, Rating,
-    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
+    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
+    Collapse
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { getJournalEntries, createJournalEntry, updateJournalEntry, deleteJournalEntry } from '../services/db';
-import type { ActivityLog as JournalEntry, Exercise, SessionType } from '../types';
+import type { ActivityLog as JournalEntry, Exercise, SessionType, SessionExercise, ExerciseSet } from '../types';
 
 const SESSION_TYPES: SessionType[] = ['Gym', 'Run', 'Cycle', 'Swim', 'Yoga', 'Other'];
 
@@ -29,7 +30,8 @@ const Journal = () => {
     const [intensity, setIntensity] = useState<number | null>(3);
 
     const [comment, setComment] = useState('');
-    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+    const [maxPulse, setMaxPulse] = useState<number | ''>('');
+    const [sessionExercises, setSessionExercises] = useState<SessionExercise[]>([]);
     const [submitting, setSubmitting] = useState(false);
 
     // Edit and Delete state
@@ -37,6 +39,44 @@ const Journal = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
     const [formDialogOpen, setFormDialogOpen] = useState(false);
+
+    // Exercise management helpers
+    const handleAddExercise = (exercise: Exercise | null) => {
+        if (!exercise) return;
+        if (sessionExercises.find(se => se.exerciseId === exercise.id)) return;
+        setSessionExercises(prev => [...prev, {
+            exerciseId: exercise.id,
+            sets: [{ id: Date.now().toString(), weight: 0, reps: 0 }]
+        }]);
+    };
+
+    const handleRemoveExercise = (exerciseId: string) => {
+        setSessionExercises(prev => prev.filter(se => se.exerciseId !== exerciseId));
+    };
+
+    const handleAddSet = (exerciseId: string) => {
+        setSessionExercises(prev => prev.map(se =>
+            se.exerciseId === exerciseId
+                ? { ...se, sets: [...se.sets, { id: Date.now().toString(), weight: 0, reps: 0 }] }
+                : se
+        ));
+    };
+
+    const handleRemoveSet = (exerciseId: string, setId: string) => {
+        setSessionExercises(prev => prev.map(se =>
+            se.exerciseId === exerciseId
+                ? { ...se, sets: se.sets.filter(s => s.id !== setId) }
+                : se
+        ));
+    };
+
+    const handleUpdateSet = (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => {
+        setSessionExercises(prev => prev.map(se =>
+            se.exerciseId === exerciseId
+                ? { ...se, sets: se.sets.map(s => s.id === setId ? { ...s, ...updates } : s) }
+                : se
+        ));
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -72,9 +112,13 @@ const Journal = () => {
                 length: length || undefined,
                 sessionType,
                 intensity: intensity || undefined,
+                maxPulse: maxPulse || undefined,
                 comment,
-                exerciseIds: selectedExercises.map(t => t.id)
+                exerciseIds: sessionExercises.map(se => se.exerciseId),
+                exercises: sessionExercises
             };
+            
+            console.log('Saving entry:', entryData);
 
             if (editingId) {
                 await updateJournalEntry(currentUser.uid, editingId, entryData);
@@ -104,15 +148,19 @@ const Journal = () => {
         setLength(entry.length || '');
         setSessionType(entry.sessionType || 'Gym');
         setIntensity(entry.intensity || null);
+        setMaxPulse(entry.maxPulse || '');
         setComment(entry.comment || '');
 
-        if (entry.exerciseIds && entry.exerciseIds.length > 0) {
-            const selectedExes = entry.exerciseIds
-                .map((id: string) => allExercises.find((t: Exercise) => t.id === id))
-                .filter((t: Exercise | undefined): t is Exercise => t !== undefined);
-            setSelectedExercises(selectedExes);
+        if (entry.exercises && entry.exercises.length > 0) {
+            setSessionExercises(entry.exercises);
+        } else if (entry.exerciseIds && entry.exerciseIds.length > 0) {
+            // Fallback for legacy entries
+            setSessionExercises(entry.exerciseIds.map(id => ({
+                exerciseId: id,
+                sets: []
+            })));
         } else {
-            setSelectedExercises([]);
+            setSessionExercises([]);
         }
         setFormDialogOpen(true);
     };
@@ -122,10 +170,11 @@ const Journal = () => {
         setDate(new Date().toISOString().split('T')[0]);
         setTime('');
         setComment('');
-        setSelectedExercises([]);
         setLength(60);
         setIntensity(3);
+        setMaxPulse('');
         setSessionType('Gym');
+        setSessionExercises([]);
         setError('');
         setFormDialogOpen(false);
     };
@@ -172,19 +221,25 @@ const Journal = () => {
                     variant="contained"
                     color="primary"
                     onClick={() => {
-                        handleCancelEdit();
-                        setFormDialogOpen(true);
+                        if (formDialogOpen && !editingId) {
+                            setFormDialogOpen(false);
+                        } else {
+                            handleCancelEdit();
+                            setFormDialogOpen(true);
+                        }
                     }}
                 >
-                    Add Session
+                    {formDialogOpen && !editingId ? 'Cancel' : 'Add Session'}
                 </Button>
             </Box>
             <Divider sx={{ mb: 3 }} />
 
-            <Dialog open={formDialogOpen} onClose={handleCancelEdit} maxWidth="sm" fullWidth>
-                <form onSubmit={handleSubmit}>
-                    <DialogTitle>{editingId ? 'Edit Session' : 'Log Session'}</DialogTitle>
-                    <DialogContent dividers>
+            <Collapse in={formDialogOpen}>
+                <Paper variant="outlined" sx={{ mb: 4, p: 3, borderRadius: 2, bgcolor: 'background.paper' }}>
+                    <form onSubmit={handleSubmit}>
+                        <Typography variant="h6" gutterBottom>
+                            {editingId ? 'Edit Session' : 'Log Session'}
+                        </Typography>
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
                         <Box sx={{ mt: 1 }}>
@@ -215,7 +270,7 @@ const Journal = () => {
                             </Grid>
 
                             <Grid container spacing={2} sx={{ mt: 1, mb: 1 }}>
-                                <Grid size={{ xs: 12, sm: 6 }}>
+                                <Grid size={{ xs: 12, sm: 4 }}>
                                     <TextField
                                         select
                                         label="Session Type"
@@ -230,7 +285,7 @@ const Journal = () => {
                                         ))}
                                     </TextField>
                                 </Grid>
-                                <Grid size={{ xs: 12, sm: 6 }}>
+                                <Grid size={{ xs: 12, sm: 4 }}>
                                     <TextField
                                         label="Length (min)"
                                         type="number"
@@ -240,39 +295,119 @@ const Journal = () => {
                                         inputProps={{ min: 0, step: 15 }}
                                     />
                                 </Grid>
+                                <Grid size={{ xs: 12, sm: 4 }}>
+                                    <TextField
+                                        label="Max Pulse"
+                                        type="number"
+                                        fullWidth
+                                        value={maxPulse}
+                                        onChange={(e) => setMaxPulse(e.target.value === '' ? '' : Number(e.target.value))}
+                                        inputProps={{ min: 0 }}
+                                    />
+                                </Grid>
                             </Grid>
 
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Typography component="legend" sx={{ mr: 2 }}>Intensity</Typography>
-                                    <Rating
-                                        name="intensity"
-                                        value={intensity}
-                                        onChange={(_, newValue) => setIntensity(newValue)}
-                                    />
-                                </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, mb: 1 }}>
+                                <Typography component="legend" sx={{ mr: 2 }}>Intensity</Typography>
+                                <Rating
+                                    name="intensity"
+                                    value={intensity}
+                                    onChange={(_, newValue) => setIntensity(newValue)}
+                                />
+                            </Box>
 
-                            <Autocomplete
-                                multiple
-                                options={allExercises}
-                                getOptionLabel={(option) => option.name}
-                                value={selectedExercises}
-                                onChange={(_, newValue) => setSelectedExercises(newValue)}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        variant="outlined"
-                                        label="Exercises Covered"
-                                        placeholder="Search exercises..."
-                                        margin="normal"
-                                    />
-                                )}
-                                sx={{ mb: 2, mt: 1 }}
-                            />
+                            <Box sx={{ mt: 3 }}>
+                                <Typography variant="h6" gutterBottom>Exercises & Sets</Typography>
+                                
+                                <Autocomplete
+                                    options={allExercises.filter(ex => !sessionExercises.find(se => se.exerciseId === ex.id))}
+                                    getOptionLabel={(option) => option.name}
+                                    onChange={(_, newValue) => handleAddExercise(newValue)}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            variant="outlined"
+                                            label="Add Exercise"
+                                            placeholder="Search exercises..."
+                                        />
+                                    )}
+                                    sx={{ mb: 2 }}
+                                    value={null}
+                                />
+
+                                {sessionExercises.map((se) => {
+                                    const exercise = allExercises.find(ex => ex.id === se.exerciseId);
+                                    return (
+                                        <Paper key={se.exerciseId} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
+                                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                                                <Typography variant="subtitle1" fontWeight="bold">
+                                                    {exercise?.name || 'Unknown Exercise'}
+                                                </Typography>
+                                                <IconButton size="small" onClick={() => handleRemoveExercise(se.exerciseId)} color="error">
+                                                    <CloseIcon fontSize="small" />
+                                                </IconButton>
+                                            </Box>
+                                            
+                                            <Box sx={{ pl: 1 }}>
+                                                {se.sets.map((set, index) => (
+                                                    <Grid container spacing={2} key={set.id} alignItems="center" sx={{ mb: 1 }}>
+                                                        <Grid size={{ xs: 1 }}>
+                                                            <Typography variant="body2" color="text.secondary">{index + 1}</Typography>
+                                                        </Grid>
+                                                        <Grid size={{ xs: 11, sm: 3 }}>
+                                                            <TextField
+                                                                label="Weight (kg)"
+                                                                type="number"
+                                                                size="small"
+                                                                fullWidth
+                                                                value={set.weight}
+                                                                onChange={(e) => handleUpdateSet(se.exerciseId, set.id, { weight: Number(e.target.value) })}
+                                                            />
+                                                        </Grid>
+                                                        <Grid size={{ xs: 11, sm: 3 }}>
+                                                            <TextField
+                                                                label="Reps"
+                                                                type="number"
+                                                                size="small"
+                                                                fullWidth
+                                                                value={set.reps}
+                                                                onChange={(e) => handleUpdateSet(se.exerciseId, set.id, { reps: Number(e.target.value) })}
+                                                            />
+                                                        </Grid>
+                                                        <Grid size={{ xs: 11, sm: 4 }}>
+                                                            <TextField
+                                                                label="Notes"
+                                                                size="small"
+                                                                fullWidth
+                                                                value={set.notes || ''}
+                                                                onChange={(e) => handleUpdateSet(se.exerciseId, set.id, { notes: e.target.value })}
+                                                            />
+                                                        </Grid>
+                                                        <Grid size={{ xs: 1 }}>
+                                                            <IconButton size="small" onClick={() => handleRemoveSet(se.exerciseId, set.id)}>
+                                                                <DeleteIcon fontSize="inherit" />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    </Grid>
+                                                ))}
+                                                <Button 
+                                                    startIcon={<AddIcon />} 
+                                                    size="small" 
+                                                    onClick={() => handleAddSet(se.exerciseId)}
+                                                    sx={{ mt: 1 }}
+                                                >
+                                                    Add Set
+                                                </Button>
+                                            </Box>
+                                        </Paper>
+                                    );
+                                })}
+                            </Box>
 
                             <TextField
                                 label="Notes / Comments"
                                 multiline
-                                rows={4}
+                                rows={3}
                                 fullWidth
                                 margin="normal"
                                 value={comment}
@@ -281,17 +416,17 @@ const Journal = () => {
                             />
 
                         </Box>
-                    </DialogContent>
-                    <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={handleCancelEdit} color="secondary" disabled={submitting}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="contained" color="primary" disabled={submitting}>
-                            {submitting ? 'Saving...' : (editingId ? 'Update Entry' : 'Save Entry')}
-                        </Button>
-                    </DialogActions>
-                </form>
-            </Dialog>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                            <Button onClick={handleCancelEdit} color="secondary" disabled={submitting}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" variant="contained" color="primary" disabled={submitting}>
+                                {submitting ? 'Saving...' : (editingId ? 'Update Entry' : 'Save Entry')}
+                            </Button>
+                        </Box>
+                    </form>
+                </Paper>
+            </Collapse>
 
             {/* Journal Entries List */}
             <Box>
@@ -335,14 +470,39 @@ const Journal = () => {
                                             sx={{ '& .MuiChip-icon': { color: 'gold' } }}
                                         />
                                     )}
+                                    {entry.maxPulse && (
+                                        <Chip size="small" label={`Max Pulse: ${entry.maxPulse}`} variant="outlined" color="secondary" />
+                                    )}
                                 </Box>
 
-                                {entry.exerciseIds && entry.exerciseIds.length > 0 && (
-                                    <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-                                        {entry.exerciseIds.map((id: string) => (
-                                            <Chip key={id} label={getExerciseName(id)} size="small" variant="outlined" />
-                                        ))}
+                                {entry.exercises && entry.exercises.length > 0 ? (
+                                    <Box mb={2}>
+                                        {entry.exercises.map((se) => {
+                                            const exercise = allExercises.find(ex => ex.id === se.exerciseId);
+                                            return (
+                                                <Box key={se.exerciseId} sx={{ mb: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                                    <Typography variant="subtitle2" color="primary" fontWeight="bold">
+                                                        {exercise?.name || 'Unknown Exercise'}
+                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+                                                        {se.sets.map((set, idx) => (
+                                                            <Typography key={set.id} variant="caption" sx={{ bgcolor: 'white', px: 1, py: 0.5, borderRadius: 0.5, border: '1px solid', borderColor: 'grey.300' }}>
+                                                                Set {idx + 1}: {set.weight}kg x {set.reps} {set.notes && `(${set.notes})`}
+                                                            </Typography>
+                                                        ))}
+                                                    </Box>
+                                                </Box>
+                                            );
+                                        })}
                                     </Box>
+                                ) : (
+                                    entry.exerciseIds && entry.exerciseIds.length > 0 && (
+                                        <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+                                            {entry.exerciseIds.map((id: string) => (
+                                                <Chip key={id} label={getExerciseName(id)} size="small" variant="outlined" />
+                                            ))}
+                                        </Box>
+                                    )
                                 )}
 
                                 {entry.comment && (

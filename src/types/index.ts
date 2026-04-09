@@ -76,12 +76,16 @@ export interface SessionExercise {
 export interface TemplateExercise {
     exerciseId: string;
     note?: string;
+    sets?: ExerciseSet[];
 }
 
 export interface TrainingTemplate {
     id: string;
     userId: string;
     name: string;
+    notes?: string;
+    isFavorite?: boolean;
+    isArchived?: boolean;
     exercises: TemplateExercise[];
 }
 

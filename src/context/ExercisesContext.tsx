@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
-import { getExercises as fetchExercises } from '../services/db';
+import { getExercises as fetchExercises, getAllExercises } from '../services/db';
 import type { Exercise } from '../types';
 import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
 interface ExercisesContextType {
     exercises: Exercise[];
+    allExercises: Exercise[];
     loading: boolean;
     loadingMore: boolean;
     error: string;
@@ -12,6 +13,7 @@ interface ExercisesContextType {
     loadExercises: () => Promise<void>;
     loadMore: () => Promise<void>;
     refreshExercises: () => Promise<void>;
+    fetchAllExercises: () => Promise<void>;
 }
 
 const ExercisesContext = createContext<ExercisesContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ export const useExercises = () => {
 
 export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const [exercises, setExercises] = useState<Exercise[]>([]);
+    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState('');
@@ -76,23 +79,42 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [hasMore, loadingMore, loading]);
 
+    const fetchAllExercises = useCallback(async () => {
+        if (allExercises.length > 0) return;
+
+        try {
+            setLoading(true);
+            setError('');
+            const data = await getAllExercises();
+            setAllExercises(data);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to fetch all exercises.');
+        } finally {
+            setLoading(false);
+        }
+    }, [allExercises.length]);
+
     const refreshExercises = useCallback(async () => {
         hasFetched.current = false;
         lastVisibleRef.current = null;
         setHasMore(true);
+        setAllExercises([]); // Reset all exercises on refresh
         await loadExercises(true);
     }, [loadExercises]);
 
     return (
         <ExercisesContext.Provider value={{ 
             exercises, 
+            allExercises,
             loading, 
             loadingMore, 
             error, 
             hasMore, 
             loadExercises: () => loadExercises(false), 
             loadMore, 
-            refreshExercises 
+            refreshExercises,
+            fetchAllExercises
         }}>
             {children}
         </ExercisesContext.Provider>

@@ -16,7 +16,7 @@ const SESSION_TYPES: SessionType[] = ['Gym', 'Run', 'Cycle', 'Swim', 'Yoga', 'Ot
 
 const Journal = () => {
     const { currentUser } = useAuth();
-    const { exercises: allExercises, loadExercises } = useExercises();
+    const { allExercises, fetchAllExercises, loading: exercisesLoading } = useExercises();
 
     const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -83,8 +83,8 @@ const Journal = () => {
             if (!currentUser) return;
             try {
                 setLoading(true);
-                // Trigger context load if needed
-                loadExercises();
+                // Trigger context fetch for all exercises
+                await fetchAllExercises();
                 const entriesData = await getJournalEntries(currentUser.uid);
                 setEntries(entriesData);
             } catch (err) {
@@ -96,7 +96,7 @@ const Journal = () => {
         };
 
         fetchData();
-    }, [currentUser, loadExercises]);
+    }, [currentUser, fetchAllExercises]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -209,7 +209,7 @@ const Journal = () => {
         return t ? t.name : 'Unknown Exercise';
     };
 
-    if (loading) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
+    if (loading || (exercisesLoading && allExercises.length === 0)) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
 
     return (
         <Container maxWidth="md">
@@ -486,7 +486,7 @@ const Journal = () => {
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
                                                         {se.sets.map((set, idx) => (
-                                                            <Typography key={set.id} variant="caption" sx={{ bgcolor: 'white', px: 1, py: 0.5, borderRadius: 0.5, border: '1px solid', borderColor: 'grey.300' }}>
+                                                            <Typography key={set.id} variant="body2" sx={{ bgcolor: 'white', px: 1, py: 0.5, borderRadius: 0.5, border: '1px solid', borderColor: 'grey.300' }}>
                                                                 Set {idx + 1}: {set.weight}kg x {set.reps} {set.notes && `(${set.notes})`}
                                                             </Typography>
                                                         ))}

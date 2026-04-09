@@ -8,7 +8,8 @@ import {
 import { Favorite, School, MenuBook, Close, Edit, Logout, Assessment } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile, createUserProfile, getExercises } from '../services/db';
+import { getUserProfile, createUserProfile } from '../services/db';
+import { useExercises } from '../context/ExercisesContext';
 import type { UserProfile, Exercise, WeightEntry, MeasurementEntry } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
 import WeightSection from '../components/profile/WeightSection';
@@ -58,7 +59,7 @@ const Profile = () => {
         setActiveTab(newValue);
     };
 
-    const [allExercises, setAllExercises] = useState<Exercise[]>([]);
+    const { allExercises, fetchAllExercises, loading: exercisesLoading } = useExercises();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -73,12 +74,10 @@ const Profile = () => {
             if (!currentUser) return;
             try {
                 setLoading(true);
-                const [userData, exercisesData] = await Promise.all([
+                const [userData] = await Promise.all([
                     getUserProfile(currentUser.uid),
-                    getExercises()
+                    fetchAllExercises()
                 ]);
-
-                setAllExercises(exercisesData.exercises);
 
                 if (userData) {
                     setProfile(userData);
@@ -98,7 +97,7 @@ const Profile = () => {
         };
 
         fetchData();
-    }, [currentUser]);
+    }, [currentUser, fetchAllExercises]);
 
     const handleChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number | boolean | undefined = event.target.value;
@@ -149,7 +148,7 @@ const Profile = () => {
         setProfile((prev) => ({ ...prev, measurements: newMeasurements }));
     };
 
-    if (loading) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
+    if (loading || (exercisesLoading && allExercises.length === 0)) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
 
     const getMarkedExercises = (statusKey: 'favorite' | 'learning' | 'toLearn') => {
         if (!profile.markedExercises) return [];

@@ -22,6 +22,16 @@ export const getExercises = async (pageSize = 20, lastVisible?: QueryDocumentSna
     return { exercises, lastVisible: lastDoc };
 };
 
+export const getAllExercises = async (): Promise<Exercise[]> => {
+    const q = query(
+        collection(db, 'exercises'),
+        orderBy('name')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
+};
+
+
 export const getExerciseById = async (id: string): Promise<Exercise | null> => {
     const docRef = doc(db, 'exercises', id);
     const docSnap = await getDoc(docRef);

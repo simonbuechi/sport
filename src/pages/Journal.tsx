@@ -102,7 +102,7 @@ const Journal = () => {
             }
         };
 
-        fetchData();
+        void fetchData();
     }, [currentUser, fetchAllExercises]);
 
     const handleTemplateChange = (templateId: string) => {
@@ -113,21 +113,21 @@ const Journal = () => {
         }
 
         const template = templates.find(t => t.id === templateId);
-        if (template && template.exercises) {
+        if (template?.exercises) {
             const mappedExercises: SessionExercise[] = template.exercises.map(te => ({
                 exerciseId: te.exerciseId,
                 sets: te.sets?.map(s => ({
-                    id: Math.random().toString(36).substr(2, 9),
-                    weight: s.weight || 0,
-                    reps: s.reps || 0,
-                    notes: s.notes || ''
-                })) || [{ id: Math.random().toString(36).substr(2, 9), weight: 0, reps: 0 }]
+                    id: Math.random().toString(36).slice(2, 11),
+                    weight: s.weight ?? 0,
+                    reps: s.reps ?? 0,
+                    notes: s.notes ?? ''
+                })) ?? [{ id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }]
             }));
             setSessionExercises(mappedExercises);
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!currentUser) return;
 
@@ -140,7 +140,7 @@ const Journal = () => {
                 time,
                 length: length || undefined,
                 sessionType,
-                intensity: intensity || undefined,
+                intensity: intensity ?? undefined,
                 maxPulse: maxPulse || undefined,
                 comment,
                 exerciseIds: sessionExercises.map(se => se.exerciseId),
@@ -173,16 +173,16 @@ const Journal = () => {
     const handleEditClick = (entry: JournalEntry) => {
         setEditingId(entry.id);
         setDate(entry.date);
-        setTime(entry.time || '');
-        setLength(entry.length || '');
-        setSessionType(entry.sessionType || 'Gym');
-        setIntensity(entry.intensity || null);
-        setMaxPulse(entry.maxPulse || '');
-        setComment(entry.comment || '');
+        setTime(entry.time ?? '');
+        setLength(entry.length ?? '');
+        setSessionType(entry.sessionType ?? 'Gym');
+        setIntensity(entry.intensity ?? null);
+        setMaxPulse(entry.maxPulse ?? '');
+        setComment(entry.comment);
 
         if (entry.exercises && entry.exercises.length > 0) {
             setSessionExercises(entry.exercises);
-        } else if (entry.exerciseIds && entry.exerciseIds.length > 0) {
+        } else if (entry.exerciseIds.length > 0) {
             // Fallback for legacy entries
             setSessionExercises(entry.exerciseIds.map(id => ({
                 exerciseId: id,
@@ -283,7 +283,7 @@ const Journal = () => {
                 slotProps={{
                     paper: {
                         component: 'form',
-                        onSubmit: handleSubmit,
+                        onSubmit: (e: React.SyntheticEvent) => { void handleSubmit(e); },
                     }
                 }}
             >
@@ -301,7 +301,7 @@ const Journal = () => {
                                 fullWidth
                                 margin="normal"
                                 value={date}
-                                onChange={(e) => setDate(e.target.value)}
+                                onChange={(e) => { setDate(e.target.value); }}
                                 required
                                 slotProps={{
                                     inputLabel: { shrink: true }
@@ -315,7 +315,7 @@ const Journal = () => {
                                 fullWidth
                                 margin="normal"
                                 value={time}
-                                onChange={(e) => setTime(e.target.value)}
+                                onChange={(e) => { setTime(e.target.value); }}
                                 slotProps={{
                                     inputLabel: { shrink: true }
                                 }}
@@ -330,7 +330,7 @@ const Journal = () => {
                                 label="Session Type"
                                 fullWidth
                                 value={sessionType}
-                                onChange={(e) => setSessionType(e.target.value as SessionType)}
+                                onChange={(e) => { setSessionType(e.target.value as SessionType); }}
                             >
                                 {SESSION_TYPES.map((type) => (
                                     <MenuItem key={type} value={type}>
@@ -346,7 +346,7 @@ const Journal = () => {
                                     label="Use Template"
                                     fullWidth
                                     value={selectedTemplateId}
-                                    onChange={(e) => handleTemplateChange(e.target.value)}
+                                    onChange={(e) => { handleTemplateChange(e.target.value); }}
                                     helperText="Prepopulates exercises and sets"
                                 >
                                     <MenuItem value=""><em>None</em></MenuItem>
@@ -371,7 +371,7 @@ const Journal = () => {
                                 type="number"
                                 fullWidth
                                 value={length}
-                                onChange={(e) => setLength(e.target.value === '' ? '' : Number(e.target.value))}
+                                onChange={(e) => { setLength(e.target.value === '' ? '' : Number(e.target.value)); }}
                                 slotProps={{
                                     htmlInput: { min: 0, step: 15 }
                                 }}
@@ -383,7 +383,7 @@ const Journal = () => {
                                 type="number"
                                 fullWidth
                                 value={maxPulse}
-                                onChange={(e) => setMaxPulse(e.target.value === '' ? '' : Number(e.target.value))}
+                                onChange={(e) => { setMaxPulse(e.target.value === '' ? '' : Number(e.target.value)); }}
                                 slotProps={{
                                     htmlInput: { min: 0 }
                                 }}
@@ -396,7 +396,7 @@ const Journal = () => {
                         <Rating
                             name="intensity"
                             value={intensity}
-                            onChange={(_, newValue) => setIntensity(newValue)}
+                            onChange={(_, newValue) => { setIntensity(newValue); }}
                         />
                     </Box>
 
@@ -406,7 +406,7 @@ const Journal = () => {
                         <Autocomplete
                             options={allExercises.filter(ex => !sessionExercises.find(se => se.exerciseId === ex.id))}
                             getOptionLabel={(option) => option.name}
-                            onChange={(_, newValue) => handleAddExercise(newValue)}
+                            onChange={(_, newValue) => { handleAddExercise(newValue); }}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -433,9 +433,9 @@ const Journal = () => {
                                         <Typography variant="subtitle1" sx={{
                                             fontWeight: "bold"
                                         }}>
-                                            {exercise?.name || 'Unknown Exercise'}
+                                            {exercise?.name ?? 'Unknown Exercise'}
                                         </Typography>
-                                        <IconButton size="small" onClick={() => handleRemoveExercise(se.exerciseId)} color="error">
+                                        <IconButton size="small" onClick={() => { handleRemoveExercise(se.exerciseId); }} color="error">
                                             <CloseIcon fontSize="small" />
                                         </IconButton>
                                     </Box>
@@ -461,7 +461,7 @@ const Journal = () => {
                                                         size="small"
                                                         fullWidth
                                                         value={set.weight}
-                                                        onChange={(e) => handleUpdateSet(se.exerciseId, set.id, { weight: Number(e.target.value) })}
+                                                        onChange={(e) => { handleUpdateSet(se.exerciseId, set.id, { weight: Number(e.target.value) }); }}
                                                     />
                                                 </Grid>
                                                 <Grid size={{ xs: 11, sm: 3 }}>
@@ -471,7 +471,7 @@ const Journal = () => {
                                                         size="small"
                                                         fullWidth
                                                         value={set.reps}
-                                                        onChange={(e) => handleUpdateSet(se.exerciseId, set.id, { reps: Number(e.target.value) })}
+                                                        onChange={(e) => { handleUpdateSet(se.exerciseId, set.id, { reps: Number(e.target.value) }); }}
                                                     />
                                                 </Grid>
                                                 <Grid size={{ xs: 11, sm: 4 }}>
@@ -479,12 +479,12 @@ const Journal = () => {
                                                         label="Notes"
                                                         size="small"
                                                         fullWidth
-                                                        value={set.notes || ''}
-                                                        onChange={(e) => handleUpdateSet(se.exerciseId, set.id, { notes: e.target.value })}
+                                                        value={set.notes ?? ''}
+                                                        onChange={(e) => { handleUpdateSet(se.exerciseId, set.id, { notes: e.target.value }); }}
                                                     />
                                                 </Grid>
                                                 <Grid size={{ xs: 1 }}>
-                                                    <IconButton size="small" onClick={() => handleRemoveSet(se.exerciseId, set.id)}>
+                                                    <IconButton size="small" onClick={() => { handleRemoveSet(se.exerciseId, set.id); }}>
                                                         <DeleteIcon fontSize="inherit" />
                                                     </IconButton>
                                                 </Grid>
@@ -493,7 +493,7 @@ const Journal = () => {
                                         <Button 
                                             startIcon={<AddIcon />} 
                                             size="small" 
-                                            onClick={() => handleAddSet(se.exerciseId)}
+                                            onClick={() => { handleAddSet(se.exerciseId); }}
                                             sx={{ mt: 1 }}
                                         >
                                             Add Set
@@ -511,7 +511,7 @@ const Journal = () => {
                         fullWidth
                         margin="normal"
                         value={comment}
-                        onChange={(e) => setComment(e.target.value)}
+                        onChange={(e) => { setComment(e.target.value); }}
                         placeholder="What went well? What needs work?"
                     />
                 </DialogContent>
@@ -547,10 +547,10 @@ const Journal = () => {
                                         {entry.time && ` • ${entry.time}`}
                                     </Typography>
                                     <Box>
-                                        <IconButton size="small" onClick={() => handleEditClick(entry)} color="primary">
+                                        <IconButton size="small" onClick={() => { handleEditClick(entry); }} color="primary">
                                             <EditIcon fontSize="small" />
                                         </IconButton>
-                                        <IconButton size="small" onClick={() => handleDeleteClick(entry.id)} color="error">
+                                        <IconButton size="small" onClick={() => { handleDeleteClick(entry.id); }} color="error">
                                             <DeleteIcon fontSize="small" />
                                         </IconButton>
                                     </Box>
@@ -567,7 +567,7 @@ const Journal = () => {
                                         <Chip size="small" label={entry.sessionType} color="primary" variant="outlined" />
                                     )}
                                     {entry.length && (
-                                        <Chip size="small" label={`${entry.length} min`} variant="outlined" />
+                                        <Chip size="small" label={`${String(entry.length)} min`} variant="outlined" />
                                     )}
                                     {entry.intensity && (
                                         <Chip
@@ -579,7 +579,7 @@ const Journal = () => {
                                         />
                                     )}
                                     {entry.maxPulse && (
-                                        <Chip size="small" label={`Max Pulse: ${entry.maxPulse}`} variant="outlined" color="secondary" />
+                                        <Chip size="small" label={`Max Pulse: ${String(entry.maxPulse)}`} variant="outlined" color="secondary" />
                                     )}
                                 </Box>
 
@@ -594,7 +594,7 @@ const Journal = () => {
                                                     <Typography variant="subtitle2" color="primary" sx={{
                                                         fontWeight: "bold"
                                                     }}>
-                                                        {exercise?.name || 'Unknown Exercise'}
+                                                        {exercise?.name ?? 'Unknown Exercise'}
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
                                                         {se.sets.map((set, idx) => (
@@ -608,7 +608,7 @@ const Journal = () => {
                                         })}
                                     </Box>
                                 ) : (
-                                    entry.exerciseIds && entry.exerciseIds.length > 0 && (
+                                    entry.exerciseIds.length > 0 && (
                                         <Box
                                             sx={{
                                                 display: "flex",
@@ -634,7 +634,7 @@ const Journal = () => {
                 )}
             </Box>
             {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+            <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
                 <DialogTitle>Delete Journal Entry</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -642,7 +642,7 @@ const Journal = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
                     <Button onClick={confirmDelete} color="error" variant="contained">
                         Delete
                     </Button>

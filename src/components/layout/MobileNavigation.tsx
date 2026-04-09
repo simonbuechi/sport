@@ -31,10 +31,10 @@ const MobileNavigation = () => {
                 showLabels
                 value={value}
                 onChange={(_, newValue) => {
-                    if (newValue === 0) navigate('/');
-                    else if (newValue === 1) navigate('/exercises');
-                    else if (newValue === 2) navigate('/journal');
-                    else if (newValue === 3) navigate('/profile');
+                    if (newValue === 0) void navigate('/');
+                    else if (newValue === 1) void navigate('/exercises');
+                    else if (newValue === 2) void navigate('/journal');
+                    else if (newValue === 3) void navigate('/profile');
                 }}
             >
                 <BottomNavigationAction label="Home" icon={<Home />} />

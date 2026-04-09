@@ -20,7 +20,7 @@ const OfflineBanner = () => {
                 },
             }}
         >
-            You're offline. Some features may be unavailable.
+            You&apos;re offline. Some features may be unavailable.
         </Alert>
     );
 };

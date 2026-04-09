@@ -53,14 +53,14 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
             }
         };
 
-        fetchTemplates();
+        void fetchTemplates();
     }, [userId]);
 
     const handleOpenDialog = (template?: TrainingTemplate) => {
         if (template) {
             setEditingTemplate(template);
             setName(template.name);
-            setTemplateNotes(template.notes || '');
+            setTemplateNotes(template.notes ?? '');
             setIsFavorite(!!template.isFavorite);
             setIsArchived(!!template.isArchived);
         } else {
@@ -87,7 +87,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
         const template = templates.find(t => t.id === templateId);
         if (!template) return;
 
-        const newExercises = [...(template.exercises || []), { exerciseId: exercise.id, note: '' }];
+        const newExercises = [...template.exercises, { exerciseId: exercise.id, note: '' }];
         try {
             await updateTemplate(userId, templateId, { ...template, exercises: newExercises });
             setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, exercises: newExercises } : t));
@@ -151,8 +151,8 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
             tid,
             exerciseIdx,
             setIdx,
-            weight: existingSet?.weight || 0,
-            reps: existingSet?.reps || 0,
+            weight: existingSet?.weight ?? 0,
+            reps: existingSet?.reps ?? 0,
             count: 1
         });
         setIsSetDialogOpen(true);
@@ -166,7 +166,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
 
         const newExercises = [...template.exercises];
         const exercise = { ...newExercises[exerciseIdx] };
-        const newSets = [...(exercise.sets || [])];
+        const newSets = [...(exercise.sets ?? [])];
 
         if (setIdx !== undefined) {
             // Edit existing set
@@ -175,7 +175,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
             // Add new set(s)
             for (let i = 0; i < count; i++) {
                 newSets.push({
-                    id: Math.random().toString(36).substr(2, 9),
+                    id: Math.random().toString(36).slice(2, 11),
                     weight,
                     reps
                 });
@@ -253,7 +253,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
     };
 
     const getExerciseName = (id: string) => {
-        return allExercises.find(ex => ex.id === id)?.name || 'Unknown Exercise';
+        return allExercises.find(ex => ex.id === id)?.name ?? 'Unknown Exercise';
     };
 
     const sortedTemplates = [...templates].sort((a, b) => {
@@ -279,7 +279,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                 <Typography variant="h5" sx={{
                     fontWeight: 600
                 }}>Training Templates</Typography>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => { handleOpenDialog(); }}>
                     Create Template
                 </Button>
             </Box>
@@ -337,13 +337,13 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                         <Typography variant="body2" sx={{
                                             color: "text.secondary"
                                         }}>
-                                            {template.exercises?.length || 0} exercises
+                                            {template.exercises.length} exercises
                                             {template.notes && ` • ${template.notes}`}
                                         </Typography>
                                     </Box>
-                                    <Box sx={{ mr: 2 }} onClick={(e) => e.stopPropagation()}>
+                                    <Box sx={{ mr: 2 }} onClick={(e) => { e.stopPropagation(); }}>
                                         <Tooltip title="Edit Template">
-                                            <IconButton size="small" onClick={() => handleOpenDialog(template)}>
+                                            <IconButton size="small" onClick={() => { handleOpenDialog(template); }}>
                                                 <EditIcon fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
@@ -352,13 +352,13 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
 
                                 <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
                                     <Box sx={{ mt: 1 }}>
-                                        {template.exercises?.length > 0 ? (
+                                        {template.exercises.length > 0 ? (
                                             <DragDropContext onDragEnd={(result) => handleOnDragEnd(result, template.id)}>
                                                 <Droppable droppableId={template.id}>
                                                     {(provided) => (
                                                         <List {...provided.droppableProps} ref={provided.innerRef} sx={{ p: 0 }}>
                                                             {template.exercises.map((ex, idx) => (
-                                                                <Draggable key={`${template.id}-${idx}`} draggableId={`${template.id}-${idx}`} index={idx}>
+                                                                <Draggable key={`${template.id}-${String(idx)}`} draggableId={`${template.id}-${String(idx)}`} index={idx}>
                                                                     {(provided, snapshot) => (
                                                                         <Box
                                                                             ref={provided.innerRef}
@@ -399,17 +399,16 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                                                                 key={set.id}
                                                                                                 variant="outlined"
                                                                                                 size="small"
-                                                                                                label={`${set.weight}kg x ${set.reps}`}
-                                                                                                onClick={() => handleOpenSetDialog(template.id, idx, sIdx)}
+                                                                                                label={`${String(set.weight)}kg x ${String(set.reps)}`}
+                                                                                                onClick={() => { handleOpenSetDialog(template.id, idx, sIdx); }}
                                                                                                 sx={{ borderRadius: '4px' }}
                                                                                             />
                                                                                         ))}
                                                                                     </Box>
                                                                                 )}
 
-                                                                                {editingNotePath?.tid === template.id && editingNotePath?.idx === idx ? (
+                                                                                {editingNotePath?.tid === template.id && editingNotePath.idx === idx ? (
                                                                                     <TextField
-                                                                                        autoFocus
                                                                                         fullWidth
                                                                                         multiline
                                                                                         rows={2}
@@ -421,7 +420,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                                                 ) : ex.note ? (
                                                                                     <Typography
                                                                                         variant="body2"
-                                                                                        onClick={() => setEditingNotePath({ tid: template.id, idx })}
+                                                                                        onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}
                                                                                         sx={{
                                                                                             color: "text.secondary",
                                                                                             display: "block",
@@ -437,14 +436,14 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                                                 <Button 
                                                                                     size="small" 
                                                                                     startIcon={<AddIcon />} 
-                                                                                    onClick={() => handleOpenSetDialog(template.id, idx)}
+                                                                                    onClick={() => { handleOpenSetDialog(template.id, idx); }}
                                                                                     sx={{ whiteSpace: 'nowrap' }}
                                                                                 >
                                                                                     Set
                                                                                 </Button>
                                                                                 {!ex.note && (
                                                                                     <Tooltip title="Add notes">
-                                                                                        <IconButton size="small" onClick={() => setEditingNotePath({ tid: template.id, idx })}>
+                                                                                        <IconButton size="small" onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}>
                                                                                             <NoteAddIcon fontSize="small" />
                                                                                         </IconButton>
                                                                                     </Tooltip>
@@ -495,13 +494,12 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                             fontWeight: 700
                                                         }}>Search Exercise</Typography>
                                                         <Tooltip title="Close Search">
-                                                            <IconButton size="small" onClick={() => setActiveSearchId(null)}>
+                                                            <IconButton size="small" onClick={() => { setActiveSearchId(null); }}>
                                                                 <CloseIcon fontSize="small" />
                                                             </IconButton>
                                                         </Tooltip>
                                                     </Box>
                                                     <Autocomplete
-                                                        autoFocus
                                                         options={allExercises}
                                                         getOptionLabel={(option) => option.name}
                                                         onChange={(_, newValue) => handleInlineAdd(template.id, newValue)}
@@ -520,7 +518,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                             ) : (
                                                 <Button 
                                                     startIcon={<AddIcon />} 
-                                                    onClick={() => setActiveSearchId(template.id)}
+                                                    onClick={() => { setActiveSearchId(template.id); }}
                                                     variant="text"
                                                     color="primary"
                                                     sx={{ fontWeight: 600 }}
@@ -540,12 +538,11 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                 <DialogTitle>{editingTemplate ? 'Rename Template' : 'Create Template'}</DialogTitle>
                 <DialogContent dividers>
                     <TextField
-                        autoFocus
                         label="Template Name"
                         fullWidth
                         margin="normal"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => { setName(e.target.value); }}
                         placeholder="e.g. Push Day, Leg Routine"
                     />
                     <TextField
@@ -555,16 +552,16 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                         rows={3}
                         margin="normal"
                         value={templateNotes}
-                        onChange={(e) => setTemplateNotes(e.target.value)}
+                        onChange={(e) => { setTemplateNotes(e.target.value); }}
                         placeholder="General notes about this routine..."
                     />
                     <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                         <FormControlLabel
-                            control={<Checkbox checked={isFavorite} onChange={(e) => setIsFavorite(e.target.checked)} color="warning" />}
+                            control={<Checkbox checked={isFavorite} onChange={(e) => { setIsFavorite(e.target.checked); }} color="warning" />}
                             label="Favorite"
                         />
                         <FormControlLabel
-                            control={<Checkbox checked={isArchived} onChange={(e) => setIsArchived(e.target.checked)} />}
+                            control={<Checkbox checked={isArchived} onChange={(e) => { setIsArchived(e.target.checked); }} />}
                             label="Archived"
                         />
                     </Box>
@@ -584,7 +581,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                 </DialogActions>
             </Dialog>
             {/* Set Dialog */}
-            <Dialog open={isSetDialogOpen} onClose={() => setIsSetDialogOpen(false)} maxWidth="xs" fullWidth>
+            <Dialog open={isSetDialogOpen} onClose={() => { setIsSetDialogOpen(false); }} maxWidth="xs" fullWidth>
                 <DialogTitle>{setDialogData?.setIdx !== undefined ? 'Edit Set' : 'Add Set(s)'}</DialogTitle>
                 <DialogContent dividers>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 1 }}>
@@ -592,24 +589,23 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                             label="Weight (kg)"
                             type="number"
                             fullWidth
-                            value={setDialogData?.weight || ''}
-                            onChange={(e) => setSetDialogData(prev => prev ? { ...prev, weight: Number(e.target.value) } : null)}
-                            autoFocus
+                            value={setDialogData?.weight ?? ''}
+                            onChange={(e) => { setSetDialogData(prev => prev ? { ...prev, weight: Number(e.target.value) } : null); }}
                         />
                         <TextField
                             label="Reps"
                             type="number"
                             fullWidth
-                            value={setDialogData?.reps || ''}
-                            onChange={(e) => setSetDialogData(prev => prev ? { ...prev, reps: Number(e.target.value) } : null)}
+                            value={setDialogData?.reps ?? ''}
+                            onChange={(e) => { setSetDialogData(prev => prev ? { ...prev, reps: Number(e.target.value) } : null); }}
                         />
                         {setDialogData?.setIdx === undefined && (
                             <TextField
                                 label="Number of Sets"
                                 type="number"
                                 fullWidth
-                                value={setDialogData?.count || 1}
-                                onChange={(e) => setSetDialogData(prev => prev ? { ...prev, count: Number(e.target.value) } : null)}
+                                value={setDialogData?.count ?? 1}
+                                onChange={(e) => { setSetDialogData(prev => prev ? { ...prev, count: Number(e.target.value) } : null); }}
                                 helperText="Adds this set multiple times"
                             />
                         )}
@@ -617,12 +613,12 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2, bgcolor: 'grey.50', justifyContent: setDialogData?.setIdx !== undefined ? 'space-between' : 'flex-end' }}>
                     {setDialogData?.setIdx !== undefined && (
-                        <Button color="error" startIcon={<DeleteIcon />} onClick={() => handleRemoveSetFromTemplate(setDialogData.tid, setDialogData.exerciseIdx, setDialogData.setIdx!)}>
+                        <Button color="error" startIcon={<DeleteIcon />} onClick={() => { if (setDialogData.setIdx !== undefined) { void handleRemoveSetFromTemplate(setDialogData.tid, setDialogData.exerciseIdx, setDialogData.setIdx); } }}>
                             Delete
                         </Button>
                     )}
                     <Box>
-                        <Button onClick={() => setIsSetDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={() => { setIsSetDialogOpen(false); }}>Cancel</Button>
                         <Button variant="contained" onClick={handleSaveSet} color="primary">
                             {setDialogData?.setIdx !== undefined ? 'Save' : 'Add'}
                         </Button>

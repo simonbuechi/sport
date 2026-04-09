@@ -40,20 +40,20 @@ export default function ExerciseForm() {
         const fetchInitialData = async () => {
             try {
                 // Ensure techniques are loaded in context
-                loadExercises();
+                void loadExercises();
 
                 if (isEditing && id) {
                     const tech = await getExerciseById(id);
                     if (tech) {
                         setFormData({
                             name: tech.name,
-                            name_url: tech.name_url || '',
+                            name_url: tech.name_url ?? '',
                             type: tech.type,
-                            bodypart: tech.bodypart || 'Whole Body',
-                            category: tech.category || 'Bodyweight',
-                            description: tech.description || '',
-                            icon_url: tech.icon_url || '',
-                            aliases: tech.aliases || []
+                            bodypart: tech.bodypart,
+                            category: tech.category,
+                            description: tech.description ?? '',
+                            icon_url: tech.icon_url ?? '',
+                            aliases: tech.aliases
                         });
                     } else {
                         setError('Exercise not found');
@@ -67,7 +67,7 @@ export default function ExerciseForm() {
             }
         };
 
-        fetchInitialData();
+        void fetchInitialData();
     }, [id, isEditing, loadExercises]);
 
     const handleChange = (field: keyof Omit<Exercise, 'id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +95,7 @@ export default function ExerciseForm() {
         });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
 
         try {
@@ -110,11 +110,11 @@ export default function ExerciseForm() {
             if (isEditing && id) {
                 await updateExercise(id, finalData);
                 await refreshExercises();
-                navigate(`/exercises/${id}`);
+                await navigate(`/exercises/${id}`);
             } else {
                 const newId = await createExercise(finalData);
                 await refreshExercises();
-                navigate(`/exercises/${newId}`);
+                await navigate(`/exercises/${newId}`);
             }
         } catch (err) {
             console.error(err);
@@ -250,8 +250,8 @@ export default function ExerciseForm() {
                                     fullWidth
                                     size="small"
                                     value={aliasInput}
-                                    onChange={(e) => setAliasInput(e.target.value)}
-                                    onKeyPress={(e) => {
+                                    onChange={(e) => { setAliasInput(e.target.value); }}
+                                    onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
                                             handleAddAlias();
@@ -270,7 +270,7 @@ export default function ExerciseForm() {
                                     <Chip 
                                         key={index} 
                                         label={alias} 
-                                        onDelete={() => handleRemoveAlias(index)}
+                                        onDelete={() => { handleRemoveAlias(index); }}
                                         size="small"
                                     />
                                 ))}
@@ -287,7 +287,7 @@ export default function ExerciseForm() {
                                 }}>
                                 <Button
                                     variant="outlined"
-                                    onClick={() => navigate(isEditing ? `/exercises/${id}` : '/exercises')}
+                                    onClick={() => { void navigate(isEditing ? `/exercises/${String(id)}` : '/exercises'); }}
                                 >
                                     Cancel
                                 </Button>

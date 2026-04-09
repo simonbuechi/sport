@@ -15,7 +15,7 @@ interface WeightSectionProps {
 }
 
 export default function WeightSection({ profile, onWeightsUpdated }: WeightSectionProps) {
-    const weights = profile.weights || [];
+    const weights = profile.weights ?? [];
     
     // Sort weights by date descending
     const sortedWeights = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -64,7 +64,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
         setIsDeleteOpen(true);
     };
 
-    const handleSave = async (e: React.FormEvent) => {
+    const handleSave = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!profile.uid) return;
         
@@ -104,7 +104,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
             } else {
                 // Add new
                 const nextEntry: WeightEntry = {
-                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+                    id: crypto.randomUUID(),
                     date: formDate,
                     weightKg: numWeight,
                     bodyFatPercent: numBodyFat
@@ -182,7 +182,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                         max: new Date(),
                         tickNumber: 6,
                         valueFormatter: (value) => {
-                            const date = new Date(value);
+                            const date = new Date(value as string | number | Date);
                             return date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
                         }
                     }]}
@@ -219,10 +219,10 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                             display: "flex",
                                             gap: 0.5
                                         }}>
-                                        <IconButton edge="end" aria-label="edit" size="small" onClick={() => handleOpenEdit(weight)}>
+                                        <IconButton edge="end" aria-label="edit" size="small" onClick={() => { handleOpenEdit(weight); }}>
                                             <Edit fontSize="small" />
                                         </IconButton>
-                                        <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => handleOpenDelete(weight)}>
+                                        <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => { handleOpenDelete(weight); }}>
                                             <Delete fontSize="small" />
                                         </IconButton>
                                     </Box>
@@ -232,7 +232,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                     primary={<Typography sx={{
                                         fontWeight: "600"
                                     }}>{weight.weightKg} kg</Typography>}
-                                    secondary={`${new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}${weight.bodyFatPercent ? ` • ${weight.bodyFatPercent}% Body Fat` : ''}`}
+                                    secondary={`${new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}${weight.bodyFatPercent ? ` • ${String(weight.bodyFatPercent)}% Body Fat` : ''}`}
                                 />
                             </ListItem>
                         </Box>
@@ -240,11 +240,11 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                 </List>
             )}
             {/* Add/Edit Dialog */}
-            <Dialog open={isAddEditOpen} onClose={() => !saving && setIsAddEditOpen(false)} maxWidth="xs" fullWidth
+            <Dialog open={isAddEditOpen} onClose={() => { if (!saving) { setIsAddEditOpen(false); } }} maxWidth="xs" fullWidth
                 slotProps={{
                     paper: {
                         component: 'form',
-                        onSubmit: handleSave,
+                        onSubmit: (e: React.SyntheticEvent) => { void handleSave(e); },
                     }
                 }}
             >
@@ -263,7 +263,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 fullWidth
                                 required
                                 value={formDate}
-                                onChange={(e) => setFormDate(e.target.value)}
+                                onChange={(e) => { setFormDate(e.target.value); }}
                                 slotProps={{
                                     inputLabel: { shrink: true }
                                 }}
@@ -274,7 +274,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 fullWidth
                                 required
                                 value={formWeight}
-                                onChange={(e) => setFormWeight(e.target.value)}
+                                onChange={(e) => { setFormWeight(e.target.value); }}
                                 slotProps={{
                                     htmlInput: { min: 20, max: 250, step: 0.1 }
                                 }}
@@ -284,7 +284,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 type="number"
                                 fullWidth
                                 value={formBodyFat}
-                                onChange={(e) => setFormBodyFat(e.target.value)}
+                                onChange={(e) => { setFormBodyFat(e.target.value); }}
                                 placeholder="Optional"
                                 slotProps={{
                                     htmlInput: { min: 0, max: 100, step: 0.1 }
@@ -293,14 +293,14 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                         </Box>
                     </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={() => setIsAddEditOpen(false)} color="inherit" disabled={saving}>Cancel</Button>
+                        <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
                         <Button type="submit" variant="contained" disabled={saving}>
                             {saving ? 'Saving...' : 'Save'}
                         </Button>
                     </DialogActions>
             </Dialog>
             {/* Delete Confirmation Dialog */}
-            <Dialog open={isDeleteOpen} onClose={() => !saving && setIsDeleteOpen(false)} maxWidth="xs" fullWidth>
+            <Dialog open={isDeleteOpen} onClose={() => { if (!saving) { setIsDeleteOpen(false); } }} maxWidth="xs" fullWidth>
                 <DialogTitle>Delete Weight Entry?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -308,7 +308,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setIsDeleteOpen(false)} color="inherit" disabled={saving}>Cancel</Button>
+                    <Button onClick={() => { setIsDeleteOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
                     <Button onClick={handleDelete} color="error" variant="contained" disabled={saving}>
                         {saving ? 'Deleting...' : 'Delete'}
                     </Button>

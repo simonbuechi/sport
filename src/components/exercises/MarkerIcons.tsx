@@ -12,7 +12,7 @@ const MarkerIcons = ({ status, size = 'small', withShadow = false }: MarkerIcons
     const fontSize = size === 'small' ? '1.2rem' : '1.4rem';
     const shadowFilter = withShadow ? 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))' : undefined;
 
-    const hasMarkers = status.favorite || status.learning || status.toLearn;
+    const hasMarkers = (status.favorite ?? false) || (status.learning ?? false) || (status.toLearn ?? false);
     const hasSkill = status.skillLevel !== undefined;
 
     if (!hasMarkers && !hasSkill) return null;
@@ -35,10 +35,10 @@ const MarkerIcons = ({ status, size = 'small', withShadow = false }: MarkerIcons
                 </Tooltip>
             )}
             {hasSkill && (
-                <Tooltip title={`Skill Level: ${status.skillLevel}`}>
+                <Tooltip title={`Skill Level: ${String(status.skillLevel)}`}>
                     <Box sx={{ display: 'flex', alignItems: 'center', ml: hasMarkers ? 0.5 : 0 }}>
                         <Rating
-                            value={status.skillLevel || 0}
+                            value={status.skillLevel ?? 0}
                             readOnly
                             size="small"
                             sx={{

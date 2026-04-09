@@ -16,14 +16,15 @@ const updateExerciseStatus = (
     exerciseId: string,
     statusUpdate: Partial<MarkedStatus>
 ): Record<string, MarkedStatus> => {
-    const currentStatus = profile.markedExercises?.[exerciseId] || {};
+    const currentStatus = profile.markedExercises[exerciseId] ?? {};
     const updatedStatus = { ...currentStatus, ...statusUpdate };
 
     const isEmpty = !updatedStatus.favorite && !updatedStatus.learning && !updatedStatus.toLearn && !updatedStatus.skillLevel && !updatedStatus.notes;
 
-    const updatedMarked = { ...(profile.markedExercises || {}) };
+    const updatedMarked = { ...profile.markedExercises };
     if (isEmpty) {
-        delete updatedMarked[exerciseId];
+        const { [exerciseId]: _, ...rest } = updatedMarked;
+        return rest;
     } else {
         updatedMarked[exerciseId] = updatedStatus;
     }
@@ -62,7 +63,7 @@ const ExerciseDetails = () => {
 
                     const allEntries = await getJournalEntries(currentUser.uid);
                     const exerciseSessions = allEntries.filter((entry: JournalEntry) =>
-                        entry.exerciseIds && entry.exerciseIds.includes(id)
+                        entry.exerciseIds.includes(id)
                     );
                     setSessions(exerciseSessions);
                 }
@@ -74,12 +75,12 @@ const ExerciseDetails = () => {
             }
         };
 
-        fetchData();
+        void fetchData();
     }, [id, currentUser]);
 
     useEffect(() => {
         if (profile && id) {
-            setNotes(profile.markedExercises?.[id]?.notes || '');
+            setNotes(profile.markedExercises[id].notes ?? '');
         }
     }, [id, profile]);
 
@@ -87,7 +88,7 @@ const ExerciseDetails = () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises?.[id]?.[key];
+            const currentValue = profile.markedExercises[id][key];
             const updatedMarked = updateExerciseStatus(profile, id, { [key]: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -102,7 +103,7 @@ const ExerciseDetails = () => {
 
         try {
             const updatedMarked = updateExerciseStatus(profile, id, {
-                skillLevel: newValue === null ? undefined : newValue
+                skillLevel: newValue ?? undefined
             });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -114,7 +115,7 @@ const ExerciseDetails = () => {
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises?.[id]?.notes || '';
+        const currentNotes = profile.markedExercises[id].notes ?? '';
         if (notes === currentNotes) return;
 
         try {
@@ -134,7 +135,7 @@ const ExerciseDetails = () => {
 
         try {
             await deleteExercise(id);
-            navigate('/exercises');
+            await navigate('/exercises');
         } catch (err) {
             console.error("Failed to delete exercise", err);
             setError('Failed to delete exercise');
@@ -149,7 +150,7 @@ const ExerciseDetails = () => {
         }}>{error || 'Not found'}</Typography></Container>
     );
 
-    const currentStatus = profile?.markedExercises?.[exercise.id] || {};
+    const currentStatus = profile?.markedExercises[exercise.id] ?? {};
 
     return (
         <Container maxWidth="lg">
@@ -209,7 +210,7 @@ const ExerciseDetails = () => {
                                         size="small"
                                     />
                                 </Box>
-                                {exercise.aliases && exercise.aliases.length > 0 && (
+                                {exercise.aliases.length > 0 && (
                                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                                         {exercise.aliases.map((alias, index) => (
                                             <Typography
@@ -263,7 +264,7 @@ const ExerciseDetails = () => {
 
                         <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Description</Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
-                            {exercise.description || 'No description available.'}
+                            {exercise.description ?? 'No description available.'}
                         </Typography>
 
                     </Grid>
@@ -394,7 +395,7 @@ const ExerciseDetails = () => {
                                             <Typography variant="subtitle2">My Skill Level</Typography>
                                             <Rating
                                                 name="exercise-skill-level"
-                                                value={currentStatus.skillLevel || 0}
+                                                value={currentStatus.skillLevel ?? 0}
                                                 onChange={handleRatingChange}
                                                 size="medium"
                                             />
@@ -430,7 +431,7 @@ const ExerciseDetails = () => {
                                         fullWidth
                                         placeholder="Add your personal notes and details about this exercise..."
                                         value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
+                                        onChange={(e) => { setNotes(e.target.value); }}
                                         onBlur={handleSaveNotes}
                                         variant="outlined"
                                         size="small"
@@ -466,8 +467,8 @@ const ExerciseDetails = () => {
                                                     primary={new Date(session.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                                     secondary={
                                                         <>
-                                                            {session.sessionType || 'Training Session'}
-                                                            {session.length ? ` • ${session.length} min` : ''}
+                                                            {session.sessionType ?? 'Training Session'}
+                                                            {session.length ? ` • ${String(session.length)} min` : ''}
                                                         </>
                                                     }
                                                     slotProps={{

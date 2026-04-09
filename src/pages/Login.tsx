@@ -14,14 +14,14 @@ const Login = () => {
     const navigate = useNavigate();
     const { googleSignIn } = useAuth();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         try {
             setError('');
             setLoading(true);
             await persistenceReady;
             await signInWithEmailAndPassword(auth, email, password);
-            navigate('/');
+            await navigate('/');
         } catch (err) {
             setError('Failed to log in');
             console.error(err);
@@ -35,7 +35,7 @@ const Login = () => {
             setError('');
             setLoading(true);
             await googleSignIn();
-            navigate('/');
+            await navigate('/');
         } catch (err) {
             setError('Failed to log in with Google');
             console.error(err);
@@ -59,7 +59,7 @@ const Login = () => {
                         margin="normal"
                         required
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => { setEmail(e.target.value); }}
                     />
                     <TextField
                         label="Password"
@@ -68,7 +68,7 @@ const Login = () => {
                         margin="normal"
                         required
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => { setPassword(e.target.value); }}
                     />
                     <Button
                         type="submit"

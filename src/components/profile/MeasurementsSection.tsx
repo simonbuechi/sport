@@ -14,7 +14,7 @@ interface MeasurementsSectionProps {
 }
 
 export default function MeasurementsSection({ profile, onMeasurementsUpdated }: MeasurementsSectionProps) {
-    const measurements = profile.measurements || [];
+    const measurements = profile.measurements ?? [];
     
     const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -57,7 +57,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
         setFormData(prev => ({ ...prev, [field]: numValue }));
     };
 
-    const handleSave = async (e: React.FormEvent) => {
+    const handleSave = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!profile.uid) return;
         
@@ -81,7 +81,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
             } else {
                 const nextEntry: MeasurementEntry = {
                     ...newEntry,
-                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString()
+                    id: crypto.randomUUID()
                 } as MeasurementEntry;
                 const cleaned = Object.fromEntries(
                     Object.entries(nextEntry).filter(([_, v]) => v !== undefined)
@@ -121,9 +121,9 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
     // Helper to format displayed measurements overview
     const getMeasurementSummary = (entry: MeasurementEntry) => {
         const parts = [];
-        if (entry.waist) parts.push(`Waist: ${entry.waist}`);
-        if (entry.hips) parts.push(`Hips: ${entry.hips}`);
-        if (entry.chest) parts.push(`Chest: ${entry.chest}`);
+        if (entry.waist) parts.push(`Waist: ${String(entry.waist)}`);
+        if (entry.hips) parts.push(`Hips: ${String(entry.hips)}`);
+        if (entry.chest) parts.push(`Chest: ${String(entry.chest)}`);
         return parts.length > 0 ? parts.join(' | ') + (Object.keys(entry).length > 4 ? '...' : '') : 'Empty entry';
     };
 
@@ -177,10 +177,10 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                                             display: "flex",
                                             gap: 0.5
                                         }}>
-                                        <IconButton edge="end" aria-label="edit" size="small" onClick={() => handleOpenEdit(entry)}>
+                                        <IconButton edge="end" aria-label="edit" size="small" onClick={() => { handleOpenEdit(entry); }}>
                                             <Edit fontSize="small" />
                                         </IconButton>
-                                        <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => handleOpenDelete(entry)}>
+                                        <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => { handleOpenDelete(entry); }}>
                                             <Delete fontSize="small" />
                                         </IconButton>
                                     </Box>
@@ -198,11 +198,11 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                 </List>
             )}
             {/* Add/Edit Dialog */}
-            <Dialog open={isAddEditOpen} onClose={() => !saving && setIsAddEditOpen(false)} maxWidth="sm" fullWidth
+            <Dialog open={isAddEditOpen} onClose={() => { if (!saving) { setIsAddEditOpen(false); } }} maxWidth="sm" fullWidth
                 slotProps={{
                     paper: {
                         component: 'form',
-                        onSubmit: handleSave,
+                        onSubmit: (e: React.SyntheticEvent) => { void handleSave(e); },
                     }
                 }}
             >
@@ -216,7 +216,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                                     fullWidth
                                     required
                                     value={formDate}
-                                    onChange={(e) => setFormDate(e.target.value)}
+                                    onChange={(e) => { setFormDate(e.target.value); }}
                                     slotProps={{
                                         inputLabel: { shrink: true }
                                     }}
@@ -225,59 +225,59 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                             
                             {/* Core body */}
                             <Grid size={{ xs: 6, sm: 4 }}>
-                                <TextField label="Chest" type="number" fullWidth value={formData.chest || ''} onChange={(e) => handleFieldChange('chest', e.target.value)} />
+                                <TextField label="Chest" type="number" fullWidth value={formData.chest ?? ''} onChange={(e) => { handleFieldChange('chest', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6, sm: 4 }}>
-                                <TextField label="Shoulders" type="number" fullWidth value={formData.shoulders || ''} onChange={(e) => handleFieldChange('shoulders', e.target.value)} />
+                                <TextField label="Shoulders" type="number" fullWidth value={formData.shoulders ?? ''} onChange={(e) => { handleFieldChange('shoulders', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6, sm: 4 }}>
-                                <TextField label="Neck" type="number" fullWidth value={formData.neck || ''} onChange={(e) => handleFieldChange('neck', e.target.value)} />
+                                <TextField label="Neck" type="number" fullWidth value={formData.neck ?? ''} onChange={(e) => { handleFieldChange('neck', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Waist" type="number" fullWidth value={formData.waist || ''} onChange={(e) => handleFieldChange('waist', e.target.value)} />
+                                <TextField label="Waist" type="number" fullWidth value={formData.waist ?? ''} onChange={(e) => { handleFieldChange('waist', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Hips" type="number" fullWidth value={formData.hips || ''} onChange={(e) => handleFieldChange('hips', e.target.value)} />
+                                <TextField label="Hips" type="number" fullWidth value={formData.hips ?? ''} onChange={(e) => { handleFieldChange('hips', e.target.value); }} />
                             </Grid>
                             
                             {/* Arms */}
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Left Bicep" type="number" fullWidth value={formData.leftBicep || ''} onChange={(e) => handleFieldChange('leftBicep', e.target.value)} />
+                                <TextField label="Left Bicep" type="number" fullWidth value={formData.leftBicep ?? ''} onChange={(e) => { handleFieldChange('leftBicep', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Right Bicep" type="number" fullWidth value={formData.rightBicep || ''} onChange={(e) => handleFieldChange('rightBicep', e.target.value)} />
+                                <TextField label="Right Bicep" type="number" fullWidth value={formData.rightBicep ?? ''} onChange={(e) => { handleFieldChange('rightBicep', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Left Forearm" type="number" fullWidth value={formData.leftForearm || ''} onChange={(e) => handleFieldChange('leftForearm', e.target.value)} />
+                                <TextField label="Left Forearm" type="number" fullWidth value={formData.leftForearm ?? ''} onChange={(e) => { handleFieldChange('leftForearm', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Right Forearm" type="number" fullWidth value={formData.rightForearm || ''} onChange={(e) => handleFieldChange('rightForearm', e.target.value)} />
+                                <TextField label="Right Forearm" type="number" fullWidth value={formData.rightForearm ?? ''} onChange={(e) => { handleFieldChange('rightForearm', e.target.value); }} />
                             </Grid>
                             
                             {/* Legs */}
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Left Thigh" type="number" fullWidth value={formData.leftThigh || ''} onChange={(e) => handleFieldChange('leftThigh', e.target.value)} />
+                                <TextField label="Left Thigh" type="number" fullWidth value={formData.leftThigh ?? ''} onChange={(e) => { handleFieldChange('leftThigh', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Right Thigh" type="number" fullWidth value={formData.rightThigh || ''} onChange={(e) => handleFieldChange('rightThigh', e.target.value)} />
+                                <TextField label="Right Thigh" type="number" fullWidth value={formData.rightThigh ?? ''} onChange={(e) => { handleFieldChange('rightThigh', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Left Calf" type="number" fullWidth value={formData.leftCalf || ''} onChange={(e) => handleFieldChange('leftCalf', e.target.value)} />
+                                <TextField label="Left Calf" type="number" fullWidth value={formData.leftCalf ?? ''} onChange={(e) => { handleFieldChange('leftCalf', e.target.value); }} />
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <TextField label="Right Calf" type="number" fullWidth value={formData.rightCalf || ''} onChange={(e) => handleFieldChange('rightCalf', e.target.value)} />
+                                <TextField label="Right Calf" type="number" fullWidth value={formData.rightCalf ?? ''} onChange={(e) => { handleFieldChange('rightCalf', e.target.value); }} />
                             </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={() => setIsAddEditOpen(false)} color="inherit" disabled={saving}>Cancel</Button>
+                        <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
                         <Button type="submit" variant="contained" disabled={saving}>
                             {saving ? 'Saving...' : 'Save'}
                         </Button>
                     </DialogActions>
             </Dialog>
             {/* Delete Confirmation Dialog */}
-            <Dialog open={isDeleteOpen} onClose={() => !saving && setIsDeleteOpen(false)} maxWidth="xs" fullWidth>
+            <Dialog open={isDeleteOpen} onClose={() => { if (!saving) { setIsDeleteOpen(false); } }} maxWidth="xs" fullWidth>
                 <DialogTitle>Delete Measurements?</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -285,7 +285,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setIsDeleteOpen(false)} color="inherit" disabled={saving}>Cancel</Button>
+                    <Button onClick={() => { setIsDeleteOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
                     <Button onClick={handleDelete} color="error" variant="contained" disabled={saving}>
                         {saving ? 'Deleting...' : 'Delete'}
                     </Button>

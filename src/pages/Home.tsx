@@ -50,7 +50,7 @@ const Home = () => {
             }
         };
 
-        fetchDashboardData();
+        void fetchDashboardData();
     }, [currentUser]);
 
     if (!currentUser) {
@@ -115,7 +115,7 @@ const Home = () => {
                     <Card elevation={3} sx={{ height: '100%', borderRadius: 2 }}>
                         <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: { xs: 2.5, sm: 4 }, height: '100%' }}>
                             <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '2.5rem', md: '3rem' } }}>
-                                {sessionsCount !== null ? sessionsCount : '-'}
+                                {sessionsCount ?? '-'}
                             </Typography>
                             <Typography
                                 variant="h6"
@@ -147,7 +147,7 @@ const Home = () => {
                     <Card elevation={3} sx={{ height: '100%', borderRadius: 2 }}>
                         <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: { xs: 2.5, sm: 4 }, height: '100%' }}>
                             <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '2.5rem', md: '3rem' } }}>
-                                {favoriteCount !== null ? favoriteCount : '-'}
+                                {favoriteCount ?? '-'}
                             </Typography>
                             <Typography
                                 variant="h6"

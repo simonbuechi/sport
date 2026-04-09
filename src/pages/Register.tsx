@@ -15,11 +15,11 @@ const Register = () => {
     const navigate = useNavigate();
     const { googleSignIn } = useAuth();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
 
         if (password !== passwordConfirm) {
-            return setError('Passwords do not match');
+            setError('Passwords do not match'); return;
         }
 
         try {
@@ -27,7 +27,7 @@ const Register = () => {
             setLoading(true);
             await persistenceReady;
             await createUserWithEmailAndPassword(auth, email, password);
-            navigate('/');
+            await navigate('/');
         } catch (err) {
             setError('Failed to create an account');
             console.error(err);
@@ -41,7 +41,7 @@ const Register = () => {
             setError('');
             setLoading(true);
             await googleSignIn();
-            navigate('/');
+            await navigate('/');
         } catch (err) {
             setError('Failed to sign up with Google');
             console.error(err);
@@ -65,7 +65,7 @@ const Register = () => {
                         margin="normal"
                         required
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => { setEmail(e.target.value); }}
                     />
                     <TextField
                         label="Password"
@@ -74,7 +74,7 @@ const Register = () => {
                         margin="normal"
                         required
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => { setPassword(e.target.value); }}
                     />
                     <TextField
                         label="Confirm Password"
@@ -83,7 +83,7 @@ const Register = () => {
                         margin="normal"
                         required
                         value={passwordConfirm}
-                        onChange={(e) => setPasswordConfirm(e.target.value)}
+                        onChange={(e) => { setPasswordConfirm(e.target.value); }}
                     />
                     <Button
                         type="submit"

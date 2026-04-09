@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
 import { getExercises as fetchExercises, getAllExercises } from '../services/db';
 import type { Exercise } from '../types';
-import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import type { QueryDocumentSnapshot } from 'firebase/firestore';
 
 interface ExercisesContextType {
     exercises: Exercise[];
@@ -34,7 +34,7 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState('');
     const [hasMore, setHasMore] = useState(true);
-    const lastVisibleRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const lastVisibleRef = useRef<QueryDocumentSnapshot | null>(null);
     const hasFetched = useRef(false);
 
     const PAGE_SIZE = 20;
@@ -66,7 +66,7 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
         try {
             setLoadingMore(true);
             setError('');
-            const result = await fetchExercises(PAGE_SIZE, lastVisibleRef.current || undefined);
+            const result = await fetchExercises(PAGE_SIZE, lastVisibleRef.current ?? undefined);
             
             setExercises(prev => [...prev, ...result.exercises]);
             lastVisibleRef.current = result.lastVisible;

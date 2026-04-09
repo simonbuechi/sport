@@ -29,8 +29,8 @@ function CustomTabPanel(props: TabPanelProps) {
         <div
             role="tabpanel"
             hidden={value !== index}
-            id={`profile-tabpanel-${index}`}
-            aria-labelledby={`profile-tab-${index}`}
+            id={`profile-tabpanel-${String(index)}`}
+            aria-labelledby={`profile-tab-${String(index)}`}
             {...other}
         >
             {value === index && (
@@ -85,7 +85,7 @@ const Profile = () => {
                     // If no profile exists, set the name to email prefix or display name as default
                     setProfile(prev => ({
                         ...prev,
-                        name: currentUser.displayName || currentUser.email?.split('@')[0] || ''
+                        name: currentUser.displayName ?? currentUser.email?.split('@')[0] ?? ''
                     }));
                 }
             } catch (err) {
@@ -96,7 +96,7 @@ const Profile = () => {
             }
         };
 
-        fetchData();
+        void fetchData();
     }, [currentUser, fetchAllExercises]);
 
     const handleChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,13 +112,13 @@ const Profile = () => {
     const handleLogout = async () => {
         try {
             await logout();
-            navigate('/login');
+            await navigate('/login');
         } catch (error) {
             console.error("Failed to log out", error);
         }
     };
 
-    const handleSave = async (e: React.FormEvent) => {
+    const handleSave = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!currentUser) return;
 
@@ -128,7 +128,7 @@ const Profile = () => {
             setMessage('');
 
             // Use setDoc with merge (createUserProfile) unconditionally — no extra read needed
-            await createUserProfile(currentUser.uid, profile as Partial<UserProfile>);
+            await createUserProfile(currentUser.uid, profile);
 
             setMessage('Profile updated successfully');
             setIsEditDialogOpen(false);
@@ -206,21 +206,21 @@ const Profile = () => {
                                 <Grid size={{ xs: 12 }}>
                                     <Typography variant="h5" sx={{
                                         fontWeight: 600
-                                    }}>{profile.name || 'Anonymous Athlete'}</Typography>
+                                    }}>{profile.name ?? 'Anonymous Athlete'}</Typography>
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <Typography variant="subtitle2" sx={{
                                         color: "text.secondary"
                                     }}>Birth Year</Typography>
-                                    <Typography variant="body1">{profile.birthYear || 'Not specified'}</Typography>
+                                    <Typography variant="body1">{profile.birthYear ?? 'Not specified'}</Typography>
                                 </Grid>
                                 
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <Typography variant="subtitle2" sx={{
                                         color: "text.secondary"
                                     }}>Height</Typography>
-                                    <Typography variant="body1">{profile.height ? `${profile.height} cm` : 'Not specified'}</Typography>
+                                    <Typography variant="body1">{profile.height ? `${String(profile.height)} cm` : 'Not specified'}</Typography>
                                 </Grid>
 
                                 {profile.notes && (
@@ -271,7 +271,7 @@ const Profile = () => {
                                             <Button
                                                 variant="contained"
                                                 startIcon={<Edit />}
-                                                onClick={() => setIsEditDialogOpen(true)}
+                                                onClick={() => { setIsEditDialogOpen(true); }}
                                                 sx={{ minWidth: 150 }}
                                             >
                                                 Edit Profile
@@ -298,21 +298,21 @@ const Profile = () => {
                                 title="Favorites"
                                 techniques={favoriteTechs}
                                 expanded={favoritesExpanded}
-                                onToggle={() => setFavoritesExpanded(!favoritesExpanded)}
+                                onToggle={() => { setFavoritesExpanded(!favoritesExpanded); }}
                             />
                             <ExerciseListSection
                                 icon={<School color="primary" sx={{ mr: 1 }} />}
                                 title="Currently Learning"
                                 techniques={learningTechs}
                                 expanded={learningExpanded}
-                                onToggle={() => setLearningExpanded(!learningExpanded)}
+                                onToggle={() => { setLearningExpanded(!learningExpanded); }}
                             />
                             <ExerciseListSection
                                 icon={<MenuBook color="primary" sx={{ mr: 1 }} />}
                                 title="To Learn"
                                 techniques={toLearnTechs}
                                 expanded={toLearnExpanded}
-                                onToggle={() => setToLearnExpanded(!toLearnExpanded)}
+                                onToggle={() => { setToLearnExpanded(!toLearnExpanded); }}
                             />
                         </Box>
                     </Grid>
@@ -359,7 +359,7 @@ const Profile = () => {
             </CustomTabPanel>
             <Dialog
                 open={isEditDialogOpen}
-                onClose={() => setIsEditDialogOpen(false)}
+                onClose={() => { setIsEditDialogOpen(false); }}
                 maxWidth="sm"
                 fullWidth
                 slotProps={{
@@ -372,7 +372,7 @@ const Profile = () => {
                     Edit Profile
                     <IconButton
                         aria-label="close"
-                        onClick={() => setIsEditDialogOpen(false)}
+                        onClick={() => { setIsEditDialogOpen(false); }}
                         sx={{
                             position: 'absolute',
                             right: 16,
@@ -390,7 +390,7 @@ const Profile = () => {
                                 <TextField
                                     label="Name"
                                     fullWidth
-                                    value={profile.name || ''}
+                                    value={profile.name ?? ''}
                                     onChange={handleChange('name')}
                                     required
                                 />
@@ -400,7 +400,7 @@ const Profile = () => {
                                     label="Birth Year"
                                     type="number"
                                     fullWidth
-                                    value={profile.birthYear || ''}
+                                    value={profile.birthYear ?? ''}
                                     onChange={handleChange('birthYear')}
                                     slotProps={{
                                         htmlInput: { min: 1900, max: new Date().getFullYear() }
@@ -412,7 +412,7 @@ const Profile = () => {
                                     label="Height (cm)"
                                     type="number"
                                     fullWidth
-                                    value={profile.height || ''}
+                                    value={profile.height ?? ''}
                                     onChange={handleChange('height')}
                                     slotProps={{
                                         htmlInput: { min: 50, max: 250 }
@@ -425,7 +425,7 @@ const Profile = () => {
                                     multiline
                                     rows={4}
                                     fullWidth
-                                    value={profile.notes || ''}
+                                    value={profile.notes ?? ''}
                                     onChange={handleChange('notes')}
                                     placeholder="Keep track of your overall fitness goals, notes, or general thoughts..."
                                 />
@@ -433,7 +433,7 @@ const Profile = () => {
                         </Grid>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, py: 2 }}>
-                        <Button onClick={() => setIsEditDialogOpen(false)} color="inherit" sx={{ fontWeight: 600 }}>
+                        <Button onClick={() => { setIsEditDialogOpen(false); }} color="inherit" sx={{ fontWeight: 600 }}>
                             Cancel
                         </Button>
                         <Button

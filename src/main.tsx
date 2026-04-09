@@ -6,7 +6,10 @@ import App from './App.tsx';
 import '@fontsource/poppins/400.css';
 import '@fontsource/poppins/600.css';
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+
+createRoot(rootElement).render(
   <StrictMode>
     <CustomThemeProvider>
       <App />

@@ -20,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 // Set persistence and export the promise so consumers can await it
-export const persistenceReady = setPersistence(auth, browserLocalPersistence).catch((error) => {
+export const persistenceReady = setPersistence(auth, browserLocalPersistence).catch((error: unknown) => {
     console.error("Failed to set auth persistence:", error);
 });
 

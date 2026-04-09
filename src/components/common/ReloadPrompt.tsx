@@ -20,7 +20,7 @@ const ReloadPrompt = () => {
     }, []);
 
     const handleUpdate = () => {
-        updateSWRef.current?.(true);
+        void updateSWRef.current?.(true);
     };
 
     const handleClose = () => {

@@ -1,10 +1,10 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, limit, startAfter, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, ActivityLog, TrainingTemplate } from '../types';
 
 
 // Exercises
-export const getExercises = async (pageSize = 20, lastVisible?: QueryDocumentSnapshot<DocumentData>): Promise<{ exercises: Exercise[], lastVisible: QueryDocumentSnapshot<DocumentData> | null }> => {
+export const getExercises = async (pageSize = 20, lastVisible?: QueryDocumentSnapshot): Promise<{ exercises: Exercise[], lastVisible: QueryDocumentSnapshot | null }> => {
     let q = query(
         collection(db, 'exercises'),
         orderBy('name'),

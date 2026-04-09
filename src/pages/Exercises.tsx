@@ -27,7 +27,7 @@ const Exercises = () => {
         
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
-                loadMore();
+                void loadMore();
             }
         });
         
@@ -53,7 +53,7 @@ const Exercises = () => {
     }, [exercises, filter, bodypartFilter, categoryFilter, searchTerm]);
 
     useEffect(() => {
-        loadExercises();
+        void loadExercises();
     }, [loadExercises]);
 
     useEffect(() => {
@@ -67,7 +67,7 @@ const Exercises = () => {
             }
         };
 
-        fetchProfile();
+        void fetchProfile();
     }, [currentUser]);
 
     const loading = exercisesLoading && exercises.length === 0;
@@ -155,7 +155,7 @@ const Exercises = () => {
                         variant="outlined"
                         placeholder="Search exercises..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setSearchTerm(e.target.value); }}
                         sx={{ 
                             bgcolor: 'background.paper', 
                             borderRadius: 2,
@@ -186,7 +186,7 @@ const Exercises = () => {
                                 id="type-filter"
                                 value={filter}
                                 label="Type"
-                                onChange={(e) => setFilter(e.target.value as ExerciseType | 'all')}
+                                onChange={(e) => { setFilter(e.target.value as ExerciseType | 'all'); }}
                                 sx={{ textTransform: 'capitalize' }}
                             >
                                 <MenuItem value="all">All Types</MenuItem>
@@ -204,7 +204,7 @@ const Exercises = () => {
                                 id="bodypart-filter"
                                 value={bodypartFilter}
                                 label="Body Part"
-                                onChange={(e) => setBodypartFilter(e.target.value as BodyPart | 'all')}
+                                onChange={(e) => { setBodypartFilter(e.target.value as BodyPart | 'all'); }}
                             >
                                 <MenuItem value="all">All Body Parts</MenuItem>
                                 <MenuItem value="Whole Body">Whole Body</MenuItem>
@@ -226,7 +226,7 @@ const Exercises = () => {
                                 id="category-filter"
                                 value={categoryFilter}
                                 label="Category"
-                                onChange={(e) => setCategoryFilter(e.target.value as ExerciseCategory | 'all')}
+                                onChange={(e) => { setCategoryFilter(e.target.value as ExerciseCategory | 'all'); }}
                             >
                                 <MenuItem value="all">All Categories</MenuItem>
                                 <MenuItem value="Bodyweight">Bodyweight</MenuItem>
@@ -315,7 +315,7 @@ const Exercises = () => {
                                                 color="primary"
                                                 variant="outlined"
                                             />
-                                            {profile?.markedExercises?.[exercise.id] && (
+                                            {profile?.markedExercises[exercise.id] && (
                                                 <Box sx={{ ml: 1 }}>
                                                     <MarkerIcons status={profile.markedExercises[exercise.id]} />
                                                 </Box>
@@ -342,7 +342,7 @@ const Exercises = () => {
                         color: "text.secondary",
                         my: 4
                     }}>
-                    You've reached the end of the list.
+                    You&apos;ve reached the end of the list.
                 </Typography>
             )}
         </Container>

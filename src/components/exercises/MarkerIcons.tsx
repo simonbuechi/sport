@@ -1,5 +1,10 @@
-import { Box, Tooltip, Rating } from '@mui/material';
-import { Favorite, School, MenuBook } from '@mui/icons-material';
+import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
+import Rating from '@mui/material/Rating';
+
+import Favorite from '@mui/icons-material/Favorite';
+import School from '@mui/icons-material/School';
+import MenuBook from '@mui/icons-material/MenuBook';
 import type { MarkedStatus } from '../../types';
 
 interface MarkerIconsProps {

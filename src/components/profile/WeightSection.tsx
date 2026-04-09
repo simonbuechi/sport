@@ -1,10 +1,24 @@
 import { useState } from 'react';
-import {
-    Box, Typography, Paper, Button, List, ListItem, ListItemText,
-    Dialog, DialogTitle, DialogContent, DialogActions, TextField,
-    IconButton, Divider, DialogContentText
-} from '@mui/material';
-import { Edit, Delete, Add, MonitorWeight } from '@mui/icons-material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
+import DialogContentText from '@mui/material/DialogContentText';
+
+import Edit from '@mui/icons-material/Edit';
+import Delete from '@mui/icons-material/Delete';
+import Add from '@mui/icons-material/Add';
+import MonitorWeight from '@mui/icons-material/MonitorWeight';
 import { LineChart } from '@mui/x-charts/LineChart';
 import type { UserProfile, WeightEntry } from '../../types';
 import { updateUserProfile } from '../../services/db';

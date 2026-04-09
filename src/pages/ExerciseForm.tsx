@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-    Typography, Box, Container, Paper, TextField,
-    Button, CircularProgress, Alert, Grid, MenuItem, Chip
-} from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import Chip from '@mui/material/Chip';
 import { getExerciseById, createExercise, updateExercise } from '../services/db';
 import type { Exercise, ExerciseType, BodyPart, ExerciseCategory } from '../types';
 import { useExercises } from '../context/ExercisesContext';

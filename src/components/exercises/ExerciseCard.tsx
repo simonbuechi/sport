@@ -1,4 +1,10 @@
-import { Card, CardActionArea, CardContent, Typography, Chip, Box, Avatar } from '@mui/material';
+import Card from '@mui/material/Card';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
 import { useNavigate } from 'react-router-dom';
 import type { Exercise, UserProfile } from '../../types';
 import MarkerIcons from './MarkerIcons';

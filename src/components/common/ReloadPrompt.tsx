@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Snackbar, Button, IconButton } from '@mui/material';
+import Snackbar from '@mui/material/Snackbar';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { registerSW } from 'virtual:pwa-register';
 

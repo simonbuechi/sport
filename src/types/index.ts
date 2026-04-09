@@ -59,6 +59,7 @@ export interface UserProfile {
     markedExercises: Record<string, MarkedStatus>; // exerciseId -> status
     weights?: WeightEntry[];
     measurements?: MeasurementEntry[];
+    dashboardWidgets?: string[];
 }
 
 export interface ExerciseSet {

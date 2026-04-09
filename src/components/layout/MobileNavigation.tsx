@@ -1,5 +1,11 @@
-import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
-import { Home, LibraryBooks, Book, Person } from '@mui/icons-material';
+import BottomNavigation from '@mui/material/BottomNavigation';
+import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import Paper from '@mui/material/Paper';
+
+import Home from '@mui/icons-material/Home';
+import LibraryBooks from '@mui/icons-material/LibraryBooks';
+import Book from '@mui/icons-material/Book';
+import Person from '@mui/icons-material/Person';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const MobileNavigation = () => {

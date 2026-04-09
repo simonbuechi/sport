@@ -1,11 +1,30 @@
 import { useState, useEffect } from 'react';
-import {
-    Typography, Box, Container, Paper, TextField,
-    Button, CircularProgress, Alert, Grid, Divider, IconButton,
-    List, Chip, Autocomplete, MenuItem, Rating,
-    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
-} from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import Chip from '@mui/material/Chip';
+import Autocomplete from '@mui/material/Autocomplete';
+import MenuItem from '@mui/material/MenuItem';
+import Rating from '@mui/material/Rating';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { getJournalEntries, createJournalEntry, updateJournalEntry, deleteJournalEntry, getTemplates } from '../services/db';
@@ -25,7 +44,7 @@ const Journal = () => {
 
     // New entry form state
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [time, setTime] = useState(new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
+    const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
     const [length, setLength] = useState<number | ''>(60);
     const [sessionType, setSessionType] = useState<SessionType>('Gym');
     const [intensity, setIntensity] = useState<number | null>(3);
@@ -135,19 +154,26 @@ const Journal = () => {
             setSubmitting(true);
             setError('');
 
+            // Filter out empty sets or exercises with no sets if necessary
+            // For now, keep as is but focus on field mapping
+            const filteredExercises = sessionExercises.map(se => ({
+                ...se,
+                sets: se.sets.filter(s => s.weight !== undefined && s.reps !== undefined)
+            }));
+
             const entryData: Omit<JournalEntry, 'id' | 'userId'> = {
                 date,
-                time,
-                length: length || undefined,
+                time: time || undefined,
+                length: Number(length) || undefined,
                 sessionType,
                 intensity: intensity ?? undefined,
-                maxPulse: maxPulse || undefined,
-                comment,
-                exerciseIds: sessionExercises.map(se => se.exerciseId),
-                exercises: sessionExercises
+                maxPulse: Number(maxPulse) || undefined,
+                comment: comment.trim(),
+                exerciseIds: filteredExercises.map(se => se.exerciseId),
+                exercises: filteredExercises
             };
             
-            console.log('Saving entry:', entryData);
+            console.log('Submitting Journal Entry:', JSON.stringify(entryData, null, 2));
 
             if (editingId) {
                 await updateJournalEntry(currentUser.uid, editingId, entryData);
@@ -159,12 +185,12 @@ const Journal = () => {
                 setEntries(prev => [{ id: newId, userId: currentUser.uid, ...entryData }, ...prev]);
             }
 
-            // Reset form
+            // Reset form and close
             handleCancelEdit();
 
         } catch (err) {
-            console.error(err);
-            setError(editingId ? 'Failed to update journal entry' : 'Failed to save journal entry');
+            console.error('Error during journal submission:', err);
+            setError(editingId ? `Failed to update session: ${err instanceof Error ? err.message : String(err)}` : `Failed to save session: ${err instanceof Error ? err.message : String(err)}`);
         } finally {
             setSubmitting(false);
         }
@@ -197,7 +223,7 @@ const Journal = () => {
     const handleCancelEdit = () => {
         setEditingId(null);
         setDate(new Date().toISOString().split('T')[0]);
-        setTime(new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }));
+        setTime(new Date().toTimeString().slice(0, 5));
         setComment('');
         setLength(60);
         setIntensity(3);

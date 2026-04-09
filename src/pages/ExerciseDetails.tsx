@@ -1,12 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import {
-    Typography, Box, CircularProgress, Container,
-    Chip, Grid, Paper, Divider, Button, ToggleButton,
-    ToggleButtonGroup, List, ListItem, ListItemText,
-    ListItemIcon, Rating, TextField, Avatar
-} from '@mui/material';
-import { Favorite, MenuBook, School, EventNote, ArrowBack, EditNote, Flag, Delete } from '@mui/icons-material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import Container from '@mui/material/Container';
+import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Rating from '@mui/material/Rating';
+import TextField from '@mui/material/TextField';
+import Avatar from '@mui/material/Avatar';
+
+import Favorite from '@mui/icons-material/Favorite';
+import MenuBook from '@mui/icons-material/MenuBook';
+import School from '@mui/icons-material/School';
+import EventNote from '@mui/icons-material/EventNote';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import EditNote from '@mui/icons-material/EditNote';
+import Flag from '@mui/icons-material/Flag';
+import Delete from '@mui/icons-material/Delete';
 import { getExerciseById, getUserProfile, updateUserProfile, getJournalEntries, deleteExercise } from '../services/db';
 import type { Exercise, UserProfile, MarkedStatus, ActivityLog as JournalEntry } from '../types';
 import { useAuth } from '../context/AuthContext';

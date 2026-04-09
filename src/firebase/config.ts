@@ -30,7 +30,8 @@ export const googleProvider = new GoogleAuthProvider();
 let dbInstance;
 try {
     dbInstance = initializeFirestore(app, {
-        localCache: persistentLocalCache()
+        localCache: persistentLocalCache(),
+        ignoreUndefinedProperties: true
     }, 'default');
 } catch {
     // If already initialized (common in HMR), use existing instance

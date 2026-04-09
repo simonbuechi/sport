@@ -1,5 +1,14 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Tooltip } from '@mui/material';
-import { Brightness4, Brightness7, Logout as LogoutIcon } from '@mui/icons-material';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+
+import Brightness4 from '@mui/icons-material/Brightness4';
+import Brightness7 from '@mui/icons-material/Brightness7';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';

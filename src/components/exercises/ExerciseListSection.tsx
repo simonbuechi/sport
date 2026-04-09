@@ -1,5 +1,15 @@
-import { Typography, Box, Paper, List, ListItem, Chip, IconButton, Collapse, Divider } from '@mui/material';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import Collapse from '@mui/material/Collapse';
+import Divider from '@mui/material/Divider';
+
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import { Link as RouterLink } from 'react-router-dom';
 import type { Exercise } from '../../types';
 import type { ReactNode } from 'react';

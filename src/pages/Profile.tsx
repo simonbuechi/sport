@@ -1,11 +1,31 @@
 import { useState, useEffect } from 'react';
-import {
-    Typography, Box, Container, Paper, TextField,
-    Button, CircularProgress, Alert, Grid,
-    Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
-    Tabs, Tab
-} from '@mui/material';
-import { Favorite, School, MenuBook, Close, Edit, Logout, Assessment } from '@mui/icons-material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+
+import Favorite from '@mui/icons-material/Favorite';
+import School from '@mui/icons-material/School';
+import MenuBook from '@mui/icons-material/MenuBook';
+import Close from '@mui/icons-material/Close';
+import Edit from '@mui/icons-material/Edit';
+import Logout from '@mui/icons-material/Logout';
+import Assessment from '@mui/icons-material/Assessment';
+import Person from '@mui/icons-material/Person';
+import Description from '@mui/icons-material/Description';
+import AccessibilityNew from '@mui/icons-material/AccessibilityNew';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, createUserProfile } from '../services/db';
@@ -171,17 +191,55 @@ const Profile = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 3 }}>
-                <Tabs 
-                    value={activeTab} 
-                    onChange={handleTabChange} 
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 1.5 }}>
+                <Tabs
+                    value={activeTab}
+                    onChange={handleTabChange}
                     variant="fullWidth"
                     aria-label="profile tabs"
+                    indicatorColor="primary"
+                    textColor="primary"
                 >
-                    <Tab label="Profile" sx={{ fontWeight: 600 }} />
-                    <Tab label="Templates" sx={{ fontWeight: 600 }} />
-                    <Tab label="Progress" sx={{ fontWeight: 600 }} />
-                    <Tab label="Body" sx={{ fontWeight: 600 }} />
+                    <Tab 
+                        icon={<Person />} 
+                        iconPosition="start" 
+                        label="Profile" 
+                        sx={{ 
+                            fontWeight: 600,
+                            minHeight: 48,
+                            textTransform: 'none',
+                        }} 
+                    />
+                    <Tab 
+                        icon={<Description />} 
+                        iconPosition="start" 
+                        label="Templates" 
+                        sx={{ 
+                            fontWeight: 600,
+                            minHeight: 48,
+                            textTransform: 'none',
+                        }} 
+                    />
+                    <Tab 
+                        icon={<Assessment />} 
+                        iconPosition="start" 
+                        label="Progress" 
+                        sx={{ 
+                            fontWeight: 600,
+                            minHeight: 48,
+                            textTransform: 'none',
+                        }} 
+                    />
+                    <Tab 
+                        icon={<AccessibilityNew />} 
+                        iconPosition="start" 
+                        label="Body" 
+                        sx={{ 
+                            fontWeight: 600,
+                            minHeight: 48,
+                            textTransform: 'none',
+                        }} 
+                    />
                 </Tabs>
             </Box>
             {error && <Alert severity="error" sx={{ mt: 3, mb: 0 }}>{error}</Alert>}

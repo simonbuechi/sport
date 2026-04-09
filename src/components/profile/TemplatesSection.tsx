@@ -1,12 +1,33 @@
 import { useState, useEffect } from 'react';
-import {
-    Typography, Box, Button, Grid, TextField,
-    Dialog, DialogTitle, DialogContent, DialogActions,
-    IconButton, List, Autocomplete, Chip, Tooltip,
-    Accordion, AccordionSummary, AccordionDetails,
-    Checkbox, FormControlLabel
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Close as CloseIcon, Search as SearchIcon, DragIndicator as DragIcon, ExpandMore as ExpandMoreIcon, NoteAdd as NoteAddIcon, Star as StarIcon } from '@mui/icons-material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
+import DragIcon from '@mui/icons-material/DragIndicator';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import StarIcon from '@mui/icons-material/Star';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../../services/db';

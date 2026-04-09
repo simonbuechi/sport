@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { Typography, Box, TextField, Button, Paper, Alert } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Alert from '@mui/material/Alert';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, persistenceReady } from '../firebase/config';
 import GoogleIcon from '@mui/icons-material/Google';

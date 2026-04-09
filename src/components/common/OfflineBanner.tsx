@@ -1,4 +1,4 @@
-import { Alert } from '@mui/material';
+import Alert from '@mui/material/Alert';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 

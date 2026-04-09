@@ -148,7 +148,14 @@ const Profile = () => {
         setProfile((prev) => ({ ...prev, measurements: newMeasurements }));
     };
 
-    if (loading || (exercisesLoading && allExercises.length === 0)) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
+    if (loading || (exercisesLoading && allExercises.length === 0)) return (
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: 8
+            }}><CircularProgress /></Box>
+    );
 
     const getMarkedExercises = (statusKey: 'favorite' | 'learning' | 'toLearn') => {
         if (!profile.markedExercises) return [];
@@ -177,15 +184,19 @@ const Profile = () => {
                     <Tab label="Body" sx={{ fontWeight: 600 }} />
                 </Tabs>
             </Box>
-
             {error && <Alert severity="error" sx={{ mt: 3, mb: 0 }}>{error}</Alert>}
             {message && <Alert severity="success" sx={{ mt: 3, mb: 0 }}>{message}</Alert>}
-
             <CustomTabPanel value={activeTab} index={0}>
                 <Grid container spacing={4}>
                     <Grid size={{ xs: 12, md: 7 }}>
                         <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}>
-                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    mb: 4
+                                }}>
                                 <Typography variant="h4" component="h1">
                                     Your profile
                                 </Typography>
@@ -193,22 +204,33 @@ const Profile = () => {
 
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12 }}>
-                                    <Typography variant="h5" fontWeight={600}>{profile.name || 'Anonymous Athlete'}</Typography>
+                                    <Typography variant="h5" sx={{
+                                        fontWeight: 600
+                                    }}>{profile.name || 'Anonymous Athlete'}</Typography>
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Typography variant="subtitle2" color="text.secondary">Birth Year</Typography>
+                                    <Typography variant="subtitle2" sx={{
+                                        color: "text.secondary"
+                                    }}>Birth Year</Typography>
                                     <Typography variant="body1">{profile.birthYear || 'Not specified'}</Typography>
                                 </Grid>
                                 
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Typography variant="subtitle2" color="text.secondary">Height</Typography>
+                                    <Typography variant="subtitle2" sx={{
+                                        color: "text.secondary"
+                                    }}>Height</Typography>
                                     <Typography variant="body1">{profile.height ? `${profile.height} cm` : 'Not specified'}</Typography>
                                 </Grid>
 
                                 {profile.notes && (
                                     <Grid size={{ xs: 12 }}>
-                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Notes & Journey</Typography>
+                                        <Typography
+                                            variant="subtitle2"
+                                            sx={{
+                                                color: "text.secondary",
+                                                mb: 1
+                                            }}>Notes & Journey</Typography>
                                         <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
                                             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                                                 {profile.notes}
@@ -220,13 +242,17 @@ const Profile = () => {
                                 {currentUser && (
                                     <>
                                         <Grid size={{ xs: 12, sm: 6 }}>
-                                            <Typography variant="subtitle2" color="text.secondary">Member Since</Typography>
+                                            <Typography variant="subtitle2" sx={{
+                                                color: "text.secondary"
+                                            }}>Member Since</Typography>
                                             <Typography variant="body1">
                                                 {currentUser.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
                                             </Typography>
                                         </Grid>
                                         <Grid size={{ xs: 12, sm: 6 }}>
-                                            <Typography variant="subtitle2" color="text.secondary">Last Login</Typography>
+                                            <Typography variant="subtitle2" sx={{
+                                                color: "text.secondary"
+                                            }}>Last Login</Typography>
                                             <Typography variant="body1">
                                                 {currentUser.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
                                             </Typography>
@@ -236,7 +262,12 @@ const Profile = () => {
 
                                 {currentUser && (
                                     <Grid size={{ xs: 12 }}>
-                                        <Box mt={4} display="flex" gap={2}>
+                                        <Box
+                                            sx={{
+                                                mt: 4,
+                                                display: "flex",
+                                                gap: 2
+                                            }}>
                                             <Button
                                                 variant="contained"
                                                 startIcon={<Edit />}
@@ -287,7 +318,6 @@ const Profile = () => {
                     </Grid>
                 </Grid>
             </CustomTabPanel>
-
             <CustomTabPanel value={activeTab} index={1}>
                 {currentUser && (
                     <TemplatesSection 
@@ -296,17 +326,19 @@ const Profile = () => {
                     />
                 )}
             </CustomTabPanel>
-
             <CustomTabPanel value={activeTab} index={2}>
                 <Paper elevation={3} sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
                     <Assessment sx={{ fontSize: 64, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
-                    <Typography variant="h5" color="text.secondary">Progress Tracking</Typography>
-                    <Typography variant="body1" color="text.secondary">
+                    <Typography variant="h5" sx={{
+                        color: "text.secondary"
+                    }}>Progress Tracking</Typography>
+                    <Typography variant="body1" sx={{
+                        color: "text.secondary"
+                    }}>
                         Coming soon! Your workout analytics and progress charts will appear here.
                     </Typography>
                 </Paper>
             </CustomTabPanel>
-
             <CustomTabPanel value={activeTab} index={3}>
                 {currentUser && (
                     <Grid container spacing={3}>
@@ -325,14 +357,15 @@ const Profile = () => {
                     </Grid>
                 )}
             </CustomTabPanel>
-
             <Dialog
                 open={isEditDialogOpen}
                 onClose={() => setIsEditDialogOpen(false)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{
-                    sx: { borderRadius: 3 }
+                slotProps={{
+                    paper: {
+                        sx: { borderRadius: 3 }
+                    }
                 }}
             >
                 <DialogTitle sx={{ pb: 1 }}>
@@ -369,7 +402,9 @@ const Profile = () => {
                                     fullWidth
                                     value={profile.birthYear || ''}
                                     onChange={handleChange('birthYear')}
-                                    inputProps={{ min: 1900, max: new Date().getFullYear() }}
+                                    slotProps={{
+                                        htmlInput: { min: 1900, max: new Date().getFullYear() }
+                                    }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
@@ -379,7 +414,9 @@ const Profile = () => {
                                     fullWidth
                                     value={profile.height || ''}
                                     onChange={handleChange('height')}
-                                    inputProps={{ min: 50, max: 250 }}
+                                    slotProps={{
+                                        htmlInput: { min: 50, max: 250 }
+                                    }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12 }}>

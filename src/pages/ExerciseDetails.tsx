@@ -143,7 +143,11 @@ const ExerciseDetails = () => {
 
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;
-    if (error || !exercise) return <Container><Typography color="error" mt={4}>{error || 'Not found'}</Typography></Container>;
+    if (error || !exercise) return (
+        <Container><Typography color="error" sx={{
+            mt: 4
+        }}>{error || 'Not found'}</Typography></Container>
+    );
 
     const currentStatus = profile?.markedExercises?.[exercise.id] || {};
 
@@ -152,7 +156,13 @@ const ExerciseDetails = () => {
             <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', borderRadius: 2 }}>
                 <Grid container spacing={4}>
                     <Grid size={{ xs: 12, md: 8 }}>
-                        <Box mb={2} display="flex" justifyContent="space-between" alignItems="flex-start">
+                        <Box
+                            sx={{
+                                mb: 2,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start"
+                            }}>
                             <Box>
                                 <Button
                                     component={RouterLink}
@@ -202,14 +212,25 @@ const ExerciseDetails = () => {
                                 {exercise.aliases && exercise.aliases.length > 0 && (
                                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                                         {exercise.aliases.map((alias, index) => (
-                                            <Typography key={index} variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                            <Typography
+                                                key={index}
+                                                variant="caption"
+                                                sx={{
+                                                    color: "text.secondary",
+                                                    fontStyle: 'italic'
+                                                }}>
                                                 {alias}{index < exercise.aliases.length - 1 ? ', ' : ''}
                                             </Typography>
                                         ))}
                                     </Box>
                                 )}
                                 {exercise.name_url && (
-                                    <Typography variant="caption" color="text.secondary" display="block">
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            color: "text.secondary",
+                                            display: "block"
+                                        }}>
                                         URL Name: {exercise.name_url}
                                     </Typography>
                                 )}
@@ -255,7 +276,12 @@ const ExerciseDetails = () => {
 
                                 {!currentUser ? (
                                     <Box>
-                                        <Typography variant="body2" color="text.secondary" mb={2}>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: "text.secondary",
+                                                mb: 2
+                                            }}>
                                             Log in to mark this exercise and track your progress.
                                         </Typography>
                                         <Button variant="outlined" fullWidth component={RouterLink} to="/login">
@@ -263,7 +289,12 @@ const ExerciseDetails = () => {
                                         </Button>
                                     </Box>
                                 ) : (
-                                    <Box display="flex" flexDirection="column" gap={2}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 2
+                                        }}>
                                         <ToggleButtonGroup
                                             orientation="vertical"
                                             fullWidth
@@ -352,7 +383,14 @@ const ExerciseDetails = () => {
                                             </ToggleButton>
                                         </ToggleButtonGroup>
 
-                                        <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 2, mb: 1 }}>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                mt: 2,
+                                                mb: 1
+                                            }}>
                                             <Typography variant="subtitle2">My Skill Level</Typography>
                                             <Rating
                                                 name="exercise-skill-level"
@@ -367,8 +405,19 @@ const ExerciseDetails = () => {
 
                             {currentUser && (
                                 <Paper variant="outlined" sx={{ p: 3 }}>
-                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                                        <Box display="flex" alignItems="center" gap={1}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            mb: 1
+                                        }}>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 1
+                                            }}>
                                             <EditNote color="primary" />
                                             <Typography variant="h6">My Notes</Typography>
                                         </Box>
@@ -391,7 +440,13 @@ const ExerciseDetails = () => {
                                             }
                                         }}
                                     />
-                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            color: "text.secondary",
+                                            mt: 1,
+                                            display: 'block'
+                                        }}>
                                         Notes are private to you and save automatically.
                                     </Typography>
                                 </Paper>
@@ -415,7 +470,9 @@ const ExerciseDetails = () => {
                                                             {session.length ? ` • ${session.length} min` : ''}
                                                         </>
                                                     }
-                                                    secondaryTypographyProps={{ variant: 'caption', display: 'block' }}
+                                                    slotProps={{
+                                                        secondary: { variant: 'caption', sx: { display: 'block' } }
+                                                    }}
                                                 />
                                             </ListItem>
                                         ))}

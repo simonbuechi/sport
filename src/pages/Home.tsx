@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePwa } from '../context/PwaContext';
 import Login from './Login';
 import packageJson from '../../package.json';
+import type { MarkedStatus } from '../types';
 
 const APP_DESCRIPTION = `Sport Amigo helps you track your fitness activities, weight, and body measurements. (v${packageJson.version})`;
 
@@ -36,7 +37,7 @@ const Home = () => {
                 setSessionsCount(sessionsData.length);
 
                 if (profileData?.markedExercises) {
-                    const favorites = Object.values(profileData.markedExercises).filter((status: any) => (status as any).favorite).length;
+                    const favorites = Object.values(profileData.markedExercises).filter((status: MarkedStatus) => status.favorite).length;
                     setFavoriteCount(favorites);
                 } else {
                     setFavoriteCount(0);
@@ -58,7 +59,9 @@ const Home = () => {
                 <Typography variant="h4" component="h1" gutterBottom sx={{ mb: { xs: 2, md: 4 }, fontWeight: 600 }}>
                     Welcome to Sport Amigo
                 </Typography>
-                <Grid container spacing={{ xs: 2, md: 4 }} alignItems="stretch">
+                <Grid container spacing={{ xs: 2, md: 4 }} sx={{
+                    alignItems: "stretch"
+                }}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Card elevation={3} sx={{ height: '100%', borderRadius: 2 }}>
                             <CardContent sx={{ p: { xs: 2.5, sm: 4 }, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
@@ -94,9 +97,7 @@ const Home = () => {
             <Typography variant="h4" component="h1" gutterBottom sx={{ mb: { xs: 2, md: 4 } }}>
                 Dashboard
             </Typography>
-
             {error && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{error}</Alert>}
-
             <Grid container spacing={{ xs: 2, md: 4 }}>
                 {/* Welcome Info Card */}
                 <Grid size={{ xs: 12 }}>
@@ -116,7 +117,13 @@ const Home = () => {
                             <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '2.5rem', md: '3rem' } }}>
                                 {sessionsCount !== null ? sessionsCount : '-'}
                             </Typography>
-                            <Typography variant="h6" color="text.secondary" sx={{ mb: { xs: 2, md: 4 }, textAlign: 'center' }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    color: "text.secondary",
+                                    mb: { xs: 2, md: 4 },
+                                    textAlign: 'center'
+                                }}>
                                 Logged Sessions
                             </Typography>
                             <Box sx={{ mt: 'auto', width: '100%' }}>
@@ -142,7 +149,13 @@ const Home = () => {
                             <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '2.5rem', md: '3rem' } }}>
                                 {favoriteCount !== null ? favoriteCount : '-'}
                             </Typography>
-                            <Typography variant="h6" color="text.secondary" sx={{ mb: { xs: 2, md: 4 }, textAlign: 'center' }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    color: "text.secondary",
+                                    mb: { xs: 2, md: 4 },
+                                    textAlign: 'center'
+                                }}>
                                 Favorite Exercises
                             </Typography>
                             <Box sx={{ mt: 'auto', width: '100%' }}>

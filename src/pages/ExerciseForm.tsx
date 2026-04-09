@@ -124,7 +124,14 @@ export default function ExerciseForm() {
         }
     };
 
-    if (loading) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
+    if (loading) return (
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: 8
+            }}><CircularProgress /></Box>
+    );
 
     return (
         <Container maxWidth="md">
@@ -232,7 +239,12 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12 }}>
                             <Typography variant="subtitle2" gutterBottom>Aliases</Typography>
-                            <Box display="flex" gap={1} mb={1}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    gap: 1,
+                                    mb: 1
+                                }}>
                                 <TextField
                                     label="Add Alias"
                                     fullWidth
@@ -248,7 +260,12 @@ export default function ExerciseForm() {
                                 />
                                 <Button variant="outlined" onClick={handleAddAlias}>Add</Button>
                             </Box>
-                            <Box display="flex" flexWrap="wrap" gap={1}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 1
+                                }}>
                                 {formData.aliases.map((alias, index) => (
                                     <Chip 
                                         key={index} 
@@ -261,7 +278,13 @@ export default function ExerciseForm() {
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                            <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    gap: 2,
+                                    mt: 2
+                                }}>
                                 <Button
                                     variant="outlined"
                                     onClick={() => navigate(isEditing ? `/exercises/${id}` : '/exercises')}

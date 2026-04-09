@@ -25,7 +25,9 @@ const Footer = () => {
                 }}
             >
 
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                }}>
                     &copy; {CURRENT_YEAR} Simon Buechi | v{packageJson.version}
                 </Typography>
             </Container>

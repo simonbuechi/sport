@@ -15,8 +15,20 @@ interface ExerciseListSectionProps {
 const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: ExerciseListSectionProps) => {
     return (
         <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" onClick={onToggle} sx={{ cursor: 'pointer' }}>
-                <Typography variant="h6" display="flex" alignItems="center">
+            <Box
+                onClick={onToggle}
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: 'pointer'
+                }}>
+                <Typography
+                    variant="h6"
+                    sx={{
+                        display: "flex",
+                        alignItems: "center"
+                    }}>
                     {icon} {title} ({techniques.length})
                 </Typography>
                 <IconButton size="small" disableRipple sx={{ p: 0 }}>
@@ -24,10 +36,14 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
                 </IconButton>
             </Box>
             <Collapse in={expanded}>
-                <Box mt={2}>
+                <Box sx={{
+                    mt: 2
+                }}>
                     <Divider sx={{ mb: 2 }} />
                     {techniques.length === 0 ? (
-                        <Typography variant="body2" color="text.secondary">No techniques in this category.</Typography>
+                        <Typography variant="body2" sx={{
+                            color: "text.secondary"
+                        }}>No techniques in this category.</Typography>
                     ) : (
                         <List disablePadding>
                             {techniques.map(tech => (

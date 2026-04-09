@@ -33,7 +33,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
         setFormDate(new Date().toISOString().split('T')[0]);
         // Default to last measurements as starting point
         const initialData = sortedMeasurements.length > 0 
-            ? (({ id, date, ...rest }) => rest)(sortedMeasurements[0])
+            ? (({ id: _id, date: _date, ...rest }) => rest)(sortedMeasurements[0])
             : {};
         setFormData(initialData as Omit<MeasurementEntry, 'id' | 'date'>);
         setIsAddEditOpen(true);
@@ -42,8 +42,8 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
     const handleOpenEdit = (entry: MeasurementEntry) => {
         setEditingEntry(entry);
         setFormDate(entry.date);
-        const { id, date, ...data } = entry;
-        setFormData(data as any);
+        const { id: _id, date: _date, ...data } = entry;
+        setFormData(data);
         setIsAddEditOpen(true);
     };
 
@@ -64,19 +64,29 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
         try {
             setSaving(true);
             let newMeasurements = [...measurements];
-            const newEntry: any = {
+            const newEntry: Partial<MeasurementEntry> = {
                 ...formData,
                 date: formDate,
             };
             
             if (editingEntry) {
-                newEntry.id = editingEntry.id;
-                Object.keys(newEntry).forEach(key => newEntry[key] === undefined && delete newEntry[key]);
-                newMeasurements = newMeasurements.map(m => m.id === editingEntry.id ? (newEntry as MeasurementEntry) : m);
+                const updated: MeasurementEntry = {
+                    ...newEntry,
+                    id: editingEntry.id
+                } as MeasurementEntry;
+                const cleaned = Object.fromEntries(
+                    Object.entries(updated).filter(([_, v]) => v !== undefined)
+                ) as MeasurementEntry;
+                newMeasurements = newMeasurements.map(m => m.id === editingEntry.id ? cleaned : m);
             } else {
-                newEntry.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
-                Object.keys(newEntry).forEach(key => newEntry[key] === undefined && delete newEntry[key]);
-                newMeasurements.push(newEntry as MeasurementEntry);
+                const nextEntry: MeasurementEntry = {
+                    ...newEntry,
+                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString()
+                } as MeasurementEntry;
+                const cleaned = Object.fromEntries(
+                    Object.entries(nextEntry).filter(([_, v]) => v !== undefined)
+                ) as MeasurementEntry;
+                newMeasurements.push(cleaned);
             }
 
             await updateUserProfile(profile.uid, { measurements: newMeasurements });
@@ -119,8 +129,18 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
 
     return (
         <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, borderRadius: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Box display="flex" alignItems="center">
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                }}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center"
+                    }}>
                     <Straighten color="primary" sx={{ mr: 1, fontSize: 32 }} />
                     <Typography variant="h5" component="h2">Measurements</Typography>
                 </Box>
@@ -133,9 +153,15 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                     Log Size
                 </Button>
             </Box>
-
             {sortedMeasurements.length === 0 ? (
-                <Typography color="text.secondary" variant="body2" sx={{ textAlign: 'center', py: 3, fontStyle: 'italic' }}>
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: "text.secondary",
+                        textAlign: 'center',
+                        py: 3,
+                        fontStyle: 'italic'
+                    }}>
                     No body measurements recorded yet. Track your progress.
                 </Typography>
             ) : (
@@ -146,7 +172,11 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                             <ListItem
                                 sx={{ px: 1, py: 1.5 }}
                                 secondaryAction={
-                                    <Box display="flex" gap={0.5}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: 0.5
+                                        }}>
                                         <IconButton edge="end" aria-label="edit" size="small" onClick={() => handleOpenEdit(entry)}>
                                             <Edit fontSize="small" />
                                         </IconButton>
@@ -157,7 +187,9 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                                 }
                             >
                                 <ListItemText
-                                    primary={<Typography fontWeight="600">{new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</Typography>}
+                                    primary={<Typography sx={{
+                                        fontWeight: "600"
+                                    }}>{new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</Typography>}
                                     secondary={getMeasurementSummary(entry)}
                                 />
                             </ListItem>
@@ -165,11 +197,16 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                     ))}
                 </List>
             )}
-
             {/* Add/Edit Dialog */}
-            <Dialog open={isAddEditOpen} onClose={() => !saving && setIsAddEditOpen(false)} maxWidth="sm" fullWidth>
-                <form onSubmit={handleSave}>
-                    <DialogTitle>{editingEntry ? 'Edit Measurements (cm)' : 'Log Measurements (cm)'}</DialogTitle>
+            <Dialog open={isAddEditOpen} onClose={() => !saving && setIsAddEditOpen(false)} maxWidth="sm" fullWidth
+                slotProps={{
+                    paper: {
+                        component: 'form',
+                        onSubmit: handleSave,
+                    }
+                }}
+            >
+                <DialogTitle>{editingEntry ? 'Edit Measurements (cm)' : 'Log Measurements (cm)'}</DialogTitle>
                     <DialogContent dividers>
                         <Grid container spacing={2} sx={{ pt: 1 }}>
                             <Grid size={{ xs: 12 }}>
@@ -180,7 +217,9 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                                     required
                                     value={formDate}
                                     onChange={(e) => setFormDate(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
+                                    slotProps={{
+                                        inputLabel: { shrink: true }
+                                    }}
                                 />
                             </Grid>
                             
@@ -236,9 +275,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                             {saving ? 'Saving...' : 'Save'}
                         </Button>
                     </DialogActions>
-                </form>
             </Dialog>
-
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteOpen} onClose={() => !saving && setIsDeleteOpen(false)} maxWidth="xs" fullWidth>
                 <DialogTitle>Delete Measurements?</DialogTitle>

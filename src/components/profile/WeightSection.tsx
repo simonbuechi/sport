@@ -88,22 +88,31 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                 // Update existing
                 newWeights = newWeights.map(w => {
                     if (w.id === editingWeight.id) {
-                        const updated: any = { ...w, date: formDate, weightKg: numWeight, bodyFatPercent: numBodyFat };
-                        Object.keys(updated).forEach(key => updated[key] === undefined && delete updated[key]);
-                        return updated as WeightEntry;
+                        const updated: WeightEntry = { 
+                            ...w, 
+                            date: formDate, 
+                            weightKg: numWeight, 
+                            bodyFatPercent: numBodyFat 
+                        };
+                        // Remove undefined values
+                        return Object.fromEntries(
+                            Object.entries(updated).filter(([_, v]) => v !== undefined)
+                        ) as WeightEntry;
                     }
                     return w;
                 });
             } else {
                 // Add new
-                const nextEntry: any = {
+                const nextEntry: WeightEntry = {
                     id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
                     date: formDate,
                     weightKg: numWeight,
                     bodyFatPercent: numBodyFat
                 };
-                Object.keys(nextEntry).forEach(key => nextEntry[key] === undefined && delete nextEntry[key]);
-                newWeights.push(nextEntry as WeightEntry);
+                const cleanedEntry = Object.fromEntries(
+                    Object.entries(nextEntry).filter(([_, v]) => v !== undefined)
+                ) as WeightEntry;
+                newWeights.push(cleanedEntry);
             }
 
             // Save to database
@@ -140,8 +149,18 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
 
     return (
         <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, borderRadius: 2 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Box display="flex" alignItems="center">
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                }}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center"
+                    }}>
                     <MonitorWeight color="primary" sx={{ mr: 1, fontSize: 32 }} />
                     <Typography variant="h5" component="h2">Weight Tracking</Typography>
                 </Box>
@@ -154,7 +173,6 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                     Log Weight
                 </Button>
             </Box>
-
             <Box sx={{ width: '100%', height: 250, mt: 2, mb: 4 }}>
                 <LineChart
                     xAxis={[{ 
@@ -177,9 +195,15 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                     margin={{ top: 20, right: 20, bottom: 35, left: 40 }}
                 />
             </Box>
-
             {sortedWeights.length === 0 ? (
-                <Typography color="text.secondary" variant="body2" sx={{ textAlign: 'center', py: 3, fontStyle: 'italic' }}>
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: "text.secondary",
+                        textAlign: 'center',
+                        py: 3,
+                        fontStyle: 'italic'
+                    }}>
                     No weight entries recorded yet. Track your progress by logging your first weight.
                 </Typography>
             ) : (
@@ -190,7 +214,11 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                             <ListItem
                                 sx={{ px: 1, py: 1.5 }}
                                 secondaryAction={
-                                    <Box display="flex" gap={0.5}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: 0.5
+                                        }}>
                                         <IconButton edge="end" aria-label="edit" size="small" onClick={() => handleOpenEdit(weight)}>
                                             <Edit fontSize="small" />
                                         </IconButton>
@@ -201,7 +229,9 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 }
                             >
                                 <ListItemText
-                                    primary={<Typography fontWeight="600">{weight.weightKg} kg</Typography>}
+                                    primary={<Typography sx={{
+                                        fontWeight: "600"
+                                    }}>{weight.weightKg} kg</Typography>}
                                     secondary={`${new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}${weight.bodyFatPercent ? ` • ${weight.bodyFatPercent}% Body Fat` : ''}`}
                                 />
                             </ListItem>
@@ -209,13 +239,24 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                     ))}
                 </List>
             )}
-
             {/* Add/Edit Dialog */}
-            <Dialog open={isAddEditOpen} onClose={() => !saving && setIsAddEditOpen(false)} maxWidth="xs" fullWidth>
-                <form onSubmit={handleSave}>
-                    <DialogTitle>{editingWeight ? 'Edit Weight Entry' : 'Log New Weight'}</DialogTitle>
+            <Dialog open={isAddEditOpen} onClose={() => !saving && setIsAddEditOpen(false)} maxWidth="xs" fullWidth
+                slotProps={{
+                    paper: {
+                        component: 'form',
+                        onSubmit: handleSave,
+                    }
+                }}
+            >
+                <DialogTitle>{editingWeight ? 'Edit Weight Entry' : 'Log New Weight'}</DialogTitle>
                     <DialogContent dividers>
-                        <Box display="flex" flexDirection="column" gap={3} py={1}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 3,
+                                py: 1
+                            }}>
                             <TextField
                                 label="Date"
                                 type="date"
@@ -223,7 +264,9 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 required
                                 value={formDate}
                                 onChange={(e) => setFormDate(e.target.value)}
-                                InputLabelProps={{ shrink: true }}
+                                slotProps={{
+                                    inputLabel: { shrink: true }
+                                }}
                             />
                             <TextField
                                 label="Weight (kg)"
@@ -232,7 +275,9 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 required
                                 value={formWeight}
                                 onChange={(e) => setFormWeight(e.target.value)}
-                                inputProps={{ min: 20, max: 250, step: 0.1 }}
+                                slotProps={{
+                                    htmlInput: { min: 20, max: 250, step: 0.1 }
+                                }}
                             />
                             <TextField
                                 label="Body Fat %"
@@ -240,8 +285,10 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                                 fullWidth
                                 value={formBodyFat}
                                 onChange={(e) => setFormBodyFat(e.target.value)}
-                                inputProps={{ min: 0, max: 100, step: 0.1 }}
                                 placeholder="Optional"
+                                slotProps={{
+                                    htmlInput: { min: 0, max: 100, step: 0.1 }
+                                }}
                             />
                         </Box>
                     </DialogContent>
@@ -251,9 +298,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                             {saving ? 'Saving...' : 'Save'}
                         </Button>
                     </DialogActions>
-                </form>
             </Dialog>
-
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteOpen} onClose={() => !saving && setIsDeleteOpen(false)} maxWidth="xs" fullWidth>
                 <DialogTitle>Delete Weight Entry?</DialogTitle>

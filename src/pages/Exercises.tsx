@@ -108,7 +108,9 @@ const Exercises = () => {
         <Container maxWidth="lg">
             <Box sx={{ mb: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h4" component="h1" fontWeight={700}>
+                    <Typography variant="h4" component="h1" sx={{
+                        fontWeight: 700
+                    }}>
                         Exercises
                     </Typography>
 
@@ -154,17 +156,19 @@ const Exercises = () => {
                         placeholder="Search exercises..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Search color="action" />
-                                </InputAdornment>
-                            ),
-                        }}
                         sx={{ 
                             bgcolor: 'background.paper', 
                             borderRadius: 2,
                             flex: { md: '1 1 300px' }
+                        }}
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search color="action" />
+                                    </InputAdornment>
+                                ),
+                            }
                         }}
                     />
 
@@ -236,9 +240,7 @@ const Exercises = () => {
                     </Box>
                 </Box>
             </Box>
-
             {currentError && <Alert severity="error" sx={{ mb: 4 }}>{currentError}</Alert>}
-
             {exercises.length === 0 && !currentError ? (
                 <Alert severity="info" sx={{ mt: 4 }}>
                     No exercises found. Log in to add some exercises to the database.
@@ -289,7 +291,9 @@ const Exercises = () => {
                                 <ListItemText
                                     primary={
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                            <Typography variant="body1" fontWeight={600}>
+                                            <Typography variant="body1" sx={{
+                                                fontWeight: 600
+                                            }}>
                                                 {exercise.name}
                                             </Typography>
                                             <Chip
@@ -325,15 +329,19 @@ const Exercises = () => {
                     </List>
                 </Paper>
             )}
-
             {loadingMore && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                     <CircularProgress size={32} />
                 </Box>
             )}
-
             {!hasMore && exercises.length > 0 && (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ my: 4 }}>
+                <Typography
+                    variant="body2"
+                    align="center"
+                    sx={{
+                        color: "text.secondary",
+                        my: 4
+                    }}>
                     You've reached the end of the list.
                 </Typography>
             )}

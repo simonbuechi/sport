@@ -6,7 +6,7 @@ import {
     Accordion, AccordionSummary, AccordionDetails,
     Checkbox, FormControlLabel
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Close as CloseIcon, Search as SearchIcon, DragIndicator as DragIcon, ExpandMore as ExpandMoreIcon, NoteAdd as NoteAddIcon, Star as StarIcon, StarBorder as StarBorderIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Close as CloseIcon, Search as SearchIcon, DragIndicator as DragIcon, ExpandMore as ExpandMoreIcon, NoteAdd as NoteAddIcon, Star as StarIcon } from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
@@ -164,8 +164,6 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
         const template = templates.find(t => t.id === tid);
         if (!template) return;
 
-        const newTemplates = [...templates];
-        const tIdx = newTemplates.indexOf(template);
         const newExercises = [...template.exercises];
         const exercise = { ...newExercises[exerciseIdx] };
         const newSets = [...(exercise.sets || [])];
@@ -271,17 +269,28 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
 
     return (
         <Box sx={{ mt: 4 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5" fontWeight={600}>Training Templates</Typography>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                }}>
+                <Typography variant="h5" sx={{
+                    fontWeight: 600
+                }}>Training Templates</Typography>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
                     Create Template
                 </Button>
             </Box>
-
             {loading ? (
-                <Typography color="text.secondary">Loading templates...</Typography>
+                <Typography sx={{
+                    color: "text.secondary"
+                }}>Loading templates...</Typography>
             ) : templates.length === 0 ? (
-                <Typography color="text.secondary">No templates created yet. Create one to easily log your favorite workouts!</Typography>
+                <Typography sx={{
+                    color: "text.secondary"
+                }}>No templates created yet. Create one to easily log your favorite workouts!</Typography>
             ) : (
                 <Grid container spacing={2}>
                     {sortedTemplates.map(template => (
@@ -311,14 +320,23 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                     }}
                                 >
                                     <Box>
-                                        <Box display="flex" alignItems="center" gap={1}>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 1
+                                            }}>
                                             {template.isFavorite && <StarIcon color="warning" fontSize="small" />}
-                                            <Typography variant="h6" color="primary" fontWeight={700}>
+                                            <Typography variant="h6" color="primary" sx={{
+                                                fontWeight: 700
+                                            }}>
                                                 {template.name}
                                                 {template.isArchived && " (Archived)"}
                                             </Typography>
                                         </Box>
-                                        <Typography variant="body2" color="text.secondary">
+                                        <Typography variant="body2" sx={{
+                                            color: "text.secondary"
+                                        }}>
                                             {template.exercises?.length || 0} exercises
                                             {template.notes && ` • ${template.notes}`}
                                         </Typography>
@@ -366,8 +384,12 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                                                 <DragIcon sx={{ fontSize: 20 }} />
                                                                             </Box>
 
-                                                                            <Box flexGrow={1}>
-                                                                                <Typography variant="body1" fontWeight={700}>{getExerciseName(ex.exerciseId)}</Typography>
+                                                                            <Box sx={{
+                                                                                flexGrow: 1
+                                                                            }}>
+                                                                                <Typography variant="body1" sx={{
+                                                                                    fontWeight: 700
+                                                                                }}>{getExerciseName(ex.exerciseId)}</Typography>
                                                                                 
                                                                                 {/* Sets List */}
                                                                                 {ex.sets && ex.sets.length > 0 && (
@@ -397,13 +419,15 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                                                         placeholder="Add sets/reps notes..."
                                                                                     />
                                                                                 ) : ex.note ? (
-                                                                                    <Typography 
-                                                                                        variant="body2" 
-                                                                                        color="text.secondary" 
-                                                                                        display="block" 
-                                                                                        sx={{ cursor: 'pointer', mt: 0.5 }}
+                                                                                    <Typography
+                                                                                        variant="body2"
                                                                                         onClick={() => setEditingNotePath({ tid: template.id, idx })}
-                                                                                    >
+                                                                                        sx={{
+                                                                                            color: "text.secondary",
+                                                                                            display: "block",
+                                                                                            cursor: 'pointer',
+                                                                                            mt: 0.5
+                                                                                        }}>
                                                                                         {ex.note}
                                                                                     </Typography>
                                                                                 ) : null}
@@ -446,7 +470,13 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                 </Droppable>
                                             </DragDropContext>
                                         ) : (
-                                            <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic', py: 2 }}>
+                                            <Typography
+                                                variant="body1"
+                                                sx={{
+                                                    color: "text.secondary",
+                                                    fontStyle: 'italic',
+                                                    py: 2
+                                                }}>
                                                 No exercises. Start by adding one below.
                                             </Typography>
                                         )}
@@ -454,8 +484,16 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                         <Box sx={{ mt: 2 }}>
                                             {activeSearchId === template.id ? (
                                                 <Box sx={{ p: 2, bgcolor: 'action.selected', borderRadius: 2 }}>
-                                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                                                        <Typography variant="body2" fontWeight={700}>Search Exercise</Typography>
+                                                    <Box
+                                                        sx={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            mb: 1
+                                                        }}>
+                                                        <Typography variant="body2" sx={{
+                                                            fontWeight: 700
+                                                        }}>Search Exercise</Typography>
                                                         <Tooltip title="Close Search">
                                                             <IconButton size="small" onClick={() => setActiveSearchId(null)}>
                                                                 <CloseIcon fontSize="small" />
@@ -469,7 +507,10 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                         onChange={(_, newValue) => handleInlineAdd(template.id, newValue)}
                                                         renderInput={(params) => (
                                                             <TextField {...params} placeholder="Bench Press, Squats..." 
-                                                                InputProps={{...params.InputProps, startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} />}}
+                                                                slotProps={{
+                                                                    ...params.slotProps,
+                                                                    input: {...params.slotProps.input, startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} />}
+                                                                }}
                                                             />
                                                         )}
                                                         value={null}
@@ -495,7 +536,6 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                     ))}
                 </Grid>
             )}
-
             <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>{editingTemplate ? 'Rename Template' : 'Create Template'}</DialogTitle>
                 <DialogContent dividers>
@@ -543,7 +583,6 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                     </Box>
                 </DialogActions>
             </Dialog>
-
             {/* Set Dialog */}
             <Dialog open={isSetDialogOpen} onClose={() => setIsSetDialogOpen(false)} maxWidth="xs" fullWidth>
                 <DialogTitle>{setDialogData?.setIdx !== undefined ? 'Edit Set' : 'Add Set(s)'}</DialogTitle>

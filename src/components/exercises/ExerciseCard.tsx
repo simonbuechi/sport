@@ -60,14 +60,17 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                         </Typography>
                     </Box>
 
-                    <Typography variant="body2" color="text.secondary" sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        flexGrow: 1,
-                        mb: 2
-                    }}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "text.secondary",
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            flexGrow: 1,
+                            mb: 2
+                        }}>
                         {exercise.description || `Category: ${exercise.category}`}
                     </Typography>
 

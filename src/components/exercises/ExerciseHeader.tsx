@@ -13,11 +13,10 @@ import type { Exercise } from '../../types';
 
 interface ExerciseHeaderProps {
     exercise: Exercise;
-    currentUser: any; // Using any for AuthContext user type, or could import User from firebase if needed, but 'any' or unknown is safe here if we don't import the full type
     onDelete: () => void;
 }
 
-const ExerciseHeader = ({ exercise, currentUser, onDelete }: ExerciseHeaderProps) => {
+const ExerciseHeader = ({ exercise, onDelete }: ExerciseHeaderProps) => {
     return (
         <Box
             sx={{
@@ -72,7 +71,7 @@ const ExerciseHeader = ({ exercise, currentUser, onDelete }: ExerciseHeaderProps
                         size="small"
                     />
                 </Box>
-                {exercise.aliases && exercise.aliases.length > 0 && (
+                {exercise.aliases.length > 0 && (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                         {exercise.aliases.map((alias, index) => (
                             <Typography
@@ -98,7 +97,6 @@ const ExerciseHeader = ({ exercise, currentUser, onDelete }: ExerciseHeaderProps
                     </Typography>
                 )}
             </Box>
-            {currentUser && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
                         component={RouterLink}
@@ -119,8 +117,7 @@ const ExerciseHeader = ({ exercise, currentUser, onDelete }: ExerciseHeaderProps
                     >
                         Delete
                     </Button>
-                </Box>
-            )}
+            </Box>
         </Box>
     );
 };

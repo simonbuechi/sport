@@ -22,10 +22,9 @@ import MenuBook from '@mui/icons-material/MenuBook';
 import Close from '@mui/icons-material/Close';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
-import Assessment from '@mui/icons-material/Assessment';
 import Person from '@mui/icons-material/Person';
 import Description from '@mui/icons-material/Description';
-import AccessibilityNew from '@mui/icons-material/AccessibilityNew';
+import BarChart from '@mui/icons-material/BarChart';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, createUserProfile } from '../services/db';
@@ -220,19 +219,9 @@ const Profile = () => {
                         }} 
                     />
                     <Tab 
-                        icon={<Assessment />} 
+                        icon={<BarChart />} 
                         iconPosition="start" 
-                        label="Progress" 
-                        sx={{ 
-                            fontWeight: 600,
-                            minHeight: 48,
-                            textTransform: 'none',
-                        }} 
-                    />
-                    <Tab 
-                        icon={<AccessibilityNew />} 
-                        iconPosition="start" 
-                        label="Body" 
+                        label="Stats" 
                         sx={{ 
                             fontWeight: 600,
                             minHeight: 48,
@@ -259,26 +248,24 @@ const Profile = () => {
                             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                                 Profile
                             </Typography>
-                            {currentUser && (
-                                <Box sx={{ display: "flex", gap: 1.5 }}>
-                                    <Button
-                                        variant="contained"
-                                        startIcon={<Edit />}
-                                        onClick={() => { setIsEditDialogOpen(true); }}
-                                        sx={{ borderRadius: 2 }}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={handleLogout}
-                                        startIcon={<Logout />}
-                                        sx={{ borderRadius: 2 }}
-                                    >
-                                        Logout
-                                    </Button>
-                                </Box>
-                            )}
+                            <Box sx={{ display: "flex", gap: 1.5 }}>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<Edit />}
+                                    onClick={() => { setIsEditDialogOpen(true); }}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    Edit
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    onClick={handleLogout}
+                                    startIcon={<Logout />}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    Logout
+                                </Button>
+                            </Box>
                         </Box>
                     </Grid>
                     <Grid size={{ xs: 12, md: 7 }}>
@@ -321,26 +308,22 @@ const Profile = () => {
                                     </Grid>
                                 )}
 
-                                {currentUser && (
-                                    <>
-                                        <Grid size={{ xs: 12, sm: 6 }}>
-                                            <Typography variant="subtitle2" sx={{
-                                                color: "text.secondary"
-                                            }}>Member Since</Typography>
-                                            <Typography variant="body1">
-                                                {currentUser.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
-                                            </Typography>
-                                        </Grid>
-                                        <Grid size={{ xs: 12, sm: 6 }}>
-                                            <Typography variant="subtitle2" sx={{
-                                                color: "text.secondary"
-                                            }}>Last Login</Typography>
-                                            <Typography variant="body1">
-                                                {currentUser.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
-                                            </Typography>
-                                        </Grid>
-                                    </>
-                                )}
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography variant="subtitle2" sx={{
+                                            color: "text.secondary"
+                                        }}>Member Since</Typography>
+                                        <Typography variant="body1">
+                                            {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
+                                        </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography variant="subtitle2" sx={{
+                                            color: "text.secondary"
+                                        }}>Last Login</Typography>
+                                        <Typography variant="body1">
+                                            {currentUser?.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
+                                        </Typography>
+                                    </Grid>
 
                             </Grid>
                         </Paper>
@@ -374,43 +357,26 @@ const Profile = () => {
                 </Grid>
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={1}>
-                {currentUser && (
-                    <TemplatesSection 
-                        userId={currentUser.uid} 
-                        exercises={exercises} 
-                    />
-                )}
+                <TemplatesSection 
+                    userId={currentUser?.uid ?? ''} 
+                    exercises={exercises} 
+                />
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={2}>
-                <Paper elevation={3} sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
-                    <Assessment sx={{ fontSize: 64, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
-                    <Typography variant="h5" sx={{
-                        color: "text.secondary"
-                    }}>Progress Tracking</Typography>
-                    <Typography variant="body1" sx={{
-                        color: "text.secondary"
-                    }}>
-                        Coming soon! Your workout analytics and progress charts will appear here.
-                    </Typography>
-                </Paper>
-            </CustomTabPanel>
-            <CustomTabPanel value={activeTab} index={3}>
-                {currentUser && (
-                    <Grid container spacing={3}>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <WeightSection 
-                                profile={{ ...profile, uid: currentUser.uid }} 
-                                onWeightsUpdated={handleWeightsUpdated} 
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <MeasurementsSection 
-                                profile={{ ...profile, uid: currentUser.uid }} 
-                                onMeasurementsUpdated={handleMeasurementsUpdated} 
-                            />
-                        </Grid>
+                <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <WeightSection 
+                            profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
+                            onWeightsUpdated={handleWeightsUpdated} 
+                        />
                     </Grid>
-                )}
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <MeasurementsSection 
+                            profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
+                            onMeasurementsUpdated={handleMeasurementsUpdated} 
+                        />
+                    </Grid>
+                </Grid>
             </CustomTabPanel>
             <Dialog
                 open={isEditDialogOpen}

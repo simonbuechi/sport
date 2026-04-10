@@ -17,18 +17,18 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
-
-import { Link as RouterLink } from 'react-router-dom';
-import { getUserProfile, updateUserProfile } from '../services/db';
+import { getUserProfile, updateUserProfile, getJournalEntries } from '../services/db';
 import { useAuth } from '../context/AuthContext';
-import packageJson from '../../package.json';
+import type { ActivityLog } from '../types';
+import CalendarWidget from '../components/dashboard/CalendarWidget';
+import SessionCounterWidget from '../components/dashboard/SessionCounterWidget';
 
-const APP_DESCRIPTION = `Sport Amigo helps you track your fitness activities, weight, and body measurements. (v${packageJson.version})`;
 
 const ALL_DASHBOARD_ELEMENTS = [
     'Project Updates',
     'Weight Tracking',
     'Session Counter',
+    'Calendar',
     'Profile',
     'Templates',
     'PRs',
@@ -37,7 +37,17 @@ const ALL_DASHBOARD_ELEMENTS = [
     'Feedback'
 ];
 
-const DEFAULT_WIDGETS = ['Project Updates', 'Session Counter', 'Templates'];
+const DEFAULT_WIDGETS = ['Project Updates', 'Calendar', 'Session Counter', 'Templates'];
+
+const ASPIRATIONAL_MESSAGES = [
+    "Consistency is key! Keep it up.",
+    "The only bad workout is the one that didn't happen.",
+    "Small steps lead to big results. Stay focused!",
+    "You're doing amazing! Your future self will thank you.",
+    "Every session brings you closer to your goals.",
+    "Discipline is doing what needs to be done, even if you don't feel like it.",
+    "Success is the sum of small efforts repeated day in and day out."
+];
 
 const Home = () => {
     const { currentUser } = useAuth();
@@ -46,6 +56,9 @@ const Home = () => {
     const [widgetToClose, setWidgetToClose] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [sessionsInLast7Days, setSessionsInLast7Days] = useState(0);
+    const [aspirationalMessage, setAspirationalMessage] = useState('');
+    const [allEntries, setAllEntries] = useState<ActivityLog[]>([]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -57,12 +70,30 @@ const Home = () => {
             try {
                 setLoading(true);
                 const profileData = await getUserProfile(currentUser.uid);
-                
+
                 if (profileData?.dashboardWidgets) {
                     setVisibleWidgets(profileData.dashboardWidgets);
                 } else {
                     setVisibleWidgets(DEFAULT_WIDGETS);
                 }
+
+                // Fetch session data for widgets
+                const entries = await getJournalEntries(currentUser.uid);
+                setAllEntries(entries);
+
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+                const recentSessions = entries.filter((entry: ActivityLog) => {
+                    const entryDate = new Date(entry.date);
+                    return entryDate >= sevenDaysAgo;
+                });
+
+                setSessionsInLast7Days(recentSessions.length);
+
+                // Set a random message (or based on number of sessions/day)
+                const randomMsg = ASPIRATIONAL_MESSAGES[Math.floor(Math.random() * ASPIRATIONAL_MESSAGES.length)];
+                setAspirationalMessage(randomMsg);
             } catch (err) {
                 console.error(err);
                 setError('Failed to load dashboard data.');
@@ -76,7 +107,7 @@ const Home = () => {
 
     const handleUpdateWidgets = async (newWidgets: string[]) => {
         if (!currentUser) return;
-        
+
         try {
             setVisibleWidgets(newWidgets);
             await updateUserProfile(currentUser.uid, { dashboardWidgets: newWidgets });
@@ -100,40 +131,6 @@ const Home = () => {
         void handleUpdateWidgets(newWidgets);
     };
 
-    if (!currentUser) {
-        return (
-            <Container maxWidth="lg">
-                <Typography variant="h4" component="h1" gutterBottom sx={{ mb: { xs: 2, md: 4 }, fontWeight: 600 }}>
-                    Welcome to Sport Amigo
-                </Typography>
-                <Grid container spacing={{ xs: 2, md: 4 }}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Paper elevation={3} sx={{ p: { xs: 2.5, sm: 4 }, height: '100%', borderRadius: 2, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>About</Typography>
-                            <Typography variant="body1" sx={{ mb: { xs: 2, md: 4 }, fontSize: { xs: '1rem', md: '1.1rem' } }}>
-                                {APP_DESCRIPTION}
-                            </Typography>
-                        </Paper>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        {/* We use a dynamic import or just reference the Login component if exported */}
-                        {/* Since Login is used in Home, we assume it's available or we can just render the Login component content */}
-                        {/* For simplicity, keep it consistent with previous structure but use Paper */}
-                        <Paper elevation={3} sx={{ height: '100%', borderRadius: 2, p: 2 }}>
-                            {/* Assuming Login is imported correctly from previous state */}
-                            {/* Wait, I removed the Login import in my chunk. Re-adding it or using the previous one */}
-                            <Typography variant="h6" align="center" gutterBottom>Sign In</Typography>
-                            <Box sx={{ mt: 2 }}>
-                                <RouterLink to="/login" style={{ textDecoration: 'none' }}>
-                                    <Button variant="contained" fullWidth size="large">Go to Login</Button>
-                                </RouterLink>
-                            </Box>
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-        );
-    }
 
     if (loading) {
         return (
@@ -172,7 +169,8 @@ const Home = () => {
                                 borderRadius: 2,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                minHeight: '150px'
+                                minHeight: '150px',
+                                height: '100%'
                             }}
                         >
                             <IconButton
@@ -186,7 +184,18 @@ const Home = () => {
                                 {widget}
                             </Typography>
                             <Box sx={{ flexGrow: 1 }}>
-                                {/* Content placeholder */}
+                                {widget === 'Session Counter' ? (
+                                    <SessionCounterWidget
+                                        sessionsInLast7Days={sessionsInLast7Days}
+                                        aspirationalMessage={aspirationalMessage}
+                                    />
+                                ) : widget === 'Calendar' ? (
+                                    <CalendarWidget entries={allEntries} />
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                        Content for {widget} coming soon...
+                                    </Typography>
+                                )}
                             </Box>
                         </Paper>
                     </Grid>
@@ -194,8 +203,8 @@ const Home = () => {
             </Grid>
 
             {/* Manage Dashboard Dialog */}
-            <Dialog 
-                open={isManageDialogOpen} 
+            <Dialog
+                open={isManageDialogOpen}
                 onClose={() => { setIsManageDialogOpen(false); }}
                 maxWidth="xs"
                 fullWidth
@@ -247,5 +256,6 @@ const Home = () => {
         </Container>
     );
 };
+
 
 export default Home;

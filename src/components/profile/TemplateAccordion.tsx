@@ -107,9 +107,22 @@ const TemplateAccordion = ({
                 </Box>
                 <Box sx={{ mr: 2 }} onClick={(e) => { e.stopPropagation(); }}>
                     <Tooltip title="Edit Template">
-                        <IconButton size="small" onClick={() => { onEdit(template); }}>
+                        <Box
+                            component="span"
+                            onClick={() => { onEdit(template); }}
+                            sx={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                p: 1,
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                color: 'action.active',
+                                '&:hover': { bgcolor: 'action.hover' }
+                            }}
+                        >
                             <EditIcon fontSize="small" />
-                        </IconButton>
+                        </Box>
                     </Tooltip>
                 </Box>
             </AccordionSummary>

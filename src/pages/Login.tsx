@@ -50,8 +50,8 @@ const Login = () => {
     };
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-            <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 8, px: 2 }}>
+            <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center">
                     Login
                 </Typography>
@@ -102,6 +102,15 @@ const Login = () => {
                     Need an account? <Link to="/register">Register</Link>
                 </Typography>
             </Paper>
+
+            <Box sx={{ mt: 4, textAlign: 'center', maxWidth: 400 }}>
+                <Typography variant="body2" color="text.secondary">
+                    Request, feedback and more information on the project site
+                </Typography>
+                <Typography component="a" href="https://github.com/simonbuechi/sport" target="_blank" rel="noopener noreferrer" variant="body2" sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                    https://github.com/simonbuechi/sport
+                </Typography>
+            </Box>
         </Box>
     );
 };

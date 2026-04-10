@@ -1,9 +1,7 @@
-import { Link as RouterLink } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
-import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Rating from '@mui/material/Rating';
@@ -16,33 +14,17 @@ import Flag from '@mui/icons-material/Flag';
 import type { MarkedStatus } from '../../types';
 
 interface ExerciseProgressCardProps {
-    currentUser: any;
     currentStatus: MarkedStatus;
     onToggleStatus: (key: keyof Omit<MarkedStatus, 'skillLevel'>) => void;
     onRatingChange: (event: React.SyntheticEvent, newValue: number | null) => void;
 }
 
-const ExerciseProgressCard = ({ currentUser, currentStatus, onToggleStatus, onRatingChange }: ExerciseProgressCardProps) => {
+const ExerciseProgressCard = ({ currentStatus, onToggleStatus, onRatingChange }: ExerciseProgressCardProps) => {
     return (
         <Paper variant="outlined" sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>My Progress</Typography>
             <Divider sx={{ mb: 3 }} />
 
-            {!currentUser ? (
-                <Box>
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary",
-                            mb: 2
-                        }}>
-                        Log in to mark this exercise and track your progress.
-                    </Typography>
-                    <Button variant="outlined" fullWidth component={RouterLink} to="/login">
-                        Log In
-                    </Button>
-                </Box>
-            ) : (
                 <Box
                     sx={{
                         display: "flex",
@@ -154,7 +136,6 @@ const ExerciseProgressCard = ({ currentUser, currentStatus, onToggleStatus, onRa
                         />
                     </Box>
                 </Box>
-            )}
         </Paper>
     );
 };

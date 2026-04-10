@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ExercisesProvider } from './context/ExercisesContext';
 import { PwaProvider } from './context/PwaContext';
@@ -24,59 +24,20 @@ function App() {
           <Router basename="/sport/">
             <Routes>
               <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="exercises" element={<Exercises />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
-                <Route path="exercises/:id" element={<ExerciseDetails />} />
-                <Route
-                  path="exercises/new"
-                  element={
-                    <ProtectedRoute>
-                      <ExerciseForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="exercises/:id/edit"
-                  element={
-                    <ProtectedRoute>
-                      <ExerciseForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="journal"
-                  element={
-                    <ProtectedRoute>
-                      <Journal />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="journal/new"
-                  element={
-                    <ProtectedRoute>
-                      <SessionForm />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="journal/:id/edit"
-                  element={
-                    <ProtectedRoute>
-                      <SessionForm />
-                    </ProtectedRoute>
-                  }
-                />
+                
+                <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                  <Route index element={<Home />} />
+                  <Route path="exercises" element={<Exercises />} />
+                  <Route path="exercises/:id" element={<ExerciseDetails />} />
+                  <Route path="exercises/new" element={<ExerciseForm />} />
+                  <Route path="exercises/:id/edit" element={<ExerciseForm />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="journal" element={<Journal />} />
+                  <Route path="journal/new" element={<SessionForm />} />
+                  <Route path="journal/:id/edit" element={<SessionForm />} />
+                </Route>
               </Route>
 
             </Routes>

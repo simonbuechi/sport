@@ -159,18 +159,16 @@ const Exercises = () => {
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        {currentUser && (
-                            <Tooltip title="New Exercise">
-                                <IconButton
-                                    component={RouterLink}
-                                    to="/exercises/new"
-                                    color="primary"
-                                    sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 2 }}
-                                >
-                                    <Add />
-                                </IconButton>
-                            </Tooltip>
-                        )}
+                        <Tooltip title="New Exercise">
+                            <IconButton
+                                component={RouterLink}
+                                to="/exercises/new"
+                                color="primary"
+                                sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 2 }}
+                            >
+                                <Add />
+                            </IconButton>
+                        </Tooltip>
                         <ToggleButtonGroup
                             value={viewMode}
                             exclusive
@@ -292,7 +290,7 @@ const Exercises = () => {
             {currentError && <Alert severity="error" sx={{ mb: 4 }}>{currentError}</Alert>}
             {exercises.length === 0 && !currentError ? (
                 <Alert severity="info" sx={{ mt: 4 }}>
-                    No exercises found. Log in to add some exercises to the database.
+                    No exercises found in the database.
                 </Alert>
             ) : displayedExercises.length === 0 ? (
                 <Alert severity="info" sx={{ mt: 2 }}>

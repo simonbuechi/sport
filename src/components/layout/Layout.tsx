@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -6,6 +6,20 @@ import MobileNavigation from './MobileNavigation';
 import OfflineBanner from '../common/OfflineBanner';
 
 const Layout = () => {
+    const location = useLocation();
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
+    if (isAuthPage) {
+        return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+                <Box component="main" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Outlet />
+                </Box>
+                <Footer />
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Navbar />

@@ -65,10 +65,7 @@ const ExerciseDetails = () => {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            if (!currentUser) {
-                setProfileLoading(false);
-                return;
-            }
+            if (!currentUser) return;
             try {
                 setProfileLoading(true);
                 const userProf = await getUserProfile(currentUser.uid);
@@ -94,7 +91,7 @@ const ExerciseDetails = () => {
 
     useEffect(() => {
         if (profile && id) {
-            setNotes(profile.markedExercises[id]?.notes ?? '');
+            setNotes(profile.markedExercises[id].notes ?? '');
         }
     }, [id, profile]);
 
@@ -102,7 +99,7 @@ const ExerciseDetails = () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises[id]?.[key];
+            const currentValue = profile.markedExercises[id][key];
             const updatedMarked = updateExerciseStatus(profile, id, { [key]: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -129,7 +126,7 @@ const ExerciseDetails = () => {
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises[id]?.notes ?? '';
+        const currentNotes = profile.markedExercises[id].notes ?? '';
         if (notes === currentNotes) return;
 
         try {
@@ -173,7 +170,6 @@ const ExerciseDetails = () => {
                     <Grid size={{ xs: 12, md: 8 }}>
                         <ExerciseHeader 
                             exercise={exercise} 
-                            currentUser={currentUser} 
                             onDelete={handleDelete} 
                         />
 
@@ -203,7 +199,7 @@ const ExerciseDetails = () => {
                                                     <LinkIcon color="primary" />
                                                 </ListItemIcon>
                                                 <ListItemText 
-                                                    primary={link.label || 'Web Link'} 
+                                                    primary={link.label ?? 'Web Link'} 
                                                     secondary={link.url}
                                                     slotProps={{ secondary: { noWrap: true, sx: { maxWidth: '100%' } } }}
                                                 />
@@ -221,13 +217,11 @@ const ExerciseDetails = () => {
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 3 }}>
                             <ExerciseProgressCard 
-                                currentUser={currentUser} 
                                 currentStatus={currentStatus} 
                                 onToggleStatus={handleStatusToggle} 
                                 onRatingChange={handleRatingChange} 
                             />
 
-                            {currentUser && (
                                 <Paper variant="outlined" sx={{ p: 3 }}>
                                     <Box
                                         sx={{
@@ -274,9 +268,8 @@ const ExerciseDetails = () => {
                                         Notes are private to you and save automatically.
                                     </Typography>
                                 </Paper>
-                            )}
 
-                            {currentUser && <ExerciseHistoryCard sessions={sessions} />}
+                            <ExerciseHistoryCard sessions={sessions} />
                         </Box>
                     </Grid>
                 </Grid>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
 import { getAllExercises } from '../services/db';
 import type { Exercise } from '../types';
 
@@ -23,7 +23,7 @@ export const useExercises = () => {
 
 export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const hasFetched = useRef(false);
 
@@ -44,6 +44,10 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
         }
     }, []);
+
+    useEffect(() => {
+        void loadExercises();
+    }, [loadExercises]);
 
     const refreshExercises = useCallback(async () => {
         hasFetched.current = false;

@@ -3,35 +3,13 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import Autocomplete from '@mui/material/Autocomplete';
-import Chip from '@mui/material/Chip';
-import Tooltip from '@mui/material/Tooltip';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-
 import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
-import SearchIcon from '@mui/icons-material/Search';
-import DragIcon from '@mui/icons-material/DragIndicator';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import NoteAddIcon from '@mui/icons-material/NoteAdd';
-import StarIcon from '@mui/icons-material/Star';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
 import type { TrainingTemplate, Exercise } from '../../types';
+import TemplateDialog from './TemplateDialog';
+import TemplateSetDialog, { type SetDialogData } from './TemplateSetDialog';
+import TemplateAccordion from './TemplateAccordion';
 
 interface TemplatesSectionProps {
     userId: string;
@@ -53,14 +31,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
     const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
     const [editingNotePath, setEditingNotePath] = useState<{ tid: string, idx: number } | null>(null);
     const [isSetDialogOpen, setIsSetDialogOpen] = useState(false);
-    const [setDialogData, setSetDialogData] = useState<{
-        tid: string;
-        exerciseIdx: number;
-        setIdx?: number;
-        weight: number;
-        reps: number;
-        count: number;
-    } | null>(null);
+    const [setDialogData, setSetDialogData] = useState<SetDialogData | null>(null);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -272,11 +243,6 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             console.error('Failed to delete template:', err);
         }
     };
-
-    const getExerciseName = (id: string) => {
-        return exercises.find(ex => ex.id === id)?.name ?? 'Unknown Exercise';
-    };
-
     const sortedTemplates = [...templates].sort((a, b) => {
         // Favorites first
         if (a.isFavorite && !b.isFavorite) return -1;
@@ -316,336 +282,50 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
                 <Grid container spacing={2}>
                     {sortedTemplates.map(template => (
                         <Grid size={{ xs: 12 }} key={template.id}>
-                            <Accordion 
-                                elevation={4} 
-                                sx={{ 
-                                    borderRadius: '12px !important', 
-                                    border: '1px solid', 
-                                    borderColor: 'divider',
-                                    mb: 2,
-                                    opacity: template.isArchived ? 0.6 : 1,
-                                    bgcolor: template.isArchived ? 'action.hover' : 'background.paper',
-                                    '&:before': { display: 'none' } 
-                                }}
-                            >
-                                <AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    sx={{ 
-                                        px: 3, 
-                                        py: 1,
-                                        '& .MuiAccordionSummary-content': { 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
-                                            alignItems: 'center' 
-                                        } 
-                                    }}
-                                >
-                                    <Box>
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1
-                                            }}>
-                                            {template.isFavorite && <StarIcon color="warning" fontSize="small" />}
-                                            <Typography variant="h6" color="primary" sx={{
-                                                fontWeight: 700
-                                            }}>
-                                                {template.name}
-                                                {template.isArchived && " (Archived)"}
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="body2" sx={{
-                                            color: "text.secondary"
-                                        }}>
-                                            {template.exercises.length} exercises
-                                            {template.notes && ` • ${template.notes}`}
-                                        </Typography>
-                                    </Box>
-                                    <Box sx={{ mr: 2 }} onClick={(e) => { e.stopPropagation(); }}>
-                                        <Tooltip title="Edit Template">
-                                            <IconButton size="small" onClick={() => { handleOpenDialog(template); }}>
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-                                </AccordionSummary>
-
-                                <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
-                                    <Box sx={{ mt: 1 }}>
-                                        {template.exercises.length > 0 ? (
-                                            <DragDropContext onDragEnd={(result) => handleOnDragEnd(result, template.id)}>
-                                                <Droppable droppableId={template.id}>
-                                                    {(provided) => (
-                                                        <List {...provided.droppableProps} ref={provided.innerRef} sx={{ p: 0 }}>
-                                                            {template.exercises.map((ex, idx) => (
-                                                                <Draggable key={`${template.id}-${String(idx)}`} draggableId={`${template.id}-${String(idx)}`} index={idx}>
-                                                                    {(provided, snapshot) => (
-                                                                        <Box
-                                                                            ref={provided.innerRef}
-                                                                            {...provided.draggableProps}
-                                                                            sx={{ 
-                                                                                display: 'flex', 
-                                                                                alignItems: 'flex-start', 
-                                                                                gap: 1.5, 
-                                                                                py: 1.5,
-                                                                                px: 1,
-                                                                                borderRadius: 1,
-                                                                                bgcolor: snapshot.isDragging ? 'action.selected' : 'transparent',
-                                                                                '&:hover': { bgcolor: snapshot.isDragging ? 'action.selected' : 'action.hover' },
-                                                                                borderBottom: idx < template.exercises.length - 1 ? '1px dashed' : 'none',
-                                                                                borderColor: 'divider',
-                                                                                position: 'relative'
-                                                                            }}
-                                                                        >
-                                                                            <Box 
-                                                                                {...provided.dragHandleProps}
-                                                                                sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24, cursor: 'grab', color: 'text.secondary' }}
-                                                                            >
-                                                                                <DragIcon sx={{ fontSize: 20 }} />
-                                                                            </Box>
-
-                                                                            <Box sx={{
-                                                                                flexGrow: 1
-                                                                            }}>
-                                                                                <Typography variant="body1" sx={{
-                                                                                    fontWeight: 700
-                                                                                }}>{getExerciseName(ex.exerciseId)}</Typography>
-                                                                                
-                                                                                {/* Sets List */}
-                                                                                {ex.sets && ex.sets.length > 0 && (
-                                                                                    <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                                                        {ex.sets.map((set, sIdx) => (
-                                                                                            <Chip
-                                                                                                key={set.id}
-                                                                                                variant="outlined"
-                                                                                                size="small"
-                                                                                                label={`${String(set.weight)}kg x ${String(set.reps)}`}
-                                                                                                onClick={() => { handleOpenSetDialog(template.id, idx, sIdx); }}
-                                                                                                sx={{ borderRadius: '4px' }}
-                                                                                            />
-                                                                                        ))}
-                                                                                    </Box>
-                                                                                )}
-
-                                                                                {editingNotePath?.tid === template.id && editingNotePath.idx === idx ? (
-                                                                                    <TextField
-                                                                                        fullWidth
-                                                                                        multiline
-                                                                                        rows={2}
-                                                                                        defaultValue={ex.note}
-                                                                                        onBlur={(e) => handleInlineUpdateNote(template.id, idx, e.target.value)}
-                                                                                        sx={{ mt: 1 }}
-                                                                                        placeholder="Add sets/reps notes..."
-                                                                                    />
-                                                                                ) : ex.note ? (
-                                                                                    <Typography
-                                                                                        variant="body2"
-                                                                                        onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}
-                                                                                        sx={{
-                                                                                            color: "text.secondary",
-                                                                                            display: "block",
-                                                                                            cursor: 'pointer',
-                                                                                            mt: 0.5
-                                                                                        }}>
-                                                                                        {ex.note}
-                                                                                    </Typography>
-                                                                                ) : null}
-                                                                            </Box>
-
-                                                                            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                                                                                <Button 
-                                                                                    size="small" 
-                                                                                    startIcon={<AddIcon />} 
-                                                                                    onClick={() => { handleOpenSetDialog(template.id, idx); }}
-                                                                                    sx={{ whiteSpace: 'nowrap' }}
-                                                                                >
-                                                                                    Set
-                                                                                </Button>
-                                                                                {!ex.note && (
-                                                                                    <Tooltip title="Add notes">
-                                                                                        <IconButton size="small" onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}>
-                                                                                            <NoteAddIcon fontSize="small" />
-                                                                                        </IconButton>
-                                                                                    </Tooltip>
-                                                                                )}
-                                                                                <Tooltip title="Remove Exercise">
-                                                                                    <IconButton 
-                                                                                        size="small" 
-                                                                                        color="error" 
-                                                                                        onClick={() => handleInlineRemove(template.id, idx)}
-                                                                                        sx={{ opacity: 0.6, '&:hover': { opacity: 1 } }}
-                                                                                    >
-                                                                                        <DeleteIcon fontSize="inherit" />
-                                                                                    </IconButton>
-                                                                                </Tooltip>
-                                                                            </Box>
-                                                                        </Box>
-                                                                    )}
-                                                                </Draggable>
-                                                            ))}
-                                                            {provided.placeholder}
-                                                        </List>
-                                                    )}
-                                                </Droppable>
-                                            </DragDropContext>
-                                        ) : (
-                                            <Typography
-                                                variant="body1"
-                                                sx={{
-                                                    color: "text.secondary",
-                                                    fontStyle: 'italic',
-                                                    py: 2
-                                                }}>
-                                                No exercises. Start by adding one below.
-                                            </Typography>
-                                        )}
-
-                                        <Box sx={{ mt: 2 }}>
-                                            {activeSearchId === template.id ? (
-                                                <Box sx={{ p: 2, bgcolor: 'action.selected', borderRadius: 2 }}>
-                                                    <Box
-                                                        sx={{
-                                                            display: "flex",
-                                                            justifyContent: "space-between",
-                                                            alignItems: "center",
-                                                            mb: 1
-                                                        }}>
-                                                        <Typography variant="body2" sx={{
-                                                            fontWeight: 700
-                                                        }}>Search Exercise</Typography>
-                                                        <Tooltip title="Close Search">
-                                                            <IconButton size="small" onClick={() => { setActiveSearchId(null); }}>
-                                                                <CloseIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                    <Autocomplete
-                                                        options={exercises}
-                                                        getOptionLabel={(option) => option.name}
-                                                        onChange={(_, newValue) => handleInlineAdd(template.id, newValue)}
-                                                        renderInput={(params) => (
-                                                            <TextField {...params} placeholder="Bench Press, Squats..." 
-                                                                slotProps={{
-                                                                    ...params.slotProps,
-                                                                    input: {...params.slotProps.input, startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} />}
-                                                                }}
-                                                            />
-                                                        )}
-                                                        value={null}
-                                                        openOnFocus
-                                                    />
-                                                </Box>
-                                            ) : (
-                                                <Button 
-                                                    startIcon={<AddIcon />} 
-                                                    onClick={() => { setActiveSearchId(template.id); }}
-                                                    variant="text"
-                                                    color="primary"
-                                                    sx={{ fontWeight: 600 }}
-                                                >
-                                                    Add Exercise
-                                                </Button>
-                                            )}
-                                        </Box>
-                                    </Box>
-                                </AccordionDetails>
-                            </Accordion>
+                            <TemplateAccordion
+                                template={template}
+                                exercises={exercises}
+                                activeSearchId={activeSearchId}
+                                setActiveSearchId={setActiveSearchId}
+                                editingNotePath={editingNotePath}
+                                setEditingNotePath={setEditingNotePath}
+                                onEdit={handleOpenDialog}
+                                onInlineAdd={handleInlineAdd}
+                                onInlineRemove={handleInlineRemove}
+                                onInlineUpdateNote={handleInlineUpdateNote}
+                                onDragEnd={handleOnDragEnd}
+                                onOpenSetDialog={handleOpenSetDialog}
+                            />
                         </Grid>
                     ))}
                 </Grid>
             )}
-            <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-                <DialogTitle>{editingTemplate ? 'Rename Template' : 'Create Template'}</DialogTitle>
-                <DialogContent dividers>
-                    <TextField
-                        label="Template Name"
-                        fullWidth
-                        margin="normal"
-                        value={name}
-                        onChange={(e) => { setName(e.target.value); }}
-                        placeholder="e.g. Push Day, Leg Routine"
-                    />
-                    <TextField
-                        label="Notes"
-                        fullWidth
-                        multiline
-                        rows={3}
-                        margin="normal"
-                        value={templateNotes}
-                        onChange={(e) => { setTemplateNotes(e.target.value); }}
-                        placeholder="General notes about this routine..."
-                    />
-                    <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                        <FormControlLabel
-                            control={<Checkbox checked={isFavorite} onChange={(e) => { setIsFavorite(e.target.checked); }} color="warning" />}
-                            label="Favorite"
-                        />
-                        <FormControlLabel
-                            control={<Checkbox checked={isArchived} onChange={(e) => { setIsArchived(e.target.checked); }} />}
-                            label="Archived"
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ p: 2, bgcolor: 'grey.50', justifyContent: editingTemplate ? 'space-between' : 'flex-end' }}>
-                    {editingTemplate && (
-                        <Button color="error" startIcon={<DeleteIcon />} onClick={() => handleDelete(editingTemplate.id)}>
-                            Delete
-                        </Button>
-                    )}
-                    <Box>
-                        <Button onClick={handleCloseDialog}>Cancel</Button>
-                        <Button variant="contained" onClick={handleSave} disabled={saving || !name.trim()}>
-                            {saving ? 'Saving...' : (editingTemplate ? 'Save Name' : 'Create Template')}
-                        </Button>
-                    </Box>
-                </DialogActions>
-            </Dialog>
-            {/* Set Dialog */}
-            <Dialog open={isSetDialogOpen} onClose={() => { setIsSetDialogOpen(false); }} maxWidth="xs" fullWidth>
-                <DialogTitle>{setDialogData?.setIdx !== undefined ? 'Edit Set' : 'Add Set(s)'}</DialogTitle>
-                <DialogContent dividers>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 1 }}>
-                        <TextField
-                            label="Weight (kg)"
-                            type="number"
-                            fullWidth
-                            value={setDialogData?.weight ?? ''}
-                            onChange={(e) => { setSetDialogData(prev => prev ? { ...prev, weight: Number(e.target.value) } : null); }}
-                        />
-                        <TextField
-                            label="Reps"
-                            type="number"
-                            fullWidth
-                            value={setDialogData?.reps ?? ''}
-                            onChange={(e) => { setSetDialogData(prev => prev ? { ...prev, reps: Number(e.target.value) } : null); }}
-                        />
-                        {setDialogData?.setIdx === undefined && (
-                            <TextField
-                                label="Number of Sets"
-                                type="number"
-                                fullWidth
-                                value={setDialogData?.count ?? 1}
-                                onChange={(e) => { setSetDialogData(prev => prev ? { ...prev, count: Number(e.target.value) } : null); }}
-                                helperText="Adds this set multiple times"
-                            />
-                        )}
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ p: 2, bgcolor: 'grey.50', justifyContent: setDialogData?.setIdx !== undefined ? 'space-between' : 'flex-end' }}>
-                    {setDialogData?.setIdx !== undefined && (
-                        <Button color="error" startIcon={<DeleteIcon />} onClick={() => { if (setDialogData.setIdx !== undefined) { void handleRemoveSetFromTemplate(setDialogData.tid, setDialogData.exerciseIdx, setDialogData.setIdx); } }}>
-                            Delete
-                        </Button>
-                    )}
-                    <Box>
-                        <Button onClick={() => { setIsSetDialogOpen(false); }}>Cancel</Button>
-                        <Button variant="contained" onClick={handleSaveSet} color="primary">
-                            {setDialogData?.setIdx !== undefined ? 'Save' : 'Add'}
-                        </Button>
-                    </Box>
-                </DialogActions>
-            </Dialog>
+
+            <TemplateDialog
+                open={isDialogOpen}
+                onClose={handleCloseDialog}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                saving={saving}
+                editingTemplate={editingTemplate}
+                name={name}
+                setName={setName}
+                notes={templateNotes}
+                setNotes={setTemplateNotes}
+                isFavorite={isFavorite}
+                setIsFavorite={setIsFavorite}
+                isArchived={isArchived}
+                setIsArchived={setIsArchived}
+            />
+
+            <TemplateSetDialog
+                open={isSetDialogOpen}
+                onClose={() => { setIsSetDialogOpen(false); }}
+                onSave={handleSaveSet}
+                onDelete={(tid, eIdx, sIdx) => { void handleRemoveSetFromTemplate(tid, eIdx, sIdx); }}
+                data={setDialogData}
+                setData={setSetDialogData}
+            />
         </Box>
     );
 };

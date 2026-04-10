@@ -38,7 +38,7 @@ import { useExercises } from '../context/ExercisesContext';
 
 const Exercises = () => {
     const { currentUser } = useAuth();
-    const { exercises, loading: exercisesLoading, error: exercisesError, loadExercises } = useExercises();
+    const { exercises, loading: exercisesLoading, error: exercisesError } = useExercises();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
@@ -99,9 +99,6 @@ const Exercises = () => {
         return filteredExercises.slice(0, displayCount);
     }, [filteredExercises, displayCount]);
 
-    useEffect(() => {
-        void loadExercises();
-    }, [loadExercises]);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -203,6 +200,7 @@ const Exercises = () => {
                 }}>
                     <TextField
                         fullWidth
+                        size="small"
                         variant="outlined"
                         placeholder="Search exercises..."
                         value={searchTerm}

@@ -4,6 +4,11 @@ export type BodyPart = 'Whole Body' | 'Legs' | 'Back' | 'Shoulders' | 'Chest' | 
 
 export type ExerciseCategory = 'Bodyweight' | 'Barbell' | 'Dumbbell' | 'Machine' | 'Cable' | 'Kettlebell';
 
+export interface ExerciseLink {
+    url: string;
+    label?: string;
+}
+
 export interface Exercise {
     id: string;
     show?: boolean;
@@ -15,6 +20,7 @@ export interface Exercise {
     category: ExerciseCategory;
     icon_url?: string;
     aliases: string[];
+    links?: ExerciseLink[];
     popular?: boolean;
 }
 

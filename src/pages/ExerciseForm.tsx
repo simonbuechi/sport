@@ -40,10 +40,12 @@ export default function ExerciseForm() {
         description: '',
         icon_url: '',
         aliases: [],
+        links: [],
         popular: false
     });
 
     const [aliasInput, setAliasInput] = useState('');
+    const [linkInput, setLinkInput] = useState({ url: '', label: '' });
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -63,6 +65,7 @@ export default function ExerciseForm() {
                             description: tech.description ?? '',
                             icon_url: tech.icon_url ?? '',
                             aliases: tech.aliases,
+                            links: tech.links ?? [],
                             popular: tech.popular ?? false
                         });
                     } else {
@@ -103,6 +106,24 @@ export default function ExerciseForm() {
         setFormData({
             ...formData,
             aliases: formData.aliases.filter((_, index) => index !== indexToRemove)
+        });
+    };
+    
+    const handleAddLink = () => {
+        const url = linkInput.url.trim();
+        if (!url) return;
+        
+        setFormData({
+            ...formData,
+            links: [...(formData.links ?? []), { url, label: linkInput.label.trim() || undefined }]
+        });
+        setLinkInput({ url: '', label: '' });
+    };
+
+    const handleRemoveLink = (indexToRemove: number) => {
+        setFormData({
+            ...formData,
+            links: formData.links?.filter((_, index) => index !== indexToRemove)
         });
     };
 
@@ -297,6 +318,77 @@ export default function ExerciseForm() {
                                         onDelete={() => { handleRemoveAlias(index); }}
                                         size="small"
                                     />
+                                ))}
+                            </Box>
+                        </Grid>
+
+                        <Grid size={{ xs: 12 }}>
+                            <Typography variant="subtitle2" gutterBottom>Links</Typography>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: { xs: 'column', sm: 'row' },
+                                    gap: 1,
+                                    mb: 1
+                                }}>
+                                <TextField
+                                    label="Link URL"
+                                    fullWidth
+                                    size="small"
+                                    value={linkInput.url}
+                                    onChange={(e) => { setLinkInput({ ...linkInput, url: e.target.value }); }}
+                                    placeholder="https://..."
+                                />
+                                <TextField
+                                    label="Label (Optional)"
+                                    fullWidth
+                                    size="small"
+                                    value={linkInput.label}
+                                    onChange={(e) => { setLinkInput({ ...linkInput, label: e.target.value }); }}
+                                    placeholder="Tutorial Video"
+                                />
+                                <Button 
+                                    variant="outlined" 
+                                    onClick={handleAddLink}
+                                    sx={{ minWidth: 100 }}
+                                >
+                                    Add Link
+                                </Button>
+                            </Box>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 1
+                                }}>
+                                {formData.links?.map((link, index) => (
+                                    <Paper 
+                                        key={index}
+                                        variant="outlined" 
+                                        sx={{ 
+                                            p: 1, 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            bgcolor: 'background.default'
+                                        }}
+                                    >
+                                        <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                {link.label ?? 'Link'}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                                                {link.url}
+                                            </Typography>
+                                        </Box>
+                                        <Button 
+                                            size="small" 
+                                            color="error" 
+                                            onClick={() => { handleRemoveLink(index); }}
+                                        >
+                                            Remove
+                                        </Button>
+                                    </Paper>
                                 ))}
                             </Box>
                         </Grid>

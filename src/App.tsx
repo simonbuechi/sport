@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import ExerciseDetails from './pages/ExerciseDetails';
 import ExerciseForm from './pages/ExerciseForm';
 import Journal from './pages/Journal';
+import SessionForm from './pages/SessionForm';
 
 import ReloadPrompt from './components/common/ReloadPrompt';
 
@@ -57,6 +58,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Journal />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="journal/new"
+                  element={
+                    <ProtectedRoute>
+                      <SessionForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="journal/:id/edit"
+                  element={
+                    <ProtectedRoute>
+                      <SessionForm />
                     </ProtectedRoute>
                   }
                 />

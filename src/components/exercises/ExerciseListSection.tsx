@@ -11,6 +11,7 @@ import Divider from '@mui/material/Divider';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { Link as RouterLink } from 'react-router-dom';
+import LinkIcon from '@mui/icons-material/Link';
 import type { Exercise } from '../../types';
 import type { ReactNode } from 'react';
 
@@ -89,6 +90,7 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
                                     <Typography variant="body2" sx={{ mr: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {tech.name}
                                     </Typography>
+                                    {tech.links && tech.links.length > 0 && <LinkIcon sx={{ fontSize: 14, color: 'text.secondary', ml: 'auto' }} />}
                                 </ListItem>
                             ))}
                         </List>

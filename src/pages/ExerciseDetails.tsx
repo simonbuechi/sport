@@ -1,35 +1,27 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
-import Button from '@mui/material/Button';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import TextField from '@mui/material/TextField';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import Rating from '@mui/material/Rating';
-import TextField from '@mui/material/TextField';
-import Avatar from '@mui/material/Avatar';
-
-import Favorite from '@mui/icons-material/Favorite';
-import MenuBook from '@mui/icons-material/MenuBook';
-import School from '@mui/icons-material/School';
-import EventNote from '@mui/icons-material/EventNote';
-import ArrowBack from '@mui/icons-material/ArrowBack';
+import OpenInNew from '@mui/icons-material/OpenInNew';
+import LinkIcon from '@mui/icons-material/Link';
 import EditNote from '@mui/icons-material/EditNote';
-import Flag from '@mui/icons-material/Flag';
-import Delete from '@mui/icons-material/Delete';
-import { getExerciseById, getUserProfile, updateUserProfile, getJournalEntries, deleteExercise } from '../services/db';
-import type { Exercise, UserProfile, MarkedStatus, ActivityLog as JournalEntry } from '../types';
+import { getUserProfile, updateUserProfile, getJournalEntries, deleteExercise } from '../services/db';
+import type { UserProfile, MarkedStatus, ActivityLog as JournalEntry } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useExercises } from '../context/ExercisesContext';
+import ExerciseHeader from '../components/exercises/ExerciseHeader';
+import ExerciseProgressCard from '../components/exercises/ExerciseProgressCard';
+import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 
 const updateExerciseStatus = (
     profile: UserProfile,
@@ -56,31 +48,33 @@ const ExerciseDetails = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
 
-    const [exercise, setExercise] = useState<Exercise | null>(null);
+    const { exercises, loading: exercisesLoading } = useExercises();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [sessions, setSessions] = useState<JournalEntry[]>([]);
     const [notes, setNotes] = useState('');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const exercise = useMemo(() => {
+        if (!id || exercisesLoading) return null;
+        return exercises.find(e => e.id === id) ?? null;
+    }, [id, exercises, exercisesLoading]);
+
+    const loading = exercisesLoading || profileLoading;
+
     useEffect(() => {
-        const fetchData = async () => {
-            if (!id) return;
+        const fetchUserData = async () => {
+            if (!currentUser) {
+                setProfileLoading(false);
+                return;
+            }
             try {
-                setLoading(true);
-                const exerciseData = await getExerciseById(id);
-                if (!exerciseData) {
-                    setError('Exercise not found');
-                    return;
-                }
-                setExercise(exerciseData);
+                setProfileLoading(true);
+                const userProf = await getUserProfile(currentUser.uid);
+                setProfile(userProf);
 
-
-                if (currentUser) {
-                    const userProf = await getUserProfile(currentUser.uid);
-                    setProfile(userProf);
-
+                if (id) {
                     const allEntries = await getJournalEntries(currentUser.uid);
                     const exerciseSessions = allEntries.filter((entry: JournalEntry) =>
                         entry.exerciseIds.includes(id)
@@ -89,18 +83,18 @@ const ExerciseDetails = () => {
                 }
             } catch (err) {
                 console.error(err);
-                setError('Failed to load exercise details');
+                setError('Failed to load user progress data');
             } finally {
-                setLoading(false);
+                setProfileLoading(false);
             }
         };
 
-        void fetchData();
+        void fetchUserData();
     }, [id, currentUser]);
 
     useEffect(() => {
         if (profile && id) {
-            setNotes(profile.markedExercises[id].notes ?? '');
+            setNotes(profile.markedExercises[id]?.notes ?? '');
         }
     }, [id, profile]);
 
@@ -108,7 +102,7 @@ const ExerciseDetails = () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises[id][key];
+            const currentValue = profile.markedExercises[id]?.[key];
             const updatedMarked = updateExerciseStatus(profile, id, { [key]: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -135,7 +129,7 @@ const ExerciseDetails = () => {
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises[id].notes ?? '';
+        const currentNotes = profile.markedExercises[id]?.notes ?? '';
         if (notes === currentNotes) return;
 
         try {
@@ -177,252 +171,61 @@ const ExerciseDetails = () => {
             <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', borderRadius: 2 }}>
                 <Grid container spacing={4}>
                     <Grid size={{ xs: 12, md: 8 }}>
-                        <Box
-                            sx={{
-                                mb: 2,
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "flex-start"
-                            }}>
-                            <Box>
-                                <Button
-                                    component={RouterLink}
-                                    to="/exercises"
-                                    startIcon={<ArrowBack />}
-                                    sx={{ mb: 1, color: 'text.secondary' }}
-                                >
-                                    Back to Overview
-                                </Button>
-                                <Avatar 
-                                    src={exercise.icon_url ? 
-                                        `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}` 
-                                        : undefined}
-                                    alt={exercise.name}
-                                    sx={{ 
-                                        width: 100, 
-                                        height: 100, 
-                                        mb: 2, 
-                                    }}
-                                >
-                                    {exercise.name.charAt(0)}
-                                </Avatar>
-                                <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
-                                    {exercise.name}
-                                </Typography>
-                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-                                    <Chip
-                                        label={exercise.type}
-                                        color="primary"
-                                        variant="outlined"
-                                        size="small"
-                                        sx={{ textTransform: 'capitalize' }}
-                                    />
-                                    <Chip
-                                        label={exercise.bodypart}
-                                        color="secondary"
-                                        variant="outlined"
-                                        size="small"
-                                    />
-                                    <Chip
-                                        label={exercise.category}
-                                        color="info"
-                                        variant="outlined"
-                                        size="small"
-                                    />
-                                </Box>
-                                {exercise.aliases.length > 0 && (
-                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
-                                        {exercise.aliases.map((alias, index) => (
-                                            <Typography
-                                                key={index}
-                                                variant="caption"
-                                                sx={{
-                                                    color: "text.secondary",
-                                                    fontStyle: 'italic'
-                                                }}>
-                                                {alias}{index < exercise.aliases.length - 1 ? ', ' : ''}
-                                            </Typography>
-                                        ))}
-                                    </Box>
-                                )}
-                                {exercise.name_url && (
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: "text.secondary",
-                                            display: "block"
-                                        }}>
-                                        URL Name: {exercise.name_url}
-                                    </Typography>
-                                )}
-                            </Box>
-                            {currentUser && (
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <Button
-                                        component={RouterLink}
-                                        to={`/exercises/${exercise.id}/edit`}
-                                        variant="outlined"
-                                        color="primary"
-                                        size="small"
-                                        startIcon={<EditNote />}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        size="small"
-                                        startIcon={<Delete />}
-                                        onClick={handleDelete}
-                                    >
-                                        Delete
-                                    </Button>
-                                </Box>
-                            )}
-                        </Box>
-
+                        <ExerciseHeader 
+                            exercise={exercise} 
+                            currentUser={currentUser} 
+                            onDelete={handleDelete} 
+                        />
 
                         <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Description</Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
                             {exercise.description ?? 'No description available.'}
                         </Typography>
 
+                        {exercise.links && exercise.links.length > 0 && (
+                            <Box sx={{ mt: 4 }}>
+                                <Typography variant="h5" gutterBottom>Links & Resources</Typography>
+                                <List sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                                    {exercise.links.map((link, index) => (
+                                        <Box key={index}>
+                                            <ListItem 
+                                                component="a" 
+                                                href={link.url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                sx={{ 
+                                                    textDecoration: 'none', 
+                                                    color: 'inherit',
+                                                    '&:hover': { bgcolor: 'action.hover' }
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <LinkIcon color="primary" />
+                                                </ListItemIcon>
+                                                <ListItemText 
+                                                    primary={link.label || 'Web Link'} 
+                                                    secondary={link.url}
+                                                    slotProps={{ secondary: { noWrap: true, sx: { maxWidth: '100%' } } }}
+                                                />
+                                                <OpenInNew fontSize="small" color="action" />
+                                            </ListItem>
+                                            {index < (exercise.links?.length ?? 0) - 1 && <Divider component="li" />}
+                                        </Box>
+                                    ))}
+                                </List>
+                            </Box>
+                        )}
+
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <Paper variant="outlined" sx={{ p: 3 }}>
-                                <Typography variant="h6" gutterBottom>My Progress</Typography>
-                                <Divider sx={{ mb: 3 }} />
-
-                                {!currentUser ? (
-                                    <Box>
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                color: "text.secondary",
-                                                mb: 2
-                                            }}>
-                                            Log in to mark this exercise and track your progress.
-                                        </Typography>
-                                        <Button variant="outlined" fullWidth component={RouterLink} to="/login">
-                                            Log In
-                                        </Button>
-                                    </Box>
-                                ) : (
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: 2
-                                        }}>
-                                        <ToggleButtonGroup
-                                            orientation="vertical"
-                                            fullWidth
-                                            sx={{
-                                                '& .MuiToggleButton-root': {
-                                                    display: 'flex',
-                                                    justifyContent: 'flex-start',
-                                                    px: 2,
-                                                    py: 1,
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                    transition: 'all 0.2s',
-                                                    textTransform: 'none',
-                                                    borderRadius: 0,
-                                                    mb: 0,
-                                                    '&:first-of-type': {
-                                                        borderTopLeftRadius: '12px',
-                                                        borderTopRightRadius: '12px',
-                                                    },
-                                                    '&:last-of-type': {
-                                                        borderBottomLeftRadius: '12px',
-                                                        borderBottomRightRadius: '12px',
-                                                    }
-                                                }
-                                            }}
-                                        >
-                                            <ToggleButton
-                                                value="favorite"
-                                                selected={!!currentStatus.favorite}
-                                                onChange={() => handleStatusToggle('favorite')}
-                                                size="small"
-                                                sx={{
-                                                    '&.Mui-selected': {
-                                                        bgcolor: '#D7195F',
-                                                        color: 'white',
-                                                        fontWeight: 'bold',
-                                                        borderColor: '#D7195F',
-                                                        '&:hover': { bgcolor: '#D7195F' },
-                                                        '& .MuiSvgIcon-root': { color: 'white' }
-                                                    }
-                                                }}
-                                            >
-                                                <Favorite sx={{ mr: 1, fontSize: 22 }} />
-                                                <Typography variant="body2" sx={{ fontWeight: 'inherit', textAlign: 'left' }}>Favorite</Typography>
-                                                {currentStatus.favorite && <Flag sx={{ ml: 'auto', fontSize: 18 }} />}
-                                            </ToggleButton>
-                                            <ToggleButton
-                                                value="learning"
-                                                selected={!!currentStatus.learning}
-                                                onChange={() => handleStatusToggle('learning')}
-                                                size="small"
-                                                sx={{
-                                                    '&.Mui-selected': {
-                                                        bgcolor: '#B21E84',
-                                                        color: 'white',
-                                                        fontWeight: 'bold',
-                                                        borderColor: '#B21E84',
-                                                        '&:hover': { bgcolor: '#B21E84' },
-                                                        '& .MuiSvgIcon-root': { color: 'white' }
-                                                    }
-                                                }}
-                                            >
-                                                <School sx={{ mr: 1, fontSize: 22 }} />
-                                                <Typography variant="body2" sx={{ fontWeight: 'inherit', textAlign: 'left' }}>Currently Learning</Typography>
-                                                {currentStatus.learning && <Flag sx={{ ml: 'auto', fontSize: 18 }} />}
-                                            </ToggleButton>
-                                            <ToggleButton
-                                                value="toLearn"
-                                                selected={!!currentStatus.toLearn}
-                                                onChange={() => handleStatusToggle('toLearn')}
-                                                size="small"
-                                                sx={{
-                                                    '&.Mui-selected': {
-                                                        bgcolor: '#9123A6',
-                                                        color: 'white',
-                                                        fontWeight: 'bold',
-                                                        borderColor: '#9123A6',
-                                                        '&:hover': { bgcolor: '#9123A6' },
-                                                        '& .MuiSvgIcon-root': { color: 'white' }
-                                                    }
-                                                }}
-                                            >
-                                                <MenuBook sx={{ mr: 1, fontSize: 22 }} />
-                                                <Typography variant="body2" sx={{ fontWeight: 'inherit', textAlign: 'left' }}>To Learn</Typography>
-                                                {currentStatus.toLearn && <Flag sx={{ ml: 'auto', fontSize: 18 }} />}
-                                            </ToggleButton>
-                                        </ToggleButtonGroup>
-
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "space-between",
-                                                mt: 2,
-                                                mb: 1
-                                            }}>
-                                            <Typography variant="subtitle2">My Skill Level</Typography>
-                                            <Rating
-                                                name="exercise-skill-level"
-                                                value={currentStatus.skillLevel ?? 0}
-                                                onChange={handleRatingChange}
-                                                size="medium"
-                                            />
-                                        </Box>
-                                    </Box>
-                                )}
-                            </Paper>
+                            <ExerciseProgressCard 
+                                currentUser={currentUser} 
+                                currentStatus={currentStatus} 
+                                onToggleStatus={handleStatusToggle} 
+                                onRatingChange={handleRatingChange} 
+                            />
 
                             {currentUser && (
                                 <Paper variant="outlined" sx={{ p: 3 }}>
@@ -473,43 +276,7 @@ const ExerciseDetails = () => {
                                 </Paper>
                             )}
 
-                            {currentUser && sessions.length > 0 && (
-                                <Paper variant="outlined" sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom>Training History</Typography>
-                                    <Divider sx={{ mb: 2 }} />
-                                    <List disablePadding>
-                                        {sessions.map(session => (
-                                            <ListItem key={session.id} disablePadding sx={{ mb: 1, alignItems: 'flex-start' }}>
-                                                <ListItemIcon sx={{ minWidth: 36, mt: 0.5 }}>
-                                                    <EventNote fontSize="small" color="primary" />
-                                                </ListItemIcon>
-                                                <ListItemText
-                                                    primary={new Date(session.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-                                                    secondary={
-                                                        <>
-                                                            {session.sessionType ?? 'Training Session'}
-                                                            {session.length ? ` • ${String(session.length)} min` : ''}
-                                                        </>
-                                                    }
-                                                    slotProps={{
-                                                        secondary: { variant: 'caption', sx: { display: 'block' } }
-                                                    }}
-                                                />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                    <Button
-                                        component={RouterLink}
-                                        to="/journal"
-                                        variant="text"
-                                        fullWidth
-                                        size="small"
-                                        sx={{ mt: 1 }}
-                                    >
-                                        View Full Journal
-                                    </Button>
-                                </Paper>
-                            )}
+                            {currentUser && <ExerciseHistoryCard sessions={sessions} />}
                         </Box>
                     </Grid>
                 </Grid>

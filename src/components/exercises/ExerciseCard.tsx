@@ -8,6 +8,7 @@ import Avatar from '@mui/material/Avatar';
 import { useNavigate } from 'react-router-dom';
 import type { Exercise, UserProfile } from '../../types';
 import MarkerIcons from './MarkerIcons';
+import LinkIcon from '@mui/icons-material/Link';
 
 interface ExerciseCardProps {
     exercise: Exercise;
@@ -45,6 +46,7 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                             />
                         </Box>
                         <Box sx={{ display: 'flex', gap: 0.5, color: 'text.secondary' }}>
+                            {exercise.links && exercise.links.length > 0 && <LinkIcon fontSize="small" />}
                         </Box>
                     </Box>
 

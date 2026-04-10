@@ -79,7 +79,7 @@ const Profile = () => {
         setActiveTab(newValue);
     };
 
-    const { exercises, loading: exercisesLoading, loadExercises } = useExercises();
+    const { exercises, loading: exercisesLoading } = useExercises();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -95,8 +95,7 @@ const Profile = () => {
             try {
                 setLoading(true);
                 const [userData] = await Promise.all([
-                    getUserProfile(currentUser.uid),
-                    loadExercises()
+                    getUserProfile(currentUser.uid)
                 ]);
 
                 if (userData) {
@@ -117,7 +116,7 @@ const Profile = () => {
         };
 
         void fetchData();
-    }, [currentUser, loadExercises]);
+    }, [currentUser]);
 
     const handleChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number | boolean | undefined = event.target.value;
@@ -246,23 +245,48 @@ const Profile = () => {
             {message && <Alert severity="success" sx={{ mt: 3, mb: 0 }}>{message}</Alert>}
             <CustomTabPanel value={activeTab} index={0}>
                 <Grid container spacing={4}>
+                    <Grid size={12}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: { xs: "column", sm: "row" },
+                                justifyContent: "space-between",
+                                alignItems: { xs: "flex-start", sm: "center" },
+                                gap: 2,
+                                mb: 1,
+                                mt: 1
+                            }}>
+                            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                                Profile
+                            </Typography>
+                            {currentUser && (
+                                <Box sx={{ display: "flex", gap: 1.5 }}>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<Edit />}
+                                        onClick={() => { setIsEditDialogOpen(true); }}
+                                        sx={{ borderRadius: 2 }}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={handleLogout}
+                                        startIcon={<Logout />}
+                                        sx={{ borderRadius: 2 }}
+                                    >
+                                        Logout
+                                    </Button>
+                                </Box>
+                            )}
+                        </Box>
+                    </Grid>
                     <Grid size={{ xs: 12, md: 7 }}>
                         <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    mb: 4
-                                }}>
-                                <Typography variant="h4" component="h1">
-                                    Your profile
-                                </Typography>
-                            </Box>
 
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12 }}>
-                                    <Typography variant="h5" sx={{
+                                    <Typography variant="body1" sx={{
                                         fontWeight: 600
                                     }}>{profile.name ?? 'Anonymous Athlete'}</Typography>
                                 </Grid>
@@ -318,33 +342,6 @@ const Profile = () => {
                                     </>
                                 )}
 
-                                {currentUser && (
-                                    <Grid size={{ xs: 12 }}>
-                                        <Box
-                                            sx={{
-                                                mt: 4,
-                                                display: "flex",
-                                                gap: 2
-                                            }}>
-                                            <Button
-                                                variant="contained"
-                                                startIcon={<Edit />}
-                                                onClick={() => { setIsEditDialogOpen(true); }}
-                                                sx={{ minWidth: 150 }}
-                                            >
-                                                Edit Profile
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                onClick={handleLogout}
-                                                startIcon={<Logout />}
-                                                sx={{ minWidth: 150 }}
-                                            >
-                                                Logout
-                                            </Button>
-                                        </Box>
-                                    </Grid>
-                                )}
                             </Grid>
                         </Paper>
                     </Grid>

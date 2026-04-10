@@ -35,10 +35,10 @@ import type { TrainingTemplate, Exercise } from '../../types';
 
 interface TemplatesSectionProps {
     userId: string;
-    allExercises: Exercise[];
+    exercises: Exercise[];
 }
 
-const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
+const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -274,7 +274,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
     };
 
     const getExerciseName = (id: string) => {
-        return allExercises.find(ex => ex.id === id)?.name ?? 'Unknown Exercise';
+        return exercises.find(ex => ex.id === id)?.name ?? 'Unknown Exercise';
     };
 
     const sortedTemplates = [...templates].sort((a, b) => {
@@ -521,7 +521,7 @@ const TemplatesSection = ({ userId, allExercises }: TemplatesSectionProps) => {
                                                         </Tooltip>
                                                     </Box>
                                                     <Autocomplete
-                                                        options={allExercises}
+                                                        options={exercises}
                                                         getOptionLabel={(option) => option.name}
                                                         onChange={(_, newValue) => handleInlineAdd(template.id, newValue)}
                                                         renderInput={(params) => (

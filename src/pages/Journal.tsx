@@ -34,7 +34,7 @@ const SESSION_TYPES: SessionType[] = ['Gym', 'Run', 'Cycle', 'Swim', 'Yoga', 'Ot
 
 const Journal = () => {
     const { currentUser } = useAuth();
-    const { allExercises, fetchAllExercises, loading: exercisesLoading } = useExercises();
+    const { exercises, loading: exercisesLoading, loadExercises } = useExercises();
 
     const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
@@ -103,12 +103,11 @@ const Journal = () => {
             if (!currentUser) return;
             try {
                 setLoading(true);
-                // Trigger context fetch for all exercises
-                await fetchAllExercises();
                 
                 const [entriesData, templatesData] = await Promise.all([
                     getJournalEntries(currentUser.uid),
-                    getTemplates(currentUser.uid)
+                    getTemplates(currentUser.uid),
+                    loadExercises()
                 ]);
                 
                 setEntries(entriesData);
@@ -122,7 +121,7 @@ const Journal = () => {
         };
 
         void fetchData();
-    }, [currentUser, fetchAllExercises]);
+    }, [currentUser, loadExercises]);
 
     const handleTemplateChange = (templateId: string) => {
         setSelectedTemplateId(templateId);
@@ -261,11 +260,11 @@ const Journal = () => {
 
     // Helper to get exercise name by ID
     const getExerciseName = (id: string) => {
-        const t = allExercises.find((tech: Exercise) => tech.id === id);
+        const t = exercises.find((tech: Exercise) => tech.id === id);
         return t ? t.name : 'Unknown Exercise';
     };
 
-    if (loading || (exercisesLoading && allExercises.length === 0)) return (
+    if (loading || (exercisesLoading && exercises.length === 0)) return (
         <Box
             sx={{
                 display: "flex",
@@ -430,7 +429,7 @@ const Journal = () => {
                         <Typography variant="h6" gutterBottom>Exercises & Sets</Typography>
                         
                         <Autocomplete
-                            options={allExercises.filter(ex => !sessionExercises.find(se => se.exerciseId === ex.id))}
+                            options={exercises.filter(ex => !sessionExercises.find(se => se.exerciseId === ex.id))}
                             getOptionLabel={(option) => option.name}
                             onChange={(_, newValue) => { handleAddExercise(newValue); }}
                             renderInput={(params) => (
@@ -446,7 +445,7 @@ const Journal = () => {
                         />
 
                         {sessionExercises.map((se) => {
-                            const exercise = allExercises.find(ex => ex.id === se.exerciseId);
+                            const exercise = exercises.find(ex => ex.id === se.exerciseId);
                             return (
                                 <Paper key={se.exerciseId} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
                                     <Box
@@ -614,7 +613,7 @@ const Journal = () => {
                                         mb: 2
                                     }}>
                                         {entry.exercises.map((se) => {
-                                            const exercise = allExercises.find(ex => ex.id === se.exerciseId);
+                                            const exercise = exercises.find(ex => ex.id === se.exerciseId);
                                             return (
                                                 <Box key={se.exerciseId} sx={{ mb: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
                                                     <Typography variant="subtitle2" color="primary" sx={{

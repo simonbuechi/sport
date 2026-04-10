@@ -153,7 +153,7 @@ const Home = () => {
                     variant="contained"
                     color="primary"
                     startIcon={<SettingsIcon />}
-                    onClick={() => setIsManageDialogOpen(true)}
+                    onClick={() => { setIsManageDialogOpen(true); }}
                 >
                     Widgets
                 </Button>
@@ -178,7 +178,7 @@ const Home = () => {
                             <IconButton
                                 size="small"
                                 sx={{ position: 'absolute', top: 8, right: 8 }}
-                                onClick={() => setWidgetToClose(widget)}
+                                onClick={() => { setWidgetToClose(widget); }}
                             >
                                 <CloseIcon fontSize="small" />
                             </IconButton>
@@ -196,7 +196,7 @@ const Home = () => {
             {/* Manage Dashboard Dialog */}
             <Dialog 
                 open={isManageDialogOpen} 
-                onClose={() => setIsManageDialogOpen(false)}
+                onClose={() => { setIsManageDialogOpen(false); }}
                 maxWidth="xs"
                 fullWidth
             >
@@ -212,7 +212,7 @@ const Home = () => {
                                 control={
                                     <Checkbox
                                         checked={visibleWidgets.includes(element)}
-                                        onChange={() => toggleWidget(element)}
+                                        onChange={() => { toggleWidget(element); }}
                                     />
                                 }
                                 label={element}
@@ -221,7 +221,7 @@ const Home = () => {
                     </FormGroup>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setIsManageDialogOpen(false)} color="primary">
+                    <Button onClick={() => { setIsManageDialogOpen(false); }} color="primary">
                         Close
                     </Button>
                 </DialogActions>
@@ -229,16 +229,16 @@ const Home = () => {
             {/* Confirmation Dialog for closing a widget */}
             <Dialog
                 open={Boolean(widgetToClose)}
-                onClose={() => setWidgetToClose(null)}
+                onClose={() => { setWidgetToClose(null); }}
             >
                 <DialogTitle>Hide Widget?</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to hide the <strong>{widgetToClose}</strong> widget? You can add it back anytime from the "Widgets" menu.
+                        Are you sure you want to hide the <strong>{widgetToClose}</strong> widget? You can add it back anytime from the &quot;Widgets&quot; menu.
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setWidgetToClose(null)}>Cancel</Button>
+                    <Button onClick={() => { setWidgetToClose(null); }}>Cancel</Button>
                     <Button onClick={removeWidget} color="primary" variant="contained">
                         Hide
                     </Button>

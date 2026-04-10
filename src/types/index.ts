@@ -15,6 +15,7 @@ export interface Exercise {
     category: ExerciseCategory;
     icon_url?: string;
     aliases: string[];
+    popular?: boolean;
 }
 
 export interface MarkedStatus {

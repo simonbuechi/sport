@@ -79,7 +79,7 @@ const Profile = () => {
         setActiveTab(newValue);
     };
 
-    const { allExercises, fetchAllExercises, loading: exercisesLoading } = useExercises();
+    const { exercises, loading: exercisesLoading, loadExercises } = useExercises();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -96,7 +96,7 @@ const Profile = () => {
                 setLoading(true);
                 const [userData] = await Promise.all([
                     getUserProfile(currentUser.uid),
-                    fetchAllExercises()
+                    loadExercises()
                 ]);
 
                 if (userData) {
@@ -117,7 +117,7 @@ const Profile = () => {
         };
 
         void fetchData();
-    }, [currentUser, fetchAllExercises]);
+    }, [currentUser, loadExercises]);
 
     const handleChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number | boolean | undefined = event.target.value;
@@ -168,7 +168,7 @@ const Profile = () => {
         setProfile((prev) => ({ ...prev, measurements: newMeasurements }));
     };
 
-    if (loading || (exercisesLoading && allExercises.length === 0)) return (
+    if (loading || (exercisesLoading && exercises.length === 0)) return (
         <Box
             sx={{
                 display: "flex",
@@ -181,7 +181,7 @@ const Profile = () => {
         if (!profile.markedExercises) return [];
         return Object.entries(profile.markedExercises)
             .filter(([, status]) => status[statusKey])
-            .map(([exerciseId]) => allExercises.find(t => t.id === exerciseId))
+            .map(([exerciseId]) => exercises.find(t => t.id === exerciseId))
             .filter((t): t is Exercise => t !== undefined);
     };
 
@@ -380,7 +380,7 @@ const Profile = () => {
                 {currentUser && (
                     <TemplatesSection 
                         userId={currentUser.uid} 
-                        allExercises={allExercises} 
+                        exercises={exercises} 
                     />
                 )}
             </CustomTabPanel>

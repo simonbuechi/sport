@@ -21,8 +21,8 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Skeleton from '@mui/material/Skeleton';
-import Button from '@mui/material/Button';
-
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
 import ViewModule from '@mui/icons-material/ViewModule';
 import ViewList from '@mui/icons-material/ViewList';
 import ChevronRight from '@mui/icons-material/ChevronRight';
@@ -38,46 +38,66 @@ import { useExercises } from '../context/ExercisesContext';
 
 const Exercises = () => {
     const { currentUser } = useAuth();
-    const { exercises, loading: exercisesLoading, loadingMore, error: exercisesError, loadExercises, loadMore, hasMore } = useExercises();
+    const { exercises, loading: exercisesLoading, error: exercisesError, loadExercises } = useExercises();
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
     const [bodypartFilter, setBodypartFilter] = useState<BodyPart | 'all'>('all');
     const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     // Intersection Observer for Infinite Scroll
     const observer = useRef<IntersectionObserver | null>(null);
+    const [displayCount, setDisplayCount] = useState(30);
+
+    // Reset display count when filters change
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDisplayCount(30);
+    }, [filter, bodypartFilter, categoryFilter, searchTerm]);
+
+    const filteredExercises = useMemo(() => {
+        return exercises
+            .filter(exe => {
+                // filter by type
+                if (filter !== 'all' && exe.type !== filter) return false;
+
+                // filter by bodypart
+                if (bodypartFilter !== 'all' && exe.bodypart !== bodypartFilter) return false;
+
+                // filter by category
+                if (categoryFilter !== 'all' && exe.category !== categoryFilter) return false;
+
+                // filter by search term
+                if (searchTerm && !exe.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+
+                return true;
+            })
+            .sort((a, b) => {
+                // Popular status first (desc)
+                if (a.popular && !b.popular) return -1;
+                if (!a.popular && b.popular) return 1;
+                // Then by name (asc)
+                return a.name.localeCompare(b.name);
+            });
+    }, [exercises, filter, bodypartFilter, categoryFilter, searchTerm]);
+
     const lastElementRef = useCallback((node: HTMLElement | null) => {
-        if (exercisesLoading || loadingMore) return;
+        if (exercisesLoading) return;
         if (observer.current) observer.current.disconnect();
-        
+
         observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                void loadMore();
+            if (entries[0].isIntersecting && displayCount < filteredExercises.length) {
+                setDisplayCount(prev => prev + 30);
             }
         });
-        
+
         if (node) observer.current.observe(node);
-    }, [exercisesLoading, loadingMore, hasMore, loadMore]);
+    }, [exercisesLoading, displayCount, filteredExercises.length]);
 
     const displayedExercises = useMemo(() => {
-        return exercises.filter(exe => {
-            // filter by type
-            if (filter !== 'all' && exe.type !== filter) return false;
-            
-            // filter by bodypart
-            if (bodypartFilter !== 'all' && exe.bodypart !== bodypartFilter) return false;
-
-            // filter by category
-            if (categoryFilter !== 'all' && exe.category !== categoryFilter) return false;
-
-            // filter by search term
-            if (searchTerm && !exe.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-
-            return true;
-        });
-    }, [exercises, filter, bodypartFilter, categoryFilter, searchTerm]);
+        return filteredExercises.slice(0, displayCount);
+    }, [filteredExercises, displayCount]);
 
     useEffect(() => {
         void loadExercises();
@@ -143,16 +163,16 @@ const Exercises = () => {
 
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         {currentUser && (
-                            <Button
-                                component={RouterLink}
-                                to="/exercises/new"
-                                variant="contained"
-                                color="primary"
-                                startIcon={<Add />}
-                                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-                            >
-                                New
-                            </Button>
+                            <Tooltip title="New Exercise">
+                                <IconButton
+                                    component={RouterLink}
+                                    to="/exercises/new"
+                                    color="primary"
+                                    sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 2 }}
+                                >
+                                    <Add />
+                                </IconButton>
+                            </Tooltip>
                         )}
                         <ToggleButtonGroup
                             value={viewMode}
@@ -161,20 +181,24 @@ const Exercises = () => {
                             aria-label="view mode"
                             size="small"
                         >
-                            <ToggleButton value="grid" aria-label="grid view">
-                                <ViewModule />
-                            </ToggleButton>
-                            <ToggleButton value="list" aria-label="list view">
-                                <ViewList />
-                            </ToggleButton>
+                            <Tooltip title="Grid View">
+                                <ToggleButton value="grid" aria-label="grid view">
+                                    <ViewModule />
+                                </ToggleButton>
+                            </Tooltip>
+                            <Tooltip title="List View">
+                                <ToggleButton value="list" aria-label="list view">
+                                    <ViewList />
+                                </ToggleButton>
+                            </Tooltip>
                         </ToggleButtonGroup>
                     </Box>
                 </Box>
 
-                <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: { xs: 'column', md: 'row' }, 
-                    gap: 2, 
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    gap: 2,
                     alignItems: 'flex-start'
                 }}>
                     <TextField
@@ -183,8 +207,8 @@ const Exercises = () => {
                         placeholder="Search exercises..."
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); }}
-                        sx={{ 
-                            bgcolor: 'background.paper', 
+                        sx={{
+                            bgcolor: 'background.paper',
                             borderRadius: 2,
                             flex: { md: '1 1 300px' }
                         }}
@@ -199,9 +223,9 @@ const Exercises = () => {
                         }}
                     />
 
-                    <Box sx={{ 
-                        display: 'flex', 
-                        gap: 2, 
+                    <Box sx={{
+                        display: 'flex',
+                        gap: 2,
                         flexWrap: 'wrap',
                         width: { xs: '100%', md: 'auto' },
                         flex: { md: '0 0 auto' }
@@ -279,8 +303,8 @@ const Exercises = () => {
             ) : viewMode === 'grid' ? (
                 <Grid container spacing={{ xs: 2, md: 3 }}>
                     {displayedExercises.map((exercise, index) => (
-                        <Grid 
-                            size={{ xs: 12, sm: 6, md: 4 }} 
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 4 }}
                             key={exercise.id}
                             ref={index === displayedExercises.length - 1 ? lastElementRef : null}
                         >
@@ -306,9 +330,9 @@ const Exercises = () => {
                                 }}
                             >
                                 <ListItemAvatar>
-                                    <Avatar 
-                                        src={exercise.icon_url ? 
-                                            `${import.meta.env.BASE_URL}exercises/${exercise.icon_url.replace(/^exercises\//, '').replace(/-icon-128(?=\.\w+$)/, '')}` 
+                                    <Avatar
+                                        src={exercise.icon_url ?
+                                            `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
                                             : undefined}
                                         alt={exercise.name}
                                     >
@@ -356,12 +380,12 @@ const Exercises = () => {
                     </List>
                 </Paper>
             )}
-            {loadingMore && (
+            {displayCount < filteredExercises.length && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                     <CircularProgress size={32} />
                 </Box>
             )}
-            {!hasMore && exercises.length > 0 && (
+            {displayCount >= filteredExercises.length && filteredExercises.length > 0 && (
                 <Typography
                     variant="body2"
                     align="center"

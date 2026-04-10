@@ -1,30 +1,14 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, limit, startAfter, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, ActivityLog, TrainingTemplate } from '../types';
 
 
 // Exercises
-export const getExercises = async (pageSize = 20, lastVisible?: QueryDocumentSnapshot): Promise<{ exercises: Exercise[], lastVisible: QueryDocumentSnapshot | null }> => {
-    let q = query(
-        collection(db, 'exercises'),
-        orderBy('name'),
-        limit(pageSize)
-    );
-
-    if (lastVisible) {
-        q = query(q, startAfter(lastVisible));
-    }
-
-    const querySnapshot = await getDocs(q);
-    const exercises = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
-    const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-    
-    return { exercises, lastVisible: lastDoc };
-};
 
 export const getAllExercises = async (): Promise<Exercise[]> => {
     const q = query(
         collection(db, 'exercises'),
+        orderBy('popular', 'desc'),
         orderBy('name')
     );
     const querySnapshot = await getDocs(q);

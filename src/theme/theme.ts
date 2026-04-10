@@ -106,12 +106,16 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                     props: { variant: 'outlined', color: 'primary' },
                     style: ({ theme }) => ({
                         backgroundColor: mode === 'dark'
-                            ? 'rgba(215, 25, 95, 0.12)'
-                            : 'rgba(145, 35, 166, 0.08)',
-                        border: 0,
-                        color: theme.palette.primary.main,
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                        border: '1px solid',
+                        borderColor: mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.15)'
+                            : 'rgba(0, 0, 0, 0.12)',
+                        color: theme.palette.text.secondary,
                         textTransform: 'capitalize',
                         fontSize: '0.75rem',
+                        fontWeight: 500,
                         '& .MuiChip-label': {
                             paddingLeft: 10,
                             paddingRight: 10,

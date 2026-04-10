@@ -49,14 +49,14 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                     </Box>
 
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-                        <Avatar 
-                            src={exercise.icon_url ? 
-                                `${import.meta.env.BASE_URL}exercises/${exercise.icon_url.replace(/^exercises\//, '').replace(/-icon-128(?=\.\w+$)/, '')}` 
+                        <Avatar
+                            src={exercise.icon_url ?
+                                `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
                                 : undefined}
                             alt={exercise.name}
-                            sx={{ 
-                                width: 56, 
-                                height: 56, 
+                            sx={{
+                                width: 56,
+                                height: 56,
                             }}
                         >
                             {exercise.name.charAt(0)}
@@ -66,19 +66,21 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                         </Typography>
                     </Box>
 
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary",
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            flexGrow: 1,
-                            mb: 2
-                        }}>
-                        {exercise.description ?? `Category: ${exercise.category}`}
-                    </Typography>
+                    {exercise.description && (
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: "text.secondary",
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                flexGrow: 1,
+                                mb: 2
+                            }}>
+                            {exercise.description}
+                        </Typography>
+                    )}
 
                     {markerStatus && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

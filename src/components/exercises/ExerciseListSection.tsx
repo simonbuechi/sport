@@ -60,7 +60,7 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
                                 <ListItem
                                     key={tech.id}
                                     component={RouterLink}
-                                    to={`/techniques/${tech.id}`}
+                                    to={`/exercises/${tech.id}`}
                                     dense
                                     sx={{
                                         px: 1,

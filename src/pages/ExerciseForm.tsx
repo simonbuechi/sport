@@ -11,6 +11,7 @@ import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Chip from '@mui/material/Chip';
+import { FormControlLabel, Checkbox } from '@mui/material';
 import { getExerciseById, createExercise, updateExercise } from '../services/db';
 import type { Exercise, ExerciseType, BodyPart, ExerciseCategory } from '../types';
 import { useExercises } from '../context/ExercisesContext';
@@ -38,7 +39,8 @@ export default function ExerciseForm() {
         category: 'Bodyweight',
         description: '',
         icon_url: '',
-        aliases: []
+        aliases: [],
+        popular: false
     });
 
     const [aliasInput, setAliasInput] = useState('');
@@ -60,7 +62,8 @@ export default function ExerciseForm() {
                             category: tech.category,
                             description: tech.description ?? '',
                             icon_url: tech.icon_url ?? '',
-                            aliases: tech.aliases
+                            aliases: tech.aliases,
+                            popular: tech.popular ?? false
                         });
                     } else {
                         setError('Exercise not found');
@@ -78,7 +81,8 @@ export default function ExerciseForm() {
     }, [id, isEditing, loadExercises]);
 
     const handleChange = (field: keyof Omit<Exercise, 'id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [field]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setFormData({ ...formData, [field]: value });
     };
 
     const handleAddAlias = () => {
@@ -151,13 +155,26 @@ export default function ExerciseForm() {
 
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
-                        <Grid size={{ xs: 12, sm: 12 }}>
+                        <Grid size={{ xs: 12, sm: 8 }}>
                             <TextField
                                 label="Exercise Name"
                                 fullWidth
                                 required
                                 value={formData.name}
                                 onChange={handleChange('name')}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 4 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={formData.popular}
+                                        onChange={handleChange('popular')}
+                                        color="primary"
+                                    />
+                                }
+                                label="Popular Exercise"
                             />
                         </Grid>
 

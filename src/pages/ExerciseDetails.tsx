@@ -69,12 +69,12 @@ const ExerciseDetails = () => {
             if (!id) return;
             try {
                 setLoading(true);
-                const techData = await getExerciseById(id);
-                if (!techData) {
+                const exerciseData = await getExerciseById(id);
+                if (!exerciseData) {
                     setError('Exercise not found');
                     return;
                 }
-                setExercise(techData);
+                setExercise(exerciseData);
 
 
                 if (currentUser) {
@@ -195,7 +195,7 @@ const ExerciseDetails = () => {
                                 </Button>
                                 <Avatar 
                                     src={exercise.icon_url ? 
-                                        `${import.meta.env.BASE_URL}exercises/${exercise.icon_url.replace(/^exercises\//, '').replace(/-icon-128(?=\.\w+$)/, '')}` 
+                                        `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}` 
                                         : undefined}
                                     alt={exercise.name}
                                     sx={{ 

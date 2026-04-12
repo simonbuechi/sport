@@ -47,19 +47,18 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
             <Box
                 key={day}
                 sx={{
-                    p: 0.5,
                     textAlign: 'center',
                     borderRadius: '50%',
-                    width: '32px',
-                    height: '32px',
-                    lineHeight: '32px',
+                    width: '28px',
+                    height: '28px',
+                    lineHeight: '28px',
                     margin: 'auto',
                     bgcolor: hasSession ? 'primary.main' : 'transparent',
                     color: hasSession ? 'white' : 'text.primary',
                     border: isToday ? '2px solid' : 'none',
                     borderColor: 'primary.light',
                     fontWeight: isToday || hasSession ? 600 : 400,
-                    fontSize: '0.875rem',
+                    fontSize: '0.75rem',
                     transition: 'all 0.2s',
                     '&:hover': {
                         bgcolor: hasSession ? 'primary.dark' : 'action.hover'
@@ -75,27 +74,27 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.8rem' }}>
                     {monthName} {year}
                 </Typography>
                 <Box>
                      <IconButton size="small" onClick={() => { setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)); }}>
-                        <KeyboardArrowLeft fontSize="small" />
+                        <KeyboardArrowLeft fontSize="small" sx={{ fontSize: '0.9rem' }} />
                      </IconButton>
                      <IconButton size="small" onClick={() => { setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)); }}>
-                        <KeyboardArrowRight fontSize="small" />
+                        <KeyboardArrowRight fontSize="small" sx={{ fontSize: '0.9rem' }} />
                      </IconButton>
                 </Box>
             </Box>
-            <Grid container columns={7} spacing={1}>
+            <Grid container columns={7} spacing={0}>
                 {weekDays.map((d, i) => (
                     <Grid key={i} size={1} sx={{ textAlign: 'center' }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{d}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>{d}</Typography>
                     </Grid>
                 ))}
                 {days.map((d, i) => (
-                    <Grid key={i} size={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Grid key={i} size={1} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 0.25 }}>
                         {d}
                     </Grid>
                 ))}

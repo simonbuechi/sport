@@ -25,7 +25,7 @@ import Logout from '@mui/icons-material/Logout';
 import Person from '@mui/icons-material/Person';
 import Description from '@mui/icons-material/Description';
 import BarChart from '@mui/icons-material/BarChart';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, createUserProfile } from '../services/db';
 import { useExercises } from '../context/ExercisesContext';
@@ -73,9 +73,22 @@ const Profile = () => {
     });
 
     const [activeTab, setActiveTab] = useState(0);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Sync tab with URL parameter
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'templates') setActiveTab(1);
+        else if (tab === 'stats') setActiveTab(2);
+        else setActiveTab(0);
+    }, [searchParams]);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
+        // Update URL when tab changes manually
+        if (newValue === 1) setSearchParams({ tab: 'templates' });
+        else if (newValue === 2) setSearchParams({ tab: 'stats' });
+        else setSearchParams({});
     };
 
     const { exercises, loading: exercisesLoading } = useExercises();

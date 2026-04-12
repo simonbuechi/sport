@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -15,6 +15,11 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -26,7 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { getJournalEntries, deleteJournalEntry } from '../services/db';
-import type { ActivityLog as JournalEntry, Exercise } from '../types';
+import type { ActivityLog as JournalEntry, Exercise, SessionType } from '../types';
 
 
 const Journal = () => {
@@ -40,6 +45,21 @@ const Journal = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
     const [expandedEntries, setExpandedEntries] = useState<Record<string, boolean>>({});
+
+    // Filter and Sort State
+    const [typeFilter, setTypeFilter] = useState<SessionType | 'all'>('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
+
+    // Infinite Scroll State
+    const observer = useRef<IntersectionObserver | null>(null);
+    const [displayCount, setDisplayCount] = useState(20);
+
+    // Reset display count when filters change
+    useEffect(() => {
+        setDisplayCount(20);
+    }, [typeFilter, startDate, endDate, sortBy]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -87,6 +107,44 @@ const Journal = () => {
         }
     };
 
+    // Filtered and Sorted entries
+    const filteredAndSortedEntries = useMemo(() => {
+        return entries
+            .filter(entry => {
+                // Type filter
+                if (typeFilter !== 'all' && entry.sessionType !== typeFilter) return false;
+
+                // Date filter
+                if (startDate && entry.date < startDate) return false;
+                if (endDate && entry.date > endDate) return false;
+
+                return true;
+            })
+            .sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return sortBy === 'recent' ? dateB - dateA : dateA - dateB;
+            });
+    }, [entries, typeFilter, startDate, endDate, sortBy]);
+
+    // Infinite Scroll Logic
+    const lastElementRef = useCallback((node: HTMLElement | null) => {
+        if (loading) return;
+        if (observer.current) observer.current.disconnect();
+
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && displayCount < filteredAndSortedEntries.length) {
+                setDisplayCount(prev => prev + 20);
+            }
+        });
+
+        if (node) observer.current.observe(node);
+    }, [loading, displayCount, filteredAndSortedEntries.length]);
+
+    const displayedEntries = useMemo(() => {
+        return filteredAndSortedEntries.slice(0, displayCount);
+    }, [filteredAndSortedEntries, displayCount]);
+
     // Helper to get exercise name by ID
     const getExerciseName = (id: string) => {
         const t = exercises.find((tech: Exercise) => tech.id === id);
@@ -125,17 +183,87 @@ const Journal = () => {
                 </Button>
             </Box>
             <Divider sx={{ mb: { xs: 2, md: 4 } }} />
+
+            {/* Filter and Sort Bar */}
+            <Paper elevation={0} variant="outlined" sx={{ p: 2, mb: 4, borderRadius: 2, bgcolor: 'background.default' }}>
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    gap: 2,
+                    alignItems: { xs: 'stretch', md: 'flex-end' }
+                }}>
+                    <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
+                        <InputLabel id="type-filter-label">Session Type</InputLabel>
+                        <Select
+                            labelId="type-filter-label"
+                            id="type-filter"
+                            value={typeFilter}
+                            label="Session Type"
+                            onChange={(e) => { setTypeFilter(e.target.value as SessionType | 'all'); }}
+                            sx={{ textTransform: 'capitalize' }}
+                        >
+                            <MenuItem value="all">All Types</MenuItem>
+                            <MenuItem value="strength" sx={{ textTransform: 'capitalize' }}>Strength</MenuItem>
+                            <MenuItem value="cardio" sx={{ textTransform: 'capitalize' }}>Cardio</MenuItem>
+                            <MenuItem value="flexibility" sx={{ textTransform: 'capitalize' }}>Flexibility</MenuItem>
+                            <MenuItem value="other" sx={{ textTransform: 'capitalize' }}>Other</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <TextField
+                        label="From"
+                        type="date"
+                        size="small"
+                        value={startDate}
+                        onChange={(e) => { setStartDate(e.target.value); }}
+                        sx={{ minWidth: { xs: '100%', md: 150 } }}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                    />
+
+                    <TextField
+                        label="To"
+                        type="date"
+                        size="small"
+                        value={endDate}
+                        onChange={(e) => { setEndDate(e.target.value); }}
+                        sx={{ minWidth: { xs: '100%', md: 150 } }}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                    />
+
+                    <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 }, ml: { md: 'auto' } }}>
+                        <InputLabel id="sort-by-label">Sort By</InputLabel>
+                        <Select
+                            labelId="sort-by-label"
+                            id="sort-by"
+                            value={sortBy}
+                            label="Sort By"
+                            onChange={(e) => { setSortBy(e.target.value as 'recent' | 'oldest'); }}
+                        >
+                            <MenuItem value="recent">Most Recent</MenuItem>
+                            <MenuItem value="oldest">Oldest</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+            </Paper>
+
             {/* Journal Entries List */}
             <Box>
 
-                {entries.length === 0 ? (
+                {filteredAndSortedEntries.length === 0 ? (
                     <Alert severity="info" variant="outlined">
-                        No journal entries yet. Start logging your training sessions!
+                        {entries.length === 0 
+                            ? "No journal entries yet. Start logging your training sessions!" 
+                            : "No sessions match your filters."}
                     </Alert>
                 ) : (
                     <List sx={{ p: 0 }}>
-                        {entries.map((entry) => (
-                            <Paper key={entry.id} variant="outlined" sx={{ mb: 2, p: { xs: 1.5, md: 3 }, borderRadius: 2 }}>
+                        {displayedEntries.map((entry, index) => (
+                            <Paper 
+                                key={entry.id} 
+                                ref={index === displayedEntries.length - 1 ? lastElementRef : null}
+                                variant="outlined" 
+                                sx={{ mb: 2, p: { xs: 1.5, md: 3 }, borderRadius: 2 }}
+                            >
                                 <Box
                                     sx={{
                                         display: "flex",
@@ -175,7 +303,7 @@ const Journal = () => {
                                         mb: 2
                                     }}>
                                     {entry.sessionType && (
-                                        <Chip size="small" label={entry.sessionType} color="primary" variant="outlined" />
+                                        <Chip size="small" label={entry.sessionType} color="primary" variant="outlined" sx={{ textTransform: 'capitalize' }} />
                                     )}
                                     {entry.length && (
                                         <Chip size="small" label={`${String(entry.length)} min`} variant="outlined" />
@@ -236,6 +364,22 @@ const Journal = () => {
                             </Paper>
                         ))}
                     </List>
+                )}
+                {displayCount < filteredAndSortedEntries.length && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                        <CircularProgress size={32} />
+                    </Box>
+                )}
+                {displayCount >= filteredAndSortedEntries.length && filteredAndSortedEntries.length > 0 && (
+                    <Typography
+                        variant="body2"
+                        align="center"
+                        sx={{
+                            color: "text.secondary",
+                            my: 4
+                        }}>
+                        You&apos;ve reached the end of the journal.
+                    </Typography>
                 )}
             </Box>
             {/* Delete Confirmation Dialog */}

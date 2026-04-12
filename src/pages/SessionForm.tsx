@@ -19,7 +19,7 @@ import { createJournalEntry, updateJournalEntry, getJournalEntries, getTemplates
 import type { ActivityLog as JournalEntry, Exercise, SessionType, SessionExercise, ExerciseSet, TrainingTemplate } from '../types';
 import SessionExerciseItem from '../components/journal/SessionExerciseItem';
 
-const SESSION_TYPES: SessionType[] = ['Gym', 'Run', 'Cycle', 'Swim', 'Yoga', 'Other'];
+const SESSION_TYPES: SessionType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
 const SessionForm = () => {
     const { id } = useParams<{ id: string }>();
@@ -37,7 +37,7 @@ const SessionForm = () => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
     const [length, setLength] = useState<number | ''>('');
-    const [sessionType, setSessionType] = useState<SessionType>('Gym');
+    const [sessionType, setSessionType] = useState<SessionType>('strength');
     const [comment, setComment] = useState('');
     const [maxPulse, setMaxPulse] = useState<number | ''>('');
     const [sessionExercises, setSessionExercises] = useState<SessionExercise[]>([]);
@@ -62,7 +62,7 @@ const SessionForm = () => {
                         setDate(entry.date);
                         setTime(entry.time ?? '');
                         setLength(entry.length ?? '');
-                        setSessionType(entry.sessionType ?? 'Gym');
+                        setSessionType(entry.sessionType ?? 'strength');
                         setMaxPulse(entry.maxPulse ?? '');
                         setComment(entry.comment);
 
@@ -235,7 +235,9 @@ const SessionForm = () => {
                                     onChange={(e) => { setSessionType(e.target.value as SessionType); }}
                                 >
                                     {SESSION_TYPES.map((type) => (
-                                        <MenuItem key={type} value={type}>{type}</MenuItem>
+                                        <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
+                                            {type}
+                                        </MenuItem>
                                     ))}
                                 </TextField>
                             </Grid>

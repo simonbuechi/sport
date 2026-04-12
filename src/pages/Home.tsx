@@ -7,19 +7,29 @@ import Alert from '@mui/material/Alert';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
+import Link from '@mui/material/Link';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import FormGroup from '@mui/material/FormGroup';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import DescriptionIcon from '@mui/icons-material/Description';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { getUserProfile, updateUserProfile, getJournalEntries } from '../services/db';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import { getUserProfile, updateUserProfile, getJournalEntries, getTemplates } from '../services/db';
 import { useAuth } from '../context/AuthContext';
-import type { ActivityLog } from '../types';
+import { useNavigate } from 'react-router-dom';
+import type { ActivityLog, TrainingTemplate, UserProfile } from '../types';
 import CalendarWidget from '../components/dashboard/CalendarWidget';
 import SessionCounterWidget from '../components/dashboard/SessionCounterWidget';
 
@@ -51,6 +61,7 @@ const ASPIRATIONAL_MESSAGES = [
 
 const Home = () => {
     const { currentUser } = useAuth();
+    const navigate = useNavigate();
     const [visibleWidgets, setVisibleWidgets] = useState<string[]>([]);
     const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
     const [widgetToClose, setWidgetToClose] = useState<string | null>(null);
@@ -59,6 +70,8 @@ const Home = () => {
     const [sessionsInLast7Days, setSessionsInLast7Days] = useState(0);
     const [aspirationalMessage, setAspirationalMessage] = useState('');
     const [allEntries, setAllEntries] = useState<ActivityLog[]>([]);
+    const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
+    const [orderedAllWidgets, setOrderedAllWidgets] = useState<string[]>(ALL_DASHBOARD_ELEMENTS);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -73,8 +86,27 @@ const Home = () => {
 
                 if (profileData?.dashboardWidgets) {
                     setVisibleWidgets(profileData.dashboardWidgets);
+
+                    // Initialize order: User preference first, then others at the bottom
+                    const savedOrder = profileData.dashboardOrder ?? [];
+                    const activeSet = new Set(profileData.dashboardWidgets);
+
+                    // Create base order from savedOrder or ALL_DASHBOARD_ELEMENTS
+                    const baseOrder = savedOrder.length > 0 ? savedOrder : ALL_DASHBOARD_ELEMENTS;
+
+                    // Sort: Active first, then inactive
+                    const sorted = [...baseOrder].sort((a, b) => {
+                        const aActive = activeSet.has(a);
+                        const bActive = activeSet.has(b);
+                        if (aActive && !bActive) return -1;
+                        if (!aActive && bActive) return 1;
+                        return 0;
+                    });
+
+                    setOrderedAllWidgets(sorted);
                 } else {
                     setVisibleWidgets(DEFAULT_WIDGETS);
+                    setOrderedAllWidgets(ALL_DASHBOARD_ELEMENTS);
                 }
 
                 // Fetch session data for widgets
@@ -91,6 +123,10 @@ const Home = () => {
 
                 setSessionsInLast7Days(recentSessions.length);
 
+                // Fetch templates
+                const templatesData = await getTemplates(currentUser.uid);
+                setTemplates(templatesData);
+
                 // Set a random message (or based on number of sessions/day)
                 const randomMsg = ASPIRATIONAL_MESSAGES[Math.floor(Math.random() * ASPIRATIONAL_MESSAGES.length)];
                 setAspirationalMessage(randomMsg);
@@ -105,16 +141,36 @@ const Home = () => {
         void fetchDashboardData();
     }, [currentUser]);
 
-    const handleUpdateWidgets = async (newWidgets: string[]) => {
+    const handleUpdateWidgets = async (newWidgets: string[], newOrder?: string[]) => {
         if (!currentUser) return;
 
         try {
             setVisibleWidgets(newWidgets);
-            await updateUserProfile(currentUser.uid, { dashboardWidgets: newWidgets });
+            const updates: Partial<UserProfile> = { dashboardWidgets: newWidgets };
+            if (newOrder) {
+                updates.dashboardOrder = newOrder;
+                setOrderedAllWidgets(newOrder);
+            }
+            await updateUserProfile(currentUser.uid, updates);
         } catch (err) {
             console.error('Failed to update dashboard settings:', err);
             setError('Failed to save dashboard settings.');
         }
+    };
+
+    const handleOnDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+
+        const items = Array.from(orderedAllWidgets);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        setOrderedAllWidgets(items);
+
+        // When reordering, we also need to update visibleWidgets to maintain the current set of items
+        // but the actual order in visibleWidgets should reflect the new order
+        const newVisibleWithNewOrder = items.filter(w => visibleWidgets.includes(w));
+        void handleUpdateWidgets(newVisibleWithNewOrder, items);
     };
 
     const removeWidget = () => {
@@ -125,10 +181,14 @@ const Home = () => {
     };
 
     const toggleWidget = (widget: string) => {
-        const newWidgets = visibleWidgets.includes(widget)
+        const isCurrentlyVisible = visibleWidgets.includes(widget);
+        const newVisible = isCurrentlyVisible
             ? visibleWidgets.filter((w: string) => w !== widget)
             : [...visibleWidgets, widget];
-        void handleUpdateWidgets(newWidgets);
+
+        // Re-sort newVisible based on current orderedAllWidgets to maintain sequence
+        const sortedVisible = orderedAllWidgets.filter(w => newVisible.includes(w));
+        void handleUpdateWidgets(sortedVisible);
     };
 
 
@@ -146,14 +206,30 @@ const Home = () => {
                 <Typography variant="h4" component="h1">
                     Dashboard
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<SettingsIcon />}
-                    onClick={() => { setIsManageDialogOpen(true); }}
-                >
-                    Widgets
-                </Button>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 1.5
+                    }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => { navigate('/journal/new'); }}
+                        sx={{ borderRadius: 2, fontWeight: 600 }}
+                    >
+                        New Workout
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<SettingsIcon />}
+                        onClick={() => { setIsManageDialogOpen(true); }}
+                        sx={{ borderRadius: 2, fontWeight: 600 }}
+                    >
+                        Widgets
+                    </Button>
+                </Box>
             </Box>
 
             {error && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{error}</Alert>}
@@ -191,6 +267,73 @@ const Home = () => {
                                     />
                                 ) : widget === 'Calendar' ? (
                                     <CalendarWidget entries={allEntries} />
+                                ) : widget === 'Project Updates' ? (
+                                    <Box>
+                                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                                            v0.2 April 2026: Alpha Version, use with caution
+                                        </Typography>
+                                        <Link
+                                            href="https://github.com/simonbuechi/sport"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            variant="body2"
+                                            sx={{ fontWeight: 500 }}
+                                        >
+                                            View project repo
+                                        </Link>
+                                    </Box>
+                                ) : widget === 'Templates' ? (
+                                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                        {templates.length === 0 ? (
+                                            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', py: 2 }}>
+                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                                    start creating workout templates for faster journaling
+                                                </Typography>
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    size="small"
+                                                    onClick={() => { navigate('/profile?tab=templates'); }}
+                                                >
+                                                    Create Template
+                                                </Button>
+                                            </Box>
+                                        ) : (
+                                            <List disablePadding sx={{ width: '100%' }}>
+                                                {templates.slice(0, 5).map((template) => (
+                                                    <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
+                                                        <ListItemButton
+                                                            sx={{ py: 0.75, px: 1, borderRadius: 1 }}
+                                                            onClick={() => { navigate('/profile?tab=templates'); }}
+                                                        >
+                                                            <ListItemIcon sx={{ minWidth: 32 }}>
+                                                                <DescriptionIcon fontSize="small" color="primary" />
+                                                            </ListItemIcon>
+                                                            <ListItemText
+                                                                primary={
+                                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                                        {template.name}
+                                                                    </Typography>
+                                                                }
+                                                            />
+                                                        </ListItemButton>
+                                                    </ListItem>
+                                                ))}
+                                                {templates.length > 5 && (
+                                                    <ListItem disablePadding>
+                                                        <ListItemButton
+                                                            sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
+                                                            onClick={() => { navigate('/profile?tab=templates'); }}
+                                                        >
+                                                            <Typography variant="caption" color="primary" sx={{ fontWeight: 600 }}>
+                                                                View all {templates.length} templates
+                                                            </Typography>
+                                                        </ListItemButton>
+                                                    </ListItem>
+                                                )}
+                                            </List>
+                                        )}
+                                    </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
                                         Content for {widget} coming soon...
@@ -214,20 +357,51 @@ const Home = () => {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Select the elements you want to show on your dashboard.
                     </Typography>
-                    <FormGroup>
-                        {ALL_DASHBOARD_ELEMENTS.map((element) => (
-                            <FormControlLabel
-                                key={element}
-                                control={
-                                    <Checkbox
-                                        checked={visibleWidgets.includes(element)}
-                                        onChange={() => { toggleWidget(element); }}
-                                    />
-                                }
-                                label={element}
-                            />
-                        ))}
-                    </FormGroup>
+                    <DragDropContext onDragEnd={handleOnDragEnd}>
+                        <Droppable droppableId="widgets-list">
+                            {(provided) => (
+                                <List {...provided.droppableProps} ref={provided.innerRef} dense sx={{ py: 0 }}>
+                                    {orderedAllWidgets.map((element, index) => (
+                                        <Draggable key={element} draggableId={element} index={index}>
+                                            {(provided, snapshot) => (
+                                                <ListItem
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    dense
+                                                    sx={{
+                                                        px: 0.5,
+                                                        py: 0,
+                                                        mb: 0,
+                                                        bgcolor: snapshot.isDragging ? 'action.selected' : 'transparent',
+                                                        boxShadow: snapshot.isDragging ? 2 : 0,
+                                                        borderRadius: 1,
+                                                        '&:hover': { bgcolor: 'action.hover' }
+                                                    }}
+                                                >
+                                                    <Box {...provided.dragHandleProps} sx={{ display: 'flex', alignItems: 'center', mr: 1, color: 'text.secondary', opacity: 0.6 }}>
+                                                        <DragHandleIcon sx={{ fontSize: '1.2rem' }} />
+                                                    </Box>
+                                                    <FormControlLabel
+                                                        sx={{ flexGrow: 1, m: 0 }}
+                                                        control={
+                                                            <Checkbox
+                                                                size="small"
+                                                                checked={visibleWidgets.includes(element)}
+                                                                onChange={() => { toggleWidget(element); }}
+                                                                sx={{ py: 0.5 }}
+                                                            />
+                                                        }
+                                                        label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{element}</Typography>}
+                                                    />
+                                                </ListItem>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </List>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => { setIsManageDialogOpen(false); }} color="primary">

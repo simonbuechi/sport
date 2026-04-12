@@ -31,7 +31,9 @@ const ExerciseHistoryCard = ({ sessions }: ExerciseHistoryCardProps) => {
                             primary={new Date(session.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                             secondary={
                                 <>
-                                    {session.sessionType ?? 'Training Session'}
+                                    <Typography component="span" variant="inherit" sx={{ textTransform: 'capitalize' }}>
+                                        {session.sessionType ?? 'Training Session'}
+                                    </Typography>
                                     {session.length ? ` • ${String(session.length)} min` : ''}
                                 </>
                             }

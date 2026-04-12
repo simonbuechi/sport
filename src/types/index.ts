@@ -67,6 +67,7 @@ export interface UserProfile {
     weights?: WeightEntry[];
     measurements?: MeasurementEntry[];
     dashboardWidgets?: string[];
+    dashboardOrder?: string[];
 }
 
 export interface ExerciseSet {
@@ -97,7 +98,7 @@ export interface TrainingTemplate {
     exercises: TemplateExercise[];
 }
 
-export type SessionType = 'Gym' | 'Run' | 'Cycle' | 'Swim' | 'Yoga' | 'Other';
+export type SessionType = ExerciseType;
 
 export interface ActivityLog {
     id: string;

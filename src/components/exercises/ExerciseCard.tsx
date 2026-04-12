@@ -63,7 +63,7 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                         >
                             {exercise.name.charAt(0)}
                         </Avatar>
-                        <Typography variant="h5" component="div" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                        <Typography variant="h5" component="div">
                             {exercise.name}
                         </Typography>
                     </Box>

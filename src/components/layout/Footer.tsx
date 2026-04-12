@@ -13,7 +13,8 @@ const Footer = () => {
                 py: 3,
                 px: 2,
                 mt: 'auto',
-                backgroundColor: 'background.default'
+                backgroundColor: 'background.default',
+                display: { xs: 'none', md: 'block' }
             }}
         >
             <Container

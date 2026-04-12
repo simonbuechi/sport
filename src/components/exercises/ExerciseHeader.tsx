@@ -47,7 +47,7 @@ const ExerciseHeader = ({ exercise, onDelete }: ExerciseHeaderProps) => {
                 >
                     {exercise.name.charAt(0)}
                 </Avatar>
-                <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
+                <Typography variant="h4" component="h1" gutterBottom>
                     {exercise.name}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>

@@ -4,6 +4,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import AddIcon from '@mui/icons-material/Add';
+import InfoIcon from '@mui/icons-material/Info';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import type { DropResult } from '@hello-pangea/dnd';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
 import type { TrainingTemplate, Exercise } from '../../types';
@@ -32,6 +38,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
     const [editingNotePath, setEditingNotePath] = useState<{ tid: string, idx: number } | null>(null);
     const [isSetDialogOpen, setIsSetDialogOpen] = useState(false);
     const [setDialogData, setSetDialogData] = useState<SetDialogData | null>(null);
+    const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -259,15 +266,21 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-end",
                     alignItems: "center",
+                    gap: 1,
                     mb: 3
                 }}>
-                <Typography variant="h5" sx={{
-                    fontWeight: 600
-                }}>Training Templates</Typography>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => { handleOpenDialog(); }}>
-                    Create Template
+                    Add
+                </Button>
+                <Button 
+                    variant="outlined" 
+                    startIcon={<InfoIcon />} 
+                    onClick={() => { setIsInfoDialogOpen(true); }}
+                    sx={{ minWidth: 'auto', px: 1.5 }}
+                >
+                    Info
                 </Button>
             </Box>
             {loading ? (
@@ -326,6 +339,28 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
                 data={setDialogData}
                 setData={setSetDialogData}
             />
+
+            <Dialog
+                open={isInfoDialogOpen}
+                onClose={() => { setIsInfoDialogOpen(false); }}
+                slotProps={{
+                    paper: {
+                        sx: { borderRadius: 3 }
+                    }
+                }}
+            >
+                <DialogTitle>Training Templates</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        You can set up templates for your workouts with a set of exercises and sets. When logging a new session, you can select your template.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{ pb: 2, px: 3 }}>
+                    <Button onClick={() => { setIsInfoDialogOpen(false); }} variant="contained">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

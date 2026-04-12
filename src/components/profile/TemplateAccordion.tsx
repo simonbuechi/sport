@@ -59,28 +59,28 @@ const TemplateAccordion = ({
     };
 
     return (
-        <Accordion 
-            elevation={4} 
-            sx={{ 
-                borderRadius: '12px !important', 
-                border: '1px solid', 
+        <Accordion
+            elevation={4}
+            sx={{
+                borderRadius: '12px !important',
+                border: '1px solid',
                 borderColor: 'divider',
                 mb: 2,
                 opacity: template.isArchived ? 0.6 : 1,
                 bgcolor: template.isArchived ? 'action.hover' : 'background.paper',
-                '&:before': { display: 'none' } 
+                '&:before': { display: 'none' }
             }}
         >
             <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
-                sx={{ 
-                    px: 3, 
+                sx={{
+                    px: 3,
                     py: 1,
-                    '& .MuiAccordionSummary-content': { 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center' 
-                    } 
+                    '& .MuiAccordionSummary-content': {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }
                 }}
             >
                 <Box>
@@ -91,9 +91,7 @@ const TemplateAccordion = ({
                             gap: 1
                         }}>
                         {template.isFavorite && <StarIcon color="warning" fontSize="small" />}
-                        <Typography variant="h6" color="primary" sx={{
-                            fontWeight: 700
-                        }}>
+                        <Typography variant="h6" color="primary">
                             {template.name}
                             {template.isArchived && " (Archived)"}
                         </Typography>
@@ -110,9 +108,9 @@ const TemplateAccordion = ({
                         <Box
                             component="span"
                             onClick={() => { onEdit(template); }}
-                            sx={{ 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
+                            sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
                                 justifyContent: 'center',
                                 p: 1,
                                 borderRadius: '50%',
@@ -140,10 +138,10 @@ const TemplateAccordion = ({
                                                     <Box
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
-                                                        sx={{ 
-                                                            display: 'flex', 
-                                                            alignItems: 'flex-start', 
-                                                            gap: 1.5, 
+                                                        sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'flex-start',
+                                                            gap: 1.5,
                                                             py: 1.5,
                                                             px: 1,
                                                             borderRadius: 1,
@@ -154,7 +152,7 @@ const TemplateAccordion = ({
                                                             position: 'relative'
                                                         }}
                                                     >
-                                                        <Box 
+                                                        <Box
                                                             {...provided.dragHandleProps}
                                                             sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24, cursor: 'grab', color: 'text.secondary' }}
                                                         >
@@ -164,10 +162,8 @@ const TemplateAccordion = ({
                                                         <Box sx={{
                                                             flexGrow: 1
                                                         }}>
-                                                            <Typography variant="body1" sx={{
-                                                                fontWeight: 700
-                                                            }}>{getExerciseName(ex.exerciseId)}</Typography>
-                                                            
+                                                            <Typography variant="body1" >{getExerciseName(ex.exerciseId)}</Typography>
+
                                                             {/* Sets List */}
                                                             {ex.sets && ex.sets.length > 0 && (
                                                                 <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -210,9 +206,9 @@ const TemplateAccordion = ({
                                                         </Box>
 
                                                         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                                                            <Button 
-                                                                size="small" 
-                                                                startIcon={<AddIcon />} 
+                                                            <Button
+                                                                size="small"
+                                                                startIcon={<AddIcon />}
                                                                 onClick={() => { onOpenSetDialog(template.id, idx); }}
                                                                 sx={{ whiteSpace: 'nowrap' }}
                                                             >
@@ -226,9 +222,9 @@ const TemplateAccordion = ({
                                                                 </Tooltip>
                                                             )}
                                                             <Tooltip title="Remove Exercise">
-                                                                <IconButton 
-                                                                    size="small" 
-                                                                    color="error" 
+                                                                <IconButton
+                                                                    size="small"
+                                                                    color="error"
                                                                     onClick={() => { onInlineRemove(template.id, idx); }}
                                                                     sx={{ opacity: 0.6, '&:hover': { opacity: 1 } }}
                                                                 >
@@ -268,7 +264,7 @@ const TemplateAccordion = ({
                                         mb: 1
                                     }}>
                                     <Typography variant="body2" sx={{
-                                        fontWeight: 700
+                                        fontWeight: 600
                                     }}>Search Exercise</Typography>
                                     <Tooltip title="Close Search">
                                         <IconButton size="small" onClick={() => { setActiveSearchId(null); }}>
@@ -281,10 +277,10 @@ const TemplateAccordion = ({
                                     getOptionLabel={(option) => option.name}
                                     onChange={(_, newValue) => { onInlineAdd(template.id, newValue); }}
                                     renderInput={(params) => (
-                                        <TextField {...params} placeholder="Bench Press, Squats..." 
+                                        <TextField {...params} placeholder="Bench Press, Squats..."
                                             slotProps={{
                                                 ...params.slotProps,
-                                                input: {...params.slotProps.input, startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} />}
+                                                input: { ...params.slotProps.input, startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} /> }
                                             }}
                                         />
                                     )}
@@ -293,8 +289,8 @@ const TemplateAccordion = ({
                                 />
                             </Box>
                         ) : (
-                            <Button 
-                                startIcon={<AddIcon />} 
+                            <Button
+                                startIcon={<AddIcon />}
                                 onClick={() => { setActiveSearchId(template.id); }}
                                 variant="text"
                                 color="primary"

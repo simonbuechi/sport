@@ -147,11 +147,11 @@ const Journal = () => {
                                             opacity: 0.85
                                         }
                                     }}>
-                                    <Typography variant="h6" color="primary">
+                                    <Typography variant="h6">
                                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                         {entry.time && ` • ${entry.time}`}
                                     </Typography>
-                                    <Box 
+                                    <Box
                                         sx={{ display: 'flex', alignItems: 'center' }}
                                         onClick={(e) => { e.stopPropagation(); }}
                                     >

@@ -143,7 +143,7 @@ const Home = () => {
     return (
         <Container maxWidth="lg">
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, md: 4 } }}>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+                <Typography variant="h4" component="h1">
                     Dashboard
                 </Typography>
                 <Button

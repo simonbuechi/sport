@@ -56,7 +56,6 @@ const Navbar = () => {
                         variant="h6"
                         sx={{
                             color: 'primary.main',
-                            fontWeight: 600
                         }}
                     >
                         Sport Amigo

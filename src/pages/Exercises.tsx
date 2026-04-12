@@ -152,9 +152,7 @@ const Exercises = () => {
         <Container maxWidth="lg">
             <Box sx={{ mb: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h4" component="h1" sx={{
-                        fontWeight: 700
-                    }}>
+                    <Typography variant="h4" component="h1">
                         Exercises
                     </Typography>
 
@@ -348,19 +346,21 @@ const Exercises = () => {
                                                 size="small"
                                                 color="primary"
                                                 variant="outlined"
-                                                sx={{ textTransform: 'capitalize' }}
+                                                sx={{ textTransform: 'capitalize', display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
                                             <Chip
                                                 label={exercise.bodypart}
                                                 size="small"
                                                 color="primary"
                                                 variant="outlined"
+                                                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
                                             <Chip
                                                 label={exercise.category}
                                                 size="small"
                                                 color="primary"
                                                 variant="outlined"
+                                                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
                                             {profile?.markedExercises[exercise.id] && (
                                                 <Box sx={{ ml: 1 }}>

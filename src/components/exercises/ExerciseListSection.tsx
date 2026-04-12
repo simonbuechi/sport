@@ -84,7 +84,8 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
                                         sx={{
                                             flexShrink: 0,
                                             minWidth: '75px',
-                                            pointerEvents: 'none'
+                                            pointerEvents: 'none',
+                                            display: { xs: 'none', sm: 'inline-flex' }
                                         }}
                                     />
                                     <Typography variant="body2" sx={{ mr: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

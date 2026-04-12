@@ -245,7 +245,7 @@ const Profile = () => {
                                 mb: 1,
                                 mt: 1
                             }}>
-                            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                            <Typography variant="h4" component="h1">
                                 Profile
                             </Typography>
                             <Box sx={{ display: "flex", gap: 1.5 }}>

@@ -1,9 +1,11 @@
 import { Outlet, useLocation } from 'react-router-dom';
+import { Suspense } from 'react';
 import Box from '@mui/material/Box';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import MobileNavigation from './MobileNavigation';
 import OfflineBanner from '../common/OfflineBanner';
+import PageLoader from '../common/PageLoader';
 
 const Layout = () => {
     const location = useLocation();
@@ -13,7 +15,9 @@ const Layout = () => {
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
                 <Box component="main" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Outlet />
+                    <Suspense fallback={<PageLoader />}>
+                        <Outlet />
+                    </Suspense>
                 </Box>
                 <Footer />
             </Box>
@@ -25,7 +29,9 @@ const Layout = () => {
             <Navbar />
             <OfflineBanner />
             <Box component="main" sx={{ flexGrow: 1, py: { xs: 2, md: 4 }, pb: { xs: 8, md: 4 } }}>
-                <Outlet />
+                <Suspense fallback={<PageLoader />}>
+                    <Outlet />
+                </Suspense>
             </Box>
             <Footer />
             <MobileNavigation />

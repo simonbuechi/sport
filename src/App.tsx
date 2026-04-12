@@ -1,20 +1,22 @@
+import { lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ExercisesProvider } from './context/ExercisesContext';
 import { PwaProvider } from './context/PwaContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import Home from './pages/Home';
-import Exercises from './pages/Exercises';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Profile from './pages/Profile';
-import ExerciseDetails from './pages/ExerciseDetails';
-import ExerciseForm from './pages/ExerciseForm';
-import Journal from './pages/Journal';
-import SessionForm from './pages/SessionForm';
-
 import ReloadPrompt from './components/common/ReloadPrompt';
+
+// Lazy load pages
+const Home = lazy(() => import('./pages/Home'));
+const Exercises = lazy(() => import('./pages/Exercises'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
+const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
+const Journal = lazy(() => import('./pages/Journal'));
+const SessionForm = lazy(() => import('./pages/SessionForm'));
 
 function App() {
   return (

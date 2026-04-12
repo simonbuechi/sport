@@ -125,6 +125,14 @@ const SessionForm = () => {
                 : se
         ));
     };
+    
+    const handleUpdateExerciseNote = (exerciseId: string, note: string) => {
+        setSessionExercises(prev => prev.map(se =>
+            se.exerciseId === exerciseId
+                ? { ...se, note }
+                : se
+        ));
+    };
 
     const handleTemplateChange = (templateId: string) => {
         setSelectedTemplateId(templateId);
@@ -134,6 +142,7 @@ const SessionForm = () => {
         if (template?.exercises) {
             const mappedExercises: SessionExercise[] = template.exercises.map(te => ({
                 exerciseId: te.exerciseId,
+                note: te.note,
                 sets: te.sets?.map(s => ({
                     id: Math.random().toString(36).slice(2, 11),
                     weight: s.weight ?? 0,
@@ -325,6 +334,7 @@ const SessionForm = () => {
                                             onAddSet={handleAddSet}
                                             onUpdateSet={handleUpdateSet}
                                             onRemoveSet={handleRemoveSet}
+                                            onUpdateExerciseNote={handleUpdateExerciseNote}
                                         />
                                     );
                                 })}

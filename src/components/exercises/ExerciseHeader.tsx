@@ -8,15 +8,21 @@ import Avatar from '@mui/material/Avatar';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import EditNote from '@mui/icons-material/EditNote';
 import Delete from '@mui/icons-material/Delete';
+import Star from '@mui/icons-material/Star';
+import StarBorder from '@mui/icons-material/StarBorder';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 import type { Exercise } from '../../types';
 
 interface ExerciseHeaderProps {
     exercise: Exercise;
     onDelete: () => void;
+    isFavorite: boolean;
+    onToggleFavorite: () => void;
 }
 
-const ExerciseHeader = ({ exercise, onDelete }: ExerciseHeaderProps) => {
+const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: ExerciseHeaderProps) => {
     return (
         <Box
             sx={{
@@ -25,54 +31,71 @@ const ExerciseHeader = ({ exercise, onDelete }: ExerciseHeaderProps) => {
                 justifyContent: "space-between",
                 alignItems: "flex-start"
             }}>
-            <Box>
+            <Box sx={{ flex: 1 }}>
                 <Button
                     component={RouterLink}
                     to="/exercises"
                     startIcon={<ArrowBack />}
-                    sx={{ mb: 1, color: 'text.secondary' }}
+                    sx={{ mb: 2, color: 'text.secondary' }}
                 >
                     Back to Overview
                 </Button>
-                <Avatar 
-                    src={exercise.icon_url ? 
-                        `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}` 
-                        : undefined}
-                    alt={exercise.name}
-                    sx={{ 
-                        width: 100, 
-                        height: 100, 
-                        mb: 2, 
-                    }}
-                >
-                    {exercise.name.charAt(0)}
-                </Avatar>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    {exercise.name}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
+                    <Avatar
+                        src={exercise.icon_url ?
+                            `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
+                            : undefined}
+                        alt={exercise.name}
+                        sx={{
+                            width: { xs: 80, md: 100 },
+                            height: { xs: 80, md: 100 },
+                        }}
+                    >
+                        {exercise.name.charAt(0)}
+                    </Avatar>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+                            {exercise.name}
+                        </Typography>
+                        <Tooltip title={isFavorite ? "Remove from Favorites" : "Mark as Favorite"}>
+                            <IconButton
+                                onClick={onToggleFavorite}
+                                color={isFavorite ? "warning" : "default"}
+                                size="large"
+                            >
+                                {isFavorite ? <Star fontSize="large" /> : <StarBorder fontSize="large" />}
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
                     <Chip
-                        label={exercise.type}
+                        label={`Type: ${exercise.type}`}
                         color="primary"
                         variant="outlined"
-                        size="small"
-                        sx={{ textTransform: 'capitalize' }}
+                        sx={{ textTransform: 'capitalize', fontWeight: 500 }}
                     />
                     <Chip
-                        label={exercise.bodypart}
-                        color="secondary"
+                        label={`Body part: ${exercise.bodypart}`}
+                        color="primary"
                         variant="outlined"
-                        size="small"
+                        sx={{ fontWeight: 500 }}
                     />
                     <Chip
-                        label={exercise.category}
-                        color="info"
+                        label={`Category: ${exercise.category}`}
+                        color="primary"
                         variant="outlined"
-                        size="small"
+                        sx={{ fontWeight: 500 }}
                     />
                 </Box>
+
                 {exercise.aliases.length > 0 && (
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1, alignItems: 'center' }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
+                            Also known as:
+                        </Typography>
                         {exercise.aliases.map((alias, index) => (
                             <Typography
                                 key={index}
@@ -85,16 +108,6 @@ const ExerciseHeader = ({ exercise, onDelete }: ExerciseHeaderProps) => {
                             </Typography>
                         ))}
                     </Box>
-                )}
-                {exercise.name_url && (
-                    <Typography
-                        variant="caption"
-                        sx={{
-                            color: "text.secondary",
-                            display: "block"
-                        }}>
-                        URL Name: {exercise.name_url}
-                    </Typography>
                 )}
             </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>

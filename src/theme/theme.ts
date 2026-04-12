@@ -11,12 +11,14 @@ export const THEME_COLORS = {
         secondary: '#D7195F',  // Amber/Warm Orange
         background: '#f0f5f7ff', // Soft Off-white
         paper: '#FFFFFF',
+        warning: '#fbc02d',    // Vibrant Yellow-Gold (less orange)
     },
     dark: {
         primary: '#D7195F',    // Light Blue
         secondary: '#9123A6',  // Light Amber
         background: '#0c1b27ff', // Slate Dark
         paper: '#1c3243ff',      // Slate Slightly Lighter
+        warning: '#ffb300',      // Balanced Amber for Dark Mode
     }
 };
 
@@ -32,6 +34,9 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
         background: {
             default: mode === 'dark' ? THEME_COLORS.dark.background : THEME_COLORS.light.background,
             paper: mode === 'dark' ? THEME_COLORS.dark.paper : THEME_COLORS.light.paper,
+        },
+        warning: {
+            main: mode === 'dark' ? THEME_COLORS.dark.warning : THEME_COLORS.light.warning,
         },
     },
     typography: {

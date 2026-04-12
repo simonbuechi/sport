@@ -20,7 +20,6 @@ import type { UserProfile, MarkedStatus, ActivityLog as JournalEntry } from '../
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
-import ExerciseProgressCard from '../components/exercises/ExerciseProgressCard';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 
 const updateExerciseStatus = (
@@ -31,7 +30,7 @@ const updateExerciseStatus = (
     const currentStatus = profile.markedExercises[exerciseId] ?? {};
     const updatedStatus = { ...currentStatus, ...statusUpdate };
 
-    const isEmpty = !updatedStatus.favorite && !updatedStatus.learning && !updatedStatus.toLearn && !updatedStatus.skillLevel && !updatedStatus.notes;
+    const isEmpty = !updatedStatus.favorite && !updatedStatus.notes;
 
     const updatedMarked = { ...profile.markedExercises };
     if (isEmpty) {
@@ -95,12 +94,12 @@ const ExerciseDetails = () => {
         }
     }, [id, profile]);
 
-    const handleStatusToggle = async (key: keyof Omit<MarkedStatus, 'skillLevel'>) => {
+    const handleFavoriteToggle = async () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises[id]?.[key];
-            const updatedMarked = updateExerciseStatus(profile, id, { [key]: !currentValue });
+            const currentValue = profile.markedExercises[id]?.favorite ?? false;
+            const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
             await updateUserProfile(currentUser.uid, { markedExercises: updatedMarked });
@@ -109,20 +108,6 @@ const ExerciseDetails = () => {
         }
     };
 
-    const handleRatingChange = async (_event: React.SyntheticEvent, newValue: number | null) => {
-        if (!currentUser || !id || !profile) return;
-
-        try {
-            const updatedMarked = updateExerciseStatus(profile, id, {
-                skillLevel: newValue ?? undefined
-            });
-
-            setProfile({ ...profile, markedExercises: updatedMarked });
-            await updateUserProfile(currentUser.uid, { markedExercises: updatedMarked });
-        } catch (err) {
-            console.error("Failed to update rating", err);
-        }
-    };
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
@@ -170,7 +155,9 @@ const ExerciseDetails = () => {
                     <Grid size={{ xs: 12, md: 8 }}>
                         <ExerciseHeader 
                             exercise={exercise} 
-                            onDelete={handleDelete} 
+                            onDelete={handleDelete}
+                            isFavorite={currentStatus.favorite ?? false}
+                            onToggleFavorite={handleFavoriteToggle}
                         />
 
                         <Typography variant="h5" gutterBottom sx={{ mt: { xs: 2, md: 3 } }}>Description</Typography>
@@ -216,11 +203,6 @@ const ExerciseDetails = () => {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <ExerciseProgressCard 
-                                currentStatus={currentStatus} 
-                                onToggleStatus={handleStatusToggle} 
-                                onRatingChange={handleRatingChange} 
-                            />
 
                                 <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
                                     <Box

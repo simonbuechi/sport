@@ -17,8 +17,6 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
 import Favorite from '@mui/icons-material/Favorite';
-import School from '@mui/icons-material/School';
-import MenuBook from '@mui/icons-material/MenuBook';
 import Close from '@mui/icons-material/Close';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
@@ -98,8 +96,6 @@ const Profile = () => {
     const [error, setError] = useState('');
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [favoritesExpanded, setFavoritesExpanded] = useState(true);
-    const [learningExpanded, setLearningExpanded] = useState(true);
-    const [toLearnExpanded, setToLearnExpanded] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -188,7 +184,7 @@ const Profile = () => {
             }}><CircularProgress /></Box>
     );
 
-    const getMarkedExercises = (statusKey: 'favorite' | 'learning' | 'toLearn') => {
+    const getMarkedExercises = (statusKey: 'favorite') => {
         if (!profile.markedExercises) return [];
         return Object.entries(profile.markedExercises)
             .filter(([, status]) => status[statusKey])
@@ -197,8 +193,6 @@ const Profile = () => {
     };
 
     const favoriteTechs = getMarkedExercises('favorite');
-    const learningTechs = getMarkedExercises('learning');
-    const toLearnTechs = getMarkedExercises('toLearn');
 
     return (
         <Container maxWidth="lg">
@@ -350,20 +344,6 @@ const Profile = () => {
                                 techniques={favoriteTechs}
                                 expanded={favoritesExpanded}
                                 onToggle={() => { setFavoritesExpanded(!favoritesExpanded); }}
-                            />
-                            <ExerciseListSection
-                                icon={<School color="primary" sx={{ mr: 1 }} />}
-                                title="Currently Learning"
-                                techniques={learningTechs}
-                                expanded={learningExpanded}
-                                onToggle={() => { setLearningExpanded(!learningExpanded); }}
-                            />
-                            <ExerciseListSection
-                                icon={<MenuBook color="primary" sx={{ mr: 1 }} />}
-                                title="To Learn"
-                                techniques={toLearnTechs}
-                                expanded={toLearnExpanded}
-                                onToggle={() => { setToLearnExpanded(!toLearnExpanded); }}
                             />
                         </Box>
                     </Grid>

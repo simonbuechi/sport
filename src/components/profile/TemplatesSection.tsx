@@ -250,6 +250,64 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             console.error('Failed to delete template:', err);
         }
     };
+
+    const handleCreateSample = async () => {
+        setSaving(true);
+        try {
+            const samples = [
+                {
+                    name: 'Sample Push Workout',
+                    exs: ['Bench Press', 'Alternating Dumbbell Shoulder Press', 'Alternating Dumbbell Lateral Raise', 'Alternating Dumbbell Tricep Kickback']
+                },
+                {
+                    name: 'Sample Pull Workout',
+                    exs: ['Deadlift', 'Alternating Dumbbell Preacher Curl', 'Alternating Hammer Preacher Curl', 'Alternating Bent Over Reverse Dumbbell Fly']
+                },
+                {
+                    name: 'Sample Leg Workout',
+                    exs: ['Squat', 'Deadlift', 'Ab Wheel Rollout', 'Ab Bench Crunch']
+                }
+            ];
+
+            const sample = samples[Math.floor(Math.random() * samples.length)];
+            
+            const templateExercises = sample.exs.map(name => {
+                const found = exercises.find(e => e.name.toLowerCase().includes(name.toLowerCase()));
+                if (!found) return null;
+                return {
+                    exerciseId: found.id,
+                    note: '',
+                    sets: [
+                        { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 10 },
+                        { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 10 },
+                        { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 10 }
+                    ]
+                };
+            }).filter((e): e is NonNullable<typeof e> => e !== null);
+
+            if (templateExercises.length === 0) {
+                console.error("Could not find any matching exercises for sample");
+                setSaving(false);
+                return;
+            }
+
+            const templateData = {
+                name: sample.name,
+                notes: 'Auto-generated sample workout.',
+                isFavorite: false,
+                isArchived: false,
+                exercises: templateExercises
+            };
+
+            const id = await createTemplate(userId, templateData);
+            setTemplates(prev => [...prev, { id, userId, ...templateData }]);
+            handleCloseDialog();
+        } catch (err) {
+            console.error('Failed to create sample template:', err);
+        } finally {
+            setSaving(false);
+        }
+    };
     const sortedTemplates = [...templates].sort((a, b) => {
         // Favorites first
         if (a.isFavorite && !b.isFavorite) return -1;
@@ -329,6 +387,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
                 setIsFavorite={setIsFavorite}
                 isArchived={isArchived}
                 setIsArchived={setIsArchived}
+                onCreateSample={handleCreateSample}
             />
 
             <TemplateSetDialog

@@ -26,9 +26,6 @@ export interface Exercise {
 
 export interface MarkedStatus {
     favorite?: boolean;
-    learning?: boolean;
-    toLearn?: boolean;
-    skillLevel?: number; // 1-5
     notes?: string;
 }
 
@@ -80,6 +77,7 @@ export interface ExerciseSet {
 export interface SessionExercise {
     exerciseId: string;
     sets: ExerciseSet[];
+    note?: string;
 }
 
 export interface TemplateExercise {

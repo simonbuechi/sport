@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import type { TrainingTemplate } from '../../types';
@@ -26,6 +27,7 @@ interface TemplateDialogProps {
     setIsFavorite: (fav: boolean) => void;
     isArchived: boolean;
     setIsArchived: (archived: boolean) => void;
+    onCreateSample?: () => void;
 }
 
 const TemplateDialog = ({
@@ -42,7 +44,8 @@ const TemplateDialog = ({
     isFavorite,
     setIsFavorite,
     isArchived,
-    setIsArchived
+    setIsArchived,
+    onCreateSample
 }: TemplateDialogProps) => {
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -76,6 +79,30 @@ const TemplateDialog = ({
                         label="Archived"
                     />
                 </Box>
+
+                {!editingTemplate && onCreateSample && (
+                    <Box sx={{ 
+                        mt: 4, 
+                        p: 2, 
+                        bgcolor: 'primary.50', 
+                        borderRadius: 2, 
+                        border: '1px dashed', 
+                        borderColor: 'primary.main',
+                        textAlign: 'center'
+                    }}>
+                        <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>
+                            Not sure about this? Try a sample template
+                        </Typography>
+                        <Button 
+                            variant="outlined" 
+                            size="small" 
+                            onClick={onCreateSample}
+                            sx={{ fontWeight: 600 }}
+                        >
+                            Create Sample
+                        </Button>
+                    </Box>
+                )}
             </DialogContent>
             <DialogActions sx={{ p: 2, bgcolor: 'grey.50', justifyContent: editingTemplate ? 'space-between' : 'flex-end' }}>
                 {editingTemplate && onDelete && (

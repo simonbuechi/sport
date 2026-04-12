@@ -88,7 +88,7 @@ const SessionExerciseItem = ({
                                 type="number"
                                 size="small"
                                 fullWidth
-                                value={set.weight || ''}
+                                value={set.weight ?? ''}
                                 onChange={(e) => { onUpdateSet(sessionExercise.exerciseId, set.id, { weight: Number(e.target.value) }); }}
                                 sx={{ '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' } }}
                             />
@@ -100,7 +100,7 @@ const SessionExerciseItem = ({
                                 type="number"
                                 size="small"
                                 fullWidth
-                                value={set.reps || ''}
+                                value={set.reps ?? ''}
                                 onChange={(e) => { onUpdateSet(sessionExercise.exerciseId, set.id, { reps: Number(e.target.value) }); }}
                                 sx={{ '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' } }}
                             />
@@ -150,7 +150,6 @@ const SessionExerciseItem = ({
                                 onUpdateSet(sessionExercise.exerciseId, noteEditingSetId, { notes: e.target.value });
                             }
                         }}
-                        autoFocus
                     />
                 </DialogContent>
                 <DialogActions>
@@ -174,7 +173,6 @@ const SessionExerciseItem = ({
                         placeholder="General notes for this exercise..."
                         value={sessionExercise.note ?? ''}
                         onChange={(e) => { onUpdateExerciseNote(sessionExercise.exerciseId, e.target.value); }}
-                        autoFocus
                     />
                 </DialogContent>
                 <DialogActions>

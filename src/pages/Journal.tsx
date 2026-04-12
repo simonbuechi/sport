@@ -237,7 +237,7 @@ const Journal = () => {
                             id="sort-by"
                             value={sortBy}
                             label="Sort By"
-                            onChange={(e) => { setSortBy(e.target.value as 'recent' | 'oldest'); }}
+                            onChange={(e) => { setSortBy(e.target.value); }}
                         >
                             <MenuItem value="recent">Most Recent</MenuItem>
                             <MenuItem value="oldest">Oldest</MenuItem>

@@ -216,7 +216,7 @@ const Home = () => {
                         variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
-                        onClick={() => { navigate('/journal/new'); }}
+                        onClick={() => { void navigate('/journal/new'); }}
                         sx={{ borderRadius: 2, fontWeight: 600 }}
                     >
                         New Workout
@@ -293,7 +293,7 @@ const Home = () => {
                                                     variant="contained"
                                                     color="primary"
                                                     size="small"
-                                                    onClick={() => { navigate('/profile?tab=templates'); }}
+                                                    onClick={() => { void navigate('/profile?tab=templates'); }}
                                                 >
                                                     Create Template
                                                 </Button>
@@ -304,7 +304,7 @@ const Home = () => {
                                                     <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
                                                         <ListItemButton
                                                             sx={{ py: 0.75, px: 1, borderRadius: 1 }}
-                                                            onClick={() => { navigate('/profile?tab=templates'); }}
+                                                            onClick={() => { void navigate('/profile?tab=templates'); }}
                                                         >
                                                             <ListItemIcon sx={{ minWidth: 32 }}>
                                                                 <DescriptionIcon fontSize="small" color="primary" />
@@ -323,7 +323,7 @@ const Home = () => {
                                                     <ListItem disablePadding>
                                                         <ListItemButton
                                                             sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
-                                                            onClick={() => { navigate('/profile?tab=templates'); }}
+                                                            onClick={() => { void navigate('/profile?tab=templates'); }}
                                                         >
                                                             <Typography variant="caption" color="primary" sx={{ fontWeight: 600 }}>
                                                                 View all {templates.length} templates

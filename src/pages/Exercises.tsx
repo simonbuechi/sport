@@ -150,7 +150,7 @@ const Exercises = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ mb: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2 } }}>
+            <Box sx={{ mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 2 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h4" component="h1">
                         Exercises
@@ -285,7 +285,7 @@ const Exercises = () => {
                     </Box>
                 </Box>
             </Box>
-            {currentError && <Alert severity="error" sx={{ mb: 4 }}>{currentError}</Alert>}
+            {currentError && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{currentError}</Alert>}
             {exercises.length === 0 && !currentError ? (
                 <Alert severity="info" sx={{ mt: 4 }}>
                     No exercises found in the database.

@@ -109,8 +109,8 @@ const Journal = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    mb: 3,
-                    mt: 2
+                    mt: { xs: 1, md: 2 },
+                    mb: { xs: 2, md: 4 }
                 }}>
                 <Typography variant="h4" component="h1">
                     Journal
@@ -124,7 +124,7 @@ const Journal = () => {
                     Add Session
                 </Button>
             </Box>
-            <Divider sx={{ mb: 3 }} />
+            <Divider sx={{ mb: { xs: 2, md: 4 } }} />
             {/* Journal Entries List */}
             <Box>
 
@@ -135,7 +135,7 @@ const Journal = () => {
                 ) : (
                     <List sx={{ p: 0 }}>
                         {entries.map((entry) => (
-                            <Paper key={entry.id} variant="outlined" sx={{ mb: 2, p: 2, borderRadius: 2 }}>
+                            <Paper key={entry.id} variant="outlined" sx={{ mb: 2, p: { xs: 1.5, md: 3 }, borderRadius: 2 }}>
                                 <Box
                                     sx={{
                                         display: "flex",

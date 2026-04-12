@@ -165,21 +165,21 @@ const ExerciseDetails = () => {
 
     return (
         <Container maxWidth="lg">
-            <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, bgcolor: 'background.paper', borderRadius: 2 }}>
-                <Grid container spacing={4}>
+            <Paper elevation={0} sx={{ p: { xs: 1.5, md: 3 }, bgcolor: 'background.paper', borderRadius: 2 }}>
+                <Grid container spacing={{ xs: 2, md: 3 }}>
                     <Grid size={{ xs: 12, md: 8 }}>
                         <ExerciseHeader 
                             exercise={exercise} 
                             onDelete={handleDelete} 
                         />
 
-                        <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Description</Typography>
+                        <Typography variant="h5" gutterBottom sx={{ mt: { xs: 2, md: 3 } }}>Description</Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
                             {exercise.description ?? 'No description available.'}
                         </Typography>
 
                         {exercise.links && exercise.links.length > 0 && (
-                            <Box sx={{ mt: 4 }}>
+                            <Box sx={{ mt: { xs: 2, md: 3 } }}>
                                 <Typography variant="h5" gutterBottom>Links & Resources</Typography>
                                 <List sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                                     {exercise.links.map((link, index) => (
@@ -222,7 +222,7 @@ const ExerciseDetails = () => {
                                 onRatingChange={handleRatingChange} 
                             />
 
-                                <Paper variant="outlined" sx={{ p: 3 }}>
+                                <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
                                     <Box
                                         sx={{
                                             display: "flex",

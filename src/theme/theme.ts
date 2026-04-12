@@ -90,9 +90,61 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: 12,
+                    padding: 0, // Cards usually have their own internal structure (CardContent)
                     boxShadow: mode === 'dark' ? '0 4px 6px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
                 },
             },
+        },
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 12,
+                },
+                rounded: {
+                    borderRadius: 12,
+                },
+                outlined: {
+                    borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+                }
+            },
+        },
+        MuiDialog: {
+            styleOverrides: {
+                paper: {
+                    borderRadius: 16,
+                }
+            }
+        },
+        MuiDialogTitle: {
+            styleOverrides: {
+                root: {
+                    padding: '24px 24px 16px', // Title stays consistent for now
+                    '@media (max-width: 600px)': {
+                        padding: '16px 16px 8px',
+                    },
+                    fontWeight: 600,
+                }
+            }
+        },
+        MuiDialogContent: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    padding: theme.spacing(1, 3, 3),
+                    '@media (max-width: 600px)': {
+                        padding: theme.spacing(1, 2, 2),
+                    },
+                })
+            }
+        },
+        MuiDialogActions: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    padding: theme.spacing(2, 3),
+                    '@media (max-width: 600px)': {
+                        padding: theme.spacing(1.5, 2),
+                    },
+                })
+            }
         },
         MuiChip: {
             styleOverrides: {

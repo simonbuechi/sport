@@ -189,7 +189,7 @@ const Profile = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 1.5 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: { xs: 1, md: 2 } }}>
                 <Tabs
                     value={activeTab}
                     onChange={handleTabChange}
@@ -242,8 +242,8 @@ const Profile = () => {
                                 justifyContent: "space-between",
                                 alignItems: { xs: "flex-start", sm: "center" },
                                 gap: 2,
-                                mb: 1,
-                                mt: 1
+                                mt: { xs: 1, md: 2 },
+                                mb: { xs: 2, md: 4 }
                             }}>
                             <Typography variant="h4" component="h1">
                                 Profile
@@ -269,7 +269,7 @@ const Profile = () => {
                         </Box>
                     </Grid>
                     <Grid size={{ xs: 12, md: 7 }}>
-                        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}>
+                        <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 2 }}>
 
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12 }}>
@@ -300,7 +300,7 @@ const Profile = () => {
                                                 color: "text.secondary",
                                                 mb: 1
                                             }}>Notes & Journey</Typography>
-                                        <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+                                        <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, bgcolor: 'background.default', borderRadius: 2 }}>
                                             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                                                 {profile.notes}
                                             </Typography>
@@ -405,7 +405,7 @@ const Profile = () => {
                     </IconButton>
                 </DialogTitle>
                 <form onSubmit={handleSave}>
-                    <DialogContent dividers sx={{ pt: 3 }}>
+                <DialogContent dividers sx={{ pt: 2 }}>
                         <Grid container spacing={3}>
                             <Grid size={{ xs: 12 }}>
                                 <TextField

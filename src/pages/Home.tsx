@@ -142,7 +142,7 @@ const Home = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, md: 4 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
                 <Typography variant="h4" component="h1">
                     Dashboard
                 </Typography>
@@ -156,15 +156,15 @@ const Home = () => {
                 </Button>
             </Box>
 
-            {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{error}</Alert>}
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
                 {visibleWidgets.map((widget) => (
                     <Grid key={widget} size={{ xs: 12, md: 4 }}>
                         <Paper
                             elevation={2}
                             sx={{
-                                p: 3,
+                                p: { xs: 1.5, md: 3 },
                                 position: 'relative',
                                 borderRadius: 2,
                                 display: 'flex',

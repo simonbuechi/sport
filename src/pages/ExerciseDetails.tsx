@@ -90,7 +90,7 @@ const ExerciseDetails = () => {
 
     useEffect(() => {
         if (profile && id) {
-            setNotes(profile.markedExercises[id].notes ?? '');
+            setNotes(profile.markedExercises[id]?.notes ?? '');
         }
     }, [id, profile]);
 
@@ -98,7 +98,7 @@ const ExerciseDetails = () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises[id].favorite ?? false;
+            const currentValue = profile.markedExercises[id]?.favorite ?? false;
             const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -111,7 +111,7 @@ const ExerciseDetails = () => {
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises[id].notes ?? '';
+        const currentNotes = profile.markedExercises[id]?.notes ?? '';
         if (notes === currentNotes) return;
 
         try {

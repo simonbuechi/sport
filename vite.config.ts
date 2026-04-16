@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -25,7 +25,7 @@ export default defineConfig({
         background_color: '#a02197',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/sport/',
+        start_url: '/',
         lang: 'en-US',
         dir: 'ltr',
         categories: ['sports', 'health', 'fitness'],
@@ -46,7 +46,7 @@ export default defineConfig({
       }
     })
   ],
-  base: '/sport/',
+  base: '/',
   build: {
     rollupOptions: {
       output: {

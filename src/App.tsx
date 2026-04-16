@@ -23,7 +23,7 @@ function App() {
     <PwaProvider>
       <AuthProvider>
         <ExercisesProvider>
-          <Router basename="/sport/">
+          <Router basename="/">
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route path="login" element={<Login />} />

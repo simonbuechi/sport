@@ -12,6 +12,8 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+import type { Exercise } from '../../types';
+
 describe('ExerciseCard', () => {
   const mockExercise = {
     id: 'test-id-1',
@@ -21,7 +23,7 @@ describe('ExerciseCard', () => {
     category: 'Barbell',
     aliases: ['BP'],
     description: 'A classic chest exercise.',
-  } as any; // Type assertion to bypass full Exercise type requirements for this simple test
+  } as unknown as Exercise; // Type assertion to bypass full Exercise type requirements for this simple test
 
   it('renders the exercise name correctly', () => {
     render(

@@ -1,4 +1,7 @@
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc } from 'firebase/firestore';
+import { 
+    collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, 
+    onSnapshot, limit, type Unsubscribe 
+} from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, ActivityLog, TrainingTemplate } from '../types';
 
@@ -14,6 +17,19 @@ export const getAllExercises = async (): Promise<Exercise[]> => {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
 };
+
+export const subscribeToExercises = (callback: (exercises: Exercise[]) => void): Unsubscribe => {
+    const q = query(
+        collection(db, 'exercises'),
+        orderBy('popular', 'desc'),
+        orderBy('name')
+    );
+    return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
+        const exercises = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
+        callback(exercises);
+    });
+};
+
 
 
 export const getExerciseById = async (id: string): Promise<Exercise | null> => {
@@ -66,6 +82,24 @@ export const getJournalEntries = async (userId: string): Promise<ActivityLog[]> 
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActivityLog));
 };
 
+export const subscribeToJournalEntries = (
+    userId: string, 
+    callback: (entries: ActivityLog[]) => void, 
+    limitCount = 50
+): Unsubscribe => {
+    const entriesRef = collection(db, 'users', userId, 'activities');
+    const q = query(
+        entriesRef, 
+        orderBy('date', 'desc'), 
+        limit(limitCount)
+    );
+    return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
+        const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActivityLog));
+        callback(entries);
+    });
+};
+
+
 export const createJournalEntry = async (userId: string, entry: Omit<ActivityLog, 'id' | 'userId'>): Promise<string> => {
     const entriesRef = collection(db, 'users', userId, 'activities');
     const docRef = await addDoc(entriesRef, { ...entry, userId });
@@ -89,6 +123,18 @@ export const getTemplates = async (userId: string): Promise<TrainingTemplate[]> 
     const querySnapshot = await getDocs(templatesRef);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TrainingTemplate));
 };
+
+export const subscribeToTemplates = (
+    userId: string, 
+    callback: (templates: TrainingTemplate[]) => void
+): Unsubscribe => {
+    const templatesRef = collection(db, 'users', userId, 'templates');
+    return onSnapshot(templatesRef, { includeMetadataChanges: true }, (snapshot) => {
+        const templates = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TrainingTemplate));
+        callback(templates);
+    });
+};
+
 
 export const createTemplate = async (userId: string, template: Omit<TrainingTemplate, 'id' | 'userId'>): Promise<string> => {
     const templatesRef = collection(db, 'users', userId, 'templates');

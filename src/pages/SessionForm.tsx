@@ -15,8 +15,9 @@ import Divider from '@mui/material/Divider';
 
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
-import { createJournalEntry, updateJournalEntry, getJournalEntries, getTemplates } from '../services/db';
-import type { ActivityLog as JournalEntry, Exercise, SessionType, SessionExercise, ExerciseSet, TrainingTemplate } from '../types';
+import { useSessions } from '../context/SessionsContext';
+import { createJournalEntry, updateJournalEntry } from '../services/db';
+import type { ActivityLog as JournalEntry, Exercise, SessionType, SessionExercise, ExerciseSet } from '../types';
 import SessionExerciseItem from '../components/journal/SessionExerciseItem';
 
 const SESSION_TYPES: SessionType[] = ['strength', 'cardio', 'flexibility', 'other'];
@@ -26,12 +27,12 @@ const SessionForm = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading } = useExercises();
+    const { entries, templates, loading: sessionsLoading } = useSessions();
     const isEditing = Boolean(id);
 
     const [loading, setLoading] = useState(isEditing);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
 
     // Form state
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -44,50 +45,36 @@ const SessionForm = () => {
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!currentUser) return;
-            try {
-                setLoading(true);
-                
-                // Fetch templates
-                const templatesData = await getTemplates(currentUser.uid);
-                setTemplates(templatesData);
-                
-                // If editing, fetch existing entry
-                if (isEditing && id) {
-                    const entries = await getJournalEntries(currentUser.uid);
-                    const entry = entries.find(e => e.id === id);
-                    
-                    if (entry) {
-                        setDate(entry.date);
-                        setTime(entry.time ?? '');
-                        setLength(entry.length ?? '');
-                        setSessionType(entry.sessionType ?? 'strength');
-                        setMaxPulse(entry.maxPulse ?? '');
-                        setComment(entry.comment);
+        if (!currentUser || sessionsLoading) return;
+        
+        if (isEditing && id) {
+            const entry = entries.find(e => e.id === id);
+            
+            if (entry) {
+                setDate(entry.date);
+                setTime(entry.time ?? '');
+                setLength(entry.length ?? '');
+                setSessionType(entry.sessionType ?? 'strength');
+                setMaxPulse(entry.maxPulse ?? '');
+                setComment(entry.comment);
 
-                        if (entry.exercises && entry.exercises.length > 0) {
-                            setSessionExercises(entry.exercises);
-                        } else if (entry.exerciseIds.length > 0) {
-                            setSessionExercises(entry.exerciseIds.map(eId => ({
-                                exerciseId: eId,
-                                sets: []
-                            })));
-                        }
-                    } else {
-                        setError('Session not found');
-                    }
+                if (entry.exercises && entry.exercises.length > 0) {
+                    setSessionExercises(entry.exercises);
+                } else if (entry.exerciseIds && entry.exerciseIds.length > 0) {
+                    setSessionExercises(entry.exerciseIds.map(eId => ({
+                        exerciseId: eId,
+                        sets: []
+                    })));
                 }
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load session data');
-            } finally {
+                setLoading(false);
+            } else if (!sessionsLoading) {
+                setError('Session not found');
                 setLoading(false);
             }
-        };
-
-        void fetchData();
-    }, [currentUser, id, isEditing]);
+        } else {
+            setLoading(false);
+        }
+    }, [currentUser, id, isEditing, entries, sessionsLoading]);
 
     const handleAddExercise = (exercise: Exercise | null) => {
         if (!exercise) return;
@@ -154,7 +141,7 @@ const SessionForm = () => {
         }
     };
 
-    const handleSubmit = async (e: React.SyntheticEvent) => {
+    const handleSubmit = (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!currentUser) return;
 
@@ -179,12 +166,12 @@ const SessionForm = () => {
             };
 
             if (isEditing && id) {
-                await updateJournalEntry(currentUser.uid, id, entryData);
+                void updateJournalEntry(currentUser.uid, id, entryData);
             } else {
-                await createJournalEntry(currentUser.uid, entryData);
+                void createJournalEntry(currentUser.uid, entryData);
             }
 
-            void navigate('/journal');
+            navigate('/journal');
         } catch (err) {
             console.error('Error saving session:', err);
             setError(`Failed to save session: ${err instanceof Error ? err.message : String(err)}`);

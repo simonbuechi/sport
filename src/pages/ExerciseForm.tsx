@@ -14,7 +14,6 @@ import Chip from '@mui/material/Chip';
 import { FormControlLabel, Checkbox } from '@mui/material';
 import { getExerciseById, createExercise, updateExercise } from '../services/db';
 import type { Exercise, ExerciseType, BodyPart, ExerciseCategory } from '../types';
-import { useExercises } from '../context/ExercisesContext';
 
 const EXERCISE_TYPES: ExerciseType[] = ['strength', 'cardio', 'flexibility', 'other'];
 const BODY_PARTS: BodyPart[] = ['Whole Body', 'Legs', 'Back', 'Shoulders', 'Chest', 'Biceps', 'Triceps', 'Core', 'Forearms'];
@@ -24,7 +23,6 @@ const CATEGORIES: ExerciseCategory[] = ['Bodyweight', 'Barbell', 'Dumbbell', 'Ma
 export default function ExerciseForm() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { loadExercises, refreshExercises } = useExercises();
     const isEditing = Boolean(id);
 
     const [loading, setLoading] = useState(isEditing);
@@ -50,9 +48,6 @@ export default function ExerciseForm() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                // Ensure techniques are loaded in context
-                void loadExercises();
-
                 if (isEditing && id) {
                     const tech = await getExerciseById(id);
                     if (tech) {
@@ -81,7 +76,7 @@ export default function ExerciseForm() {
         };
 
         void fetchInitialData();
-    }, [id, isEditing, loadExercises]);
+    }, [id, isEditing]);
 
     const handleChange = (field: keyof Omit<Exercise, 'id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -141,11 +136,9 @@ export default function ExerciseForm() {
             // Save to firestore
             if (isEditing && id) {
                 await updateExercise(id, finalData);
-                await refreshExercises();
                 await navigate(`/exercises/${id}`);
             } else {
                 const newId = await createExercise(finalData);
-                await refreshExercises();
                 await navigate(`/exercises/${newId}`);
             }
         } catch (err) {

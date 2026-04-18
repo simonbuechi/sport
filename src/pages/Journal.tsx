@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -30,7 +30,8 @@ import Collapse from '@mui/material/Collapse';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
-import { getJournalEntries, deleteJournalEntry } from '../services/db';
+import { useSessions } from '../context/SessionsContext';
+import { deleteJournalEntry } from '../services/db';
 import type { ActivityLog as JournalEntry, Exercise, SessionType } from '../types';
 
 
@@ -38,9 +39,7 @@ const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-
-    const [entries, setEntries] = useState<JournalEntry[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { entries, loading: sessionsLoading } = useSessions();
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
@@ -55,28 +54,6 @@ const Journal = () => {
     // Infinite Scroll State
     const observer = useRef<IntersectionObserver | null>(null);
     const [displayCount, setDisplayCount] = useState(20);
-
-    // Reset display count when filters change
-    useEffect(() => {
-        setDisplayCount(20);
-    }, [typeFilter, startDate, endDate, sortBy]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!currentUser) return;
-            try {
-                setLoading(true);
-                const entriesData = await getJournalEntries(currentUser.uid);
-                setEntries(entriesData);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void fetchData();
-    }, [currentUser]);
 
     const handleEditClick = (entry: JournalEntry) => {
         void navigate(`/journal/${entry.id}/edit`);
@@ -94,12 +71,12 @@ const Journal = () => {
         setDeleteDialogOpen(true);
     };
 
-    const confirmDelete = async () => {
+    const confirmDelete = () => {
         if (!currentUser || !entryToDelete) return;
 
         try {
-            await deleteJournalEntry(currentUser.uid, entryToDelete);
-            setEntries(prev => prev.filter(entry => entry.id !== entryToDelete));
+            void deleteJournalEntry(currentUser.uid, entryToDelete);
+            // entries state is managed by SessionsContext and will update via onSnapshot
             setDeleteDialogOpen(false);
             setEntryToDelete(null);
         } catch (err) {
@@ -129,17 +106,17 @@ const Journal = () => {
 
     // Infinite Scroll Logic
     const lastElementRef = useCallback((node: HTMLElement | null) => {
-        if (loading) return;
+        if (sessionsLoading) return;
         if (observer.current) observer.current.disconnect();
 
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && displayCount < filteredAndSortedEntries.length) {
+        observer.current = new IntersectionObserver(obsEntries => {
+            if (obsEntries[obsEntries.length - 1].isIntersecting && displayCount < filteredAndSortedEntries.length) {
                 setDisplayCount(prev => prev + 20);
             }
         });
 
         if (node) observer.current.observe(node);
-    }, [loading, displayCount, filteredAndSortedEntries.length]);
+    }, [sessionsLoading, displayCount, filteredAndSortedEntries.length]);
 
     const displayedEntries = useMemo(() => {
         return filteredAndSortedEntries.slice(0, displayCount);
@@ -151,7 +128,9 @@ const Journal = () => {
         return t ? t.name : 'Unknown Exercise';
     };
 
-    if (loading || (exercisesLoading && exercises.length === 0)) return (
+    const isLoading = (sessionsLoading && entries.length === 0) || (exercisesLoading && exercises.length === 0);
+
+    if (isLoading) return (
         <Box
             sx={{
                 display: "flex",

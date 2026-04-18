@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ExercisesProvider } from './context/ExercisesContext';
+import { SessionsProvider } from './context/SessionsContext';
 import { PwaProvider } from './context/PwaContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -23,28 +24,30 @@ function App() {
     <PwaProvider>
       <AuthProvider>
         <ExercisesProvider>
-          <Router basename="/">
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register />} />
-                
-                <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                  <Route index element={<Home />} />
-                  <Route path="exercises" element={<Exercises />} />
-                  <Route path="exercises/:id" element={<ExerciseDetails />} />
-                  <Route path="exercises/new" element={<ExerciseForm />} />
-                  <Route path="exercises/:id/edit" element={<ExerciseForm />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="journal" element={<Journal />} />
-                  <Route path="journal/new" element={<SessionForm />} />
-                  <Route path="journal/:id/edit" element={<SessionForm />} />
+          <SessionsProvider>
+            <Router basename="/">
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route path="login" element={<Login />} />
+                  <Route path="register" element={<Register />} />
+                  
+                  <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                    <Route index element={<Home />} />
+                    <Route path="exercises" element={<Exercises />} />
+                    <Route path="exercises/:id" element={<ExerciseDetails />} />
+                    <Route path="exercises/new" element={<ExerciseForm />} />
+                    <Route path="exercises/:id/edit" element={<ExerciseForm />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="journal" element={<Journal />} />
+                    <Route path="journal/new" element={<SessionForm />} />
+                    <Route path="journal/:id/edit" element={<SessionForm />} />
+                  </Route>
                 </Route>
-              </Route>
 
-            </Routes>
-          </Router>
-          <ReloadPrompt />
+              </Routes>
+            </Router>
+            <ReloadPrompt />
+          </SessionsProvider>
         </ExercisesProvider>
       </AuthProvider>
     </PwaProvider>

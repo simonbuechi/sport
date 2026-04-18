@@ -27,11 +27,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, createUserProfile } from '../services/db';
 import { useExercises } from '../context/ExercisesContext';
+import { lazy, Suspense } from 'react';
 import type { UserProfile, Exercise, WeightEntry, MeasurementEntry } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
-import WeightSection from '../components/profile/WeightSection';
-import MeasurementsSection from '../components/profile/MeasurementsSection';
-import TemplatesSection from '../components/profile/TemplatesSection';
+
+const WeightSection = lazy(() => import('../components/profile/WeightSection'));
+const MeasurementsSection = lazy(() => import('../components/profile/MeasurementsSection'));
+const TemplatesSection = lazy(() => import('../components/profile/TemplatesSection'));
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -350,26 +352,30 @@ const Profile = () => {
                 </Grid>
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={1}>
-                <TemplatesSection 
-                    userId={currentUser?.uid ?? ''} 
-                    exercises={exercises} 
-                />
+                <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>}>
+                    <TemplatesSection 
+                        userId={currentUser?.uid ?? ''} 
+                        exercises={exercises} 
+                    />
+                </Suspense>
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={2}>
-                <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <WeightSection 
-                            profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
-                            onWeightsUpdated={handleWeightsUpdated} 
-                        />
+                <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>}>
+                    <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <WeightSection 
+                                profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
+                                onWeightsUpdated={handleWeightsUpdated} 
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <MeasurementsSection 
+                                profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
+                                onMeasurementsUpdated={handleMeasurementsUpdated} 
+                            />
+                        </Grid>
                     </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <MeasurementsSection 
-                            profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
-                            onMeasurementsUpdated={handleMeasurementsUpdated} 
-                        />
-                    </Grid>
-                </Grid>
+                </Suspense>
             </CustomTabPanel>
             <Dialog
                 open={isEditDialogOpen}

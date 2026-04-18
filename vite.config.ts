@@ -52,8 +52,11 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
+            if (id.includes('@mui/x-charts')) return 'vendor_mui_x';
+            if (id.includes('@mui/icons-material')) return 'vendor_mui_icons';
             if (id.includes('@mui')) return 'vendor_mui';
             if (id.includes('firebase')) return 'vendor_firebase';
+            if (id.includes('@hello-pangea/dnd')) return 'vendor_dnd';
             if (id.includes('react-router-dom') || id.includes('@remix-run')) return 'vendor_router';
             return 'vendor';
           }

@@ -51,7 +51,7 @@ const Login = () => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 8, px: 2 }}>
-            <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
+            <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center">
                     Login
                 </Typography>

@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -131,24 +132,14 @@ const Journal = () => {
     const isLoading = (sessionsLoading && entries.length === 0) || (exercisesLoading && exercises.length === 0);
 
     if (isLoading) return (
-        <Box
-            sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: 8
-            }}><CircularProgress /></Box>
+        <Stack sx={{ mt: 8 }}>
+            <CircularProgress />
+        </Stack>
     );
 
     return (
         <Container maxWidth="lg">
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mt: { xs: 1, md: 2 },
-                    mb: { xs: 2, md: 4 }
-                }}>
+            <Stack sx={{ justifyContent: "space-between", mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
                 <Typography variant="h4" component="h1">
                     Journal
                 </Typography>
@@ -160,17 +151,12 @@ const Journal = () => {
                 >
                     Add Session
                 </Button>
-            </Box>
+            </Stack>
             <Divider sx={{ mb: { xs: 2, md: 4 } }} />
 
             {/* Filter and Sort Bar */}
-            <Paper elevation={0} variant="outlined" sx={{ p: 2, mb: 4, borderRadius: 2, bgcolor: 'background.default' }}>
-                <Box sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', md: 'row' },
-                    gap: 2,
-                    alignItems: { xs: 'stretch', md: 'flex-end' }
-                }}>
+            <Paper variant="section" elevation={0} sx={{ bgcolor: 'background.default' }}>
+                <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
                     <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
                         <InputLabel id="type-filter-label">Session Type</InputLabel>
                         <Select
@@ -222,7 +208,7 @@ const Journal = () => {
                             <MenuItem value="oldest">Oldest</MenuItem>
                         </Select>
                     </FormControl>
-                </Box>
+                </Stack>
             </Paper>
 
             {/* Journal Entries List */}
@@ -241,25 +227,19 @@ const Journal = () => {
                                 key={entry.id} 
                                 ref={index === displayedEntries.length - 1 ? lastElementRef : null}
                                 variant="outlined" 
-                                sx={{ mb: 2, p: { xs: 1.5, md: 3 }, borderRadius: 2 }}
+                                sx={{ mb: 2, p: { xs: 1.5, md: 3 }, }}
                             >
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        mb: 1,
+                                <Stack sx={{ justifyContent: "space-between", mb: 1,
                                         cursor: 'pointer',
                                         '&:hover': {
                                             opacity: 0.85
-                                        }
-                                    }}>
+                                        } }}>
                                     <Typography variant="h6">
                                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                         {entry.time && ` • ${entry.time}`}
                                     </Typography>
-                                    <Box
-                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    <Stack
+                                        spacing={0}
                                         onClick={(e) => { e.stopPropagation(); }}
                                     >
                                         <IconButton size="small" onClick={() => { handleEditClick(entry); }} color="primary">
@@ -271,16 +251,10 @@ const Journal = () => {
                                         <IconButton size="small" onClick={() => { toggleExpand(entry.id); }} sx={{ ml: 1 }}>
                                             {expandedEntries[entry.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                                         </IconButton>
-                                    </Box>
-                                </Box>
+                                    </Stack>
+                                </Stack>
 
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        flexWrap: "wrap",
-                                        gap: 1,
-                                        mb: 2
-                                    }}>
+                                <Stack spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
                                     {entry.sessionType && (
                                         <Chip size="small" label={entry.sessionType} color="primary" variant="outlined" sx={{ textTransform: 'capitalize' }} />
                                     )}
@@ -290,7 +264,7 @@ const Journal = () => {
                                     {entry.maxPulse && (
                                         <Chip size="small" label={`Max Pulse: ${String(entry.maxPulse)}`} variant="outlined" color="secondary" />
                                     )}
-                                </Box>
+                                </Stack>
 
                                 <Collapse in={expandedEntries[entry.id]}>
                                     {entry.exercises && entry.exercises.length > 0 ? (
@@ -301,37 +275,33 @@ const Journal = () => {
                                             {entry.exercises.map((se) => {
                                                 const exercise = exercises.find(ex => ex.id === se.exerciseId);
                                                 return (
-                                                    <Box key={se.exerciseId} sx={{ mb: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                                    <Box key={se.exerciseId} sx={{ mb: 1, p: 1, bgcolor: 'grey.50', }}>
                                                         <Typography variant="subtitle2" color="primary" sx={{
                                                             fontWeight: "bold"
                                                         }}>
                                                             {exercise?.name ?? 'Unknown Exercise'}
                                                         </Typography>
-                                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+                                                        <Stack spacing={1} sx={{ flexWrap: "wrap", mt: 0.5 }}>
                                                             {se.sets.map((set, idx) => (
-                                                                <Typography key={set.id} variant="body2" sx={{ bgcolor: 'white', px: 1, py: 0.5, borderRadius: 0.5, border: '1px solid', borderColor: 'grey.300' }}>
+                                                                <Typography key={set.id} variant="body2" sx={{ bgcolor: 'white', px: 1, py: 0.5, border: '1px solid', borderColor: 'grey.300' }}>
                                                                     Set {idx + 1}: {set.weight}kg x {set.reps} {set.notes && `(${set.notes})`}
                                                                 </Typography>
                                                             ))}
-                                                        </Box>
+                                                        </Stack>
                                                     </Box>
                                                 );
                                             })}
                                         </Box>
                                     ) : (
                                         entry.exerciseIds.length > 0 && (
-                                            <Box
-                                                sx={{
-                                                    display: "flex",
-                                                    flexWrap: "wrap",
-                                                    gap: 1,
-                                                    mb: 2,
-                                                    mt: 1
-                                                }}>
-                                                {entry.exerciseIds.map((id: string) => (
-                                                    <Chip key={id} label={getExerciseName(id)} size="small" variant="outlined" />
-                                                ))}
-                                            </Box>
+                                                <Stack
+                                                    spacing={1}
+                                                    sx={{ flexWrap: "wrap", mb: 2,
+                                                        mt: 1 }}>
+                                                    {entry.exerciseIds.map((id: string) => (
+                                                        <Chip key={id} label={getExerciseName(id)} size="small" variant="outlined" />
+                                                    ))}
+                                                </Stack>
                                         )
                                     )}
                                     {entry.comment && (
@@ -345,9 +315,9 @@ const Journal = () => {
                     </List>
                 )}
                 {displayCount < filteredAndSortedEntries.length && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                    <Stack sx={{ my: 4 }}>
                         <CircularProgress size={32} />
-                    </Box>
+                    </Stack>
                 )}
                 {displayCount >= filteredAndSortedEntries.length && filteredAndSortedEntries.length > 0 && (
                     <Typography

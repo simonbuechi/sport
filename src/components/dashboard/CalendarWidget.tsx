@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
@@ -74,23 +75,23 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.8rem' }}>
+            <Stack sx={{ mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ color: 'text.primary', fontSize: '0.8rem' }}>
                     {monthName} {year}
                 </Typography>
-                <Box>
+                <Stack>
                      <IconButton size="small" onClick={() => { setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)); }}>
                         <KeyboardArrowLeft fontSize="small" sx={{ fontSize: '0.9rem' }} />
                      </IconButton>
                      <IconButton size="small" onClick={() => { setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)); }}>
                         <KeyboardArrowRight fontSize="small" sx={{ fontSize: '0.9rem' }} />
                      </IconButton>
-                </Box>
-            </Box>
+                </Stack>
+            </Stack>
             <Grid container columns={7} spacing={0}>
                 {weekDays.map((d, i) => (
                     <Grid key={i} size={1} sx={{ textAlign: 'center' }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>{d}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>{d}</Typography>
                     </Grid>
                 ))}
                 {days.map((d, i) => (

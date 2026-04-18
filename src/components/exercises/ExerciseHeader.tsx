@@ -1,6 +1,7 @@
 import { Link as RouterLink } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
@@ -24,13 +25,7 @@ interface ExerciseHeaderProps {
 
 const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: ExerciseHeaderProps) => {
     return (
-        <Box
-            sx={{
-                mb: 2,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start"
-            }}>
+        <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
             <Box sx={{ flex: 1 }}>
                 <Button
                     component={RouterLink}
@@ -41,7 +36,7 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                     Back to Overview
                 </Button>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
+                <Stack spacing={3} sx={{ mb: 3 }}>
                     <Avatar
                         src={exercise.icon_url ?
                             `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
@@ -54,8 +49,8 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                     >
                         {exercise.name.charAt(0)}
                     </Avatar>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+                    <Stack spacing={1}>
+                        <Typography variant="h4" component="h1">
                             {exercise.name}
                         </Typography>
                         <Tooltip title={isFavorite ? "Remove from Favorites" : "Mark as Favorite"}>
@@ -67,33 +62,31 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                                 {isFavorite ? <Star fontSize="large" /> : <StarBorder fontSize="large" />}
                             </IconButton>
                         </Tooltip>
-                    </Box>
-                </Box>
+                    </Stack>
+                </Stack>
 
-                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
+                <Stack spacing={1.5} sx={{ flexWrap: "wrap", mb: 2 }}>
                     <Chip
                         label={`Type: ${exercise.type}`}
                         color="primary"
                         variant="outlined"
-                        sx={{ textTransform: 'capitalize', fontWeight: 500 }}
+                        sx={{ textTransform: 'capitalize' }}
                     />
                     <Chip
                         label={`Body part: ${exercise.bodypart}`}
                         color="primary"
                         variant="outlined"
-                        sx={{ fontWeight: 500 }}
                     />
                     <Chip
                         label={`Category: ${exercise.category}`}
                         color="primary"
                         variant="outlined"
-                        sx={{ fontWeight: 500 }}
                     />
-                </Box>
+                </Stack>
 
                 {exercise.aliases.length > 0 && (
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1, alignItems: 'center' }}>
-                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
+                    <Stack spacing={1} sx={{ flexWrap: "wrap", mb: 1 }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary", }}>
                             Also known as:
                         </Typography>
                         {exercise.aliases.map((alias, index) => (
@@ -101,16 +94,15 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                                 key={index}
                                 variant="caption"
                                 sx={{
-                                    color: "text.secondary",
-                                    fontStyle: 'italic'
+                                    color: "text.secondary"
                                 }}>
                                 {alias}{index < exercise.aliases.length - 1 ? ', ' : ''}
                             </Typography>
                         ))}
-                    </Box>
+                    </Stack>
                 )}
             </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+            <Stack spacing={1}>
                     <Button
                         component={RouterLink}
                         to={`/exercises/${exercise.id}/edit`}
@@ -130,8 +122,8 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                     >
                         Delete
                     </Button>
-            </Box>
-        </Box>
+            </Stack>
+        </Stack>
     );
 };
 

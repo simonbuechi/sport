@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -44,9 +45,9 @@ const SessionExerciseItem = ({
     const editingSet = sessionExercise.sets.find(s => s.id === noteEditingSetId);
 
     return (
-        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'grey.50', }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: sessionExercise.note ? 0.5 : 2 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <Stack spacing={0.5}>
                     <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                         {exercise?.name ?? 'Unknown Exercise'}
                     </Typography>
@@ -58,7 +59,7 @@ const SessionExerciseItem = ({
                     >
                         <CommentIcon fontSize="small" />
                     </IconButton>
-                </Box>
+                </Stack>
                 <IconButton size="small" onClick={() => { onRemoveExercise(sessionExercise.exerciseId); }} color="error">
                     <CloseIcon fontSize="small" />
                 </IconButton>
@@ -68,7 +69,7 @@ const SessionExerciseItem = ({
                 <Typography 
                     variant="body2" 
                     color="text.secondary" 
-                    sx={{ mb: 2, pl: 0.5, fontStyle: 'italic', cursor: 'pointer' }}
+                    sx={{ mb: 2, pl: 0.5, cursor: 'pointer' }}
                     onClick={() => { setIsEditingExerciseNote(true); }}
                 >
                     {sessionExercise.note}

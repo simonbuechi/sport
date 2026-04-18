@@ -30,13 +30,14 @@ export const SessionsProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         if (!currentUser) {
-            setEntries([]);
-            setTemplates([]);
-            setLoading(false);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setEntries(prev => prev.length > 0 ? [] : prev);
+            setTemplates(prev => prev.length > 0 ? [] : prev);
+            setLoading(prev => prev ? false : prev);
             return;
         }
 
-        setLoading(true);
+        if (!loading) setLoading(true);
         setError('');
 
         // Subscribe to journal entries (limit to 100 for global state, pages can fetch more if needed)
@@ -61,7 +62,7 @@ export const SessionsProvider = ({ children }: { children: ReactNode }) => {
             unsubscribeEntries();
             unsubscribeTemplates();
         };
-    }, [currentUser]);
+    }, [currentUser, loading]);
 
     return (
         <SessionsContext.Provider value={{ entries, templates, loading, error }}>

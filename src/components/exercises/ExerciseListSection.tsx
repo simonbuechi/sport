@@ -25,7 +25,7 @@ interface ExerciseListSectionProps {
 
 const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: ExerciseListSectionProps) => {
     return (
-        <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+        <Paper elevation={3} sx={{ p: 3, }}>
             <Box
                 onClick={onToggle}
                 sx={{
@@ -69,7 +69,6 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
                                         color: 'inherit',
                                         textDecoration: 'none',
                                         '&:hover': { bgcolor: 'action.hover' },
-                                        borderRadius: 1,
                                         display: 'flex',
                                         justifyContent: 'flex-start',
                                         alignItems: 'center',

@@ -1,5 +1,12 @@
 import { createTheme, type PaletteMode } from '@mui/material/styles';
 
+declare module '@mui/material/Paper' {
+  interface PaperPropsVariantOverrides {
+    section: true;
+    widget: true;
+  }
+}
+
 // ==========================================
 // CENTRAL THEME CONFIGURATION
 // Modify these values to quickly change the app's look and feel
@@ -41,35 +48,53 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
     },
     typography: {
         fontSize: 12, // Default is 14px. Adjust this to globally change font size.
-        fontFamily: '"Poppins", "Inter", "Roboto", "Segoe UI", sans-serif',
+        fontFamily: '"Inter", "Roboto", "Segoe UI", sans-serif',
         h1: {
             fontSize: 18,
-            fontWeight: 600,
+            fontWeight: 700,
         },
         h2: {
             fontSize: 18,
-            fontWeight: 600,
+            fontWeight: 700,
         },
         h3: {
             fontSize: 18,
-            fontWeight: 600,
+            fontWeight: 700,
         },
         h4: {
             fontSize: 18,
-            fontWeight: 600,
+            fontWeight: 700,
         },
         h5: {
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 700,
         },
         h6: {
             fontSize: 14,
-            fontWeight: 600,
+            fontWeight: 700,
+        },
+        subtitle1: {
+            fontWeight: 700,
+        },
+        subtitle2: {
+            fontWeight: 700,
+        },
+        body1: {
+            fontWeight: 400,
+        },
+        body2: {
+            fontWeight: 400,
+        },
+        caption: {
+            fontWeight: 400,
         },
         button: {
-            fontWeight: 600,
+            fontWeight: 700,
             letterSpacing: '0.02em',
         }
+    },
+    shape: {
+        borderRadius: 12,
     },
     components: {
         MuiButton: {
@@ -77,7 +102,6 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                 root: {
                     textTransform: 'none',
                     borderRadius: 8,
-                    fontWeight: 600,
                 },
                 contained: ({ theme }) => ({
                     background: `linear-gradient(45deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
@@ -94,20 +118,62 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
         MuiCard: {
             styleOverrides: {
                 root: {
-                    borderRadius: 12,
-                    padding: 0, // Cards usually have their own internal structure (CardContent)
+                    padding: 0,
                     boxShadow: mode === 'dark' ? '0 4px 6px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
                 },
             },
         },
-        MuiPaper: {
+        MuiContainer: {
+            defaultProps: {
+                maxWidth: 'lg',
+            },
             styleOverrides: {
                 root: {
-                    borderRadius: 12,
+                    paddingLeft: '16px',
+                    paddingRight: '16px',
+                    '@media (min-width: 600px)': {
+                        paddingLeft: '24px',
+                        paddingRight: '24px',
+                    },
                 },
-                rounded: {
-                    borderRadius: 12,
+            },
+        },
+        MuiStack: {
+            defaultProps: {
+                direction: 'row',
+                spacing: 2,
+            },
+        },
+        MuiPaper: {
+            variants: [
+                {
+                    props: { variant: 'section' },
+                    style: ({ theme }) => ({
+                        padding: theme.spacing(3),
+                        borderRadius: theme.shape.borderRadius,
+                        backgroundColor: theme.palette.background.paper,
+                        marginBottom: theme.spacing(4),
+                    }),
                 },
+                {
+                    props: { variant: 'widget' },
+                    style: ({ theme }) => ({
+                        padding: theme.spacing(2.5),
+                        borderRadius: theme.shape.borderRadius,
+                        height: '100%',
+                        minHeight: 150,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        position: 'relative',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: theme.shadows[4],
+                        },
+                    }),
+                },
+            ],
+            styleOverrides: {
                 outlined: {
                     borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
                 }
@@ -127,7 +193,7 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                     '@media (max-width: 600px)': {
                         padding: '16px 16px 8px',
                     },
-                    fontWeight: 600,
+                    fontWeight: 700,
                 }
             }
         },
@@ -172,7 +238,6 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                         color: theme.palette.text.secondary,
                         textTransform: 'capitalize',
                         fontSize: '0.75rem',
-                        fontWeight: 500,
                         '& .MuiChip-label': {
                             paddingLeft: 10,
                             paddingRight: 10,

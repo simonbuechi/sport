@@ -85,7 +85,6 @@ const TemplateDialog = ({
                         mt: 4, 
                         p: 2, 
                         bgcolor: 'primary.50', 
-                        borderRadius: 2, 
                         border: '1px dashed', 
                         borderColor: 'primary.main',
                         textAlign: 'center'
@@ -97,7 +96,6 @@ const TemplateDialog = ({
                             variant="outlined" 
                             size="small" 
                             onClick={onCreateSample}
-                            sx={{ fontWeight: 600 }}
                         >
                             Create Sample
                         </Button>

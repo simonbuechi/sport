@@ -404,7 +404,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
                 onClose={() => { setIsInfoDialogOpen(false); }}
                 slotProps={{
                     paper: {
-                        sx: { borderRadius: 3 }
+                        sx: { }
                     }
                 }}
             >

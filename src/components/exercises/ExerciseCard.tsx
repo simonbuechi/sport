@@ -3,7 +3,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
-import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import { useNavigate } from 'react-router-dom';
 import type { Exercise, UserProfile } from '../../types';
@@ -23,8 +23,8 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
         <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardActionArea onClick={() => navigate(`/exercises/${exercise.id}`)} sx={{ flexGrow: 1 }}>
                 <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}>
+                        <Stack sx={{ flexWrap: "wrap" }} spacing={0.5}>
                             <Chip
                                 label={exercise.type}
                                 size="small"
@@ -44,13 +44,13 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                                 color="primary"
                                 variant="outlined"
                             />
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 0.5, color: 'text.secondary' }}>
+                        </Stack>
+                        <Stack spacing={0.5} sx={{ color: 'text.secondary' }}>
                             {exercise.links && exercise.links.length > 0 && <LinkIcon fontSize="small" />}
-                        </Box>
-                    </Box>
+                        </Stack>
+                    </Stack>
 
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+                    <Stack spacing={2} sx={{ mb: 2 }}>
                         <Avatar
                             src={exercise.icon_url ?
                                 `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
@@ -66,7 +66,7 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                         <Typography variant="h5" component="div">
                             {exercise.name}
                         </Typography>
-                    </Box>
+                    </Stack>
 
                     {exercise.description && (
                         <Typography
@@ -85,9 +85,9 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
                     )}
 
                     {markerStatus && (
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Stack sx={{ justifyContent: "flex-end" }}>
                             <MarkerIcons status={markerStatus} />
-                        </Box>
+                        </Stack>
                     )}
                 </CardContent>
             </CardActionArea>

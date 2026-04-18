@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
@@ -180,30 +181,22 @@ const Home = () => {
 
     if (isInitialLoading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-                <CircularProgress />
-            </Box>
+            <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
         );
     }
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
+            <Stack sx={{ justifyContent: "space-between", mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
                 <Typography variant="h4" component="h1">
                     Dashboard
                 </Typography>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: 1.5
-                    }}>
+                <Stack sx={{ justifyContent: "flex-end" }}>
                     <Button
                         variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
                         onClick={() => { void navigate('/journal/new'); }}
-                        sx={{ borderRadius: 2, fontWeight: 600 }}
                     >
                         New Workout
                     </Button>
@@ -211,12 +204,11 @@ const Home = () => {
                         variant="outlined"
                         startIcon={<SettingsIcon />}
                         onClick={() => { setIsManageDialogOpen(true); }}
-                        sx={{ borderRadius: 2, fontWeight: 600 }}
                     >
                         Widgets
                     </Button>
-                </Box>
-            </Box>
+                </Stack>
+            </Stack>
 
             {error && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{error}</Alert>}
 
@@ -224,16 +216,8 @@ const Home = () => {
                 {visibleWidgets.map((widget) => (
                     <Grid key={widget} size={{ xs: 12, md: 4 }}>
                         <Paper
+                            variant="widget"
                             elevation={2}
-                            sx={{
-                                p: { xs: 1.5, md: 3 },
-                                position: 'relative',
-                                borderRadius: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                minHeight: '150px',
-                                height: '100%'
-                            }}
                         >
                             <IconButton
                                 size="small"
@@ -263,7 +247,6 @@ const Home = () => {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             variant="body2"
-                                            sx={{ fontWeight: 500 }}
                                         >
                                             View project repo
                                         </Link>
@@ -289,7 +272,7 @@ const Home = () => {
                                                 {templates.slice(0, 5).map((template: TrainingTemplate) => (
                                                     <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
                                                         <ListItemButton
-                                                            sx={{ py: 0.75, px: 1, borderRadius: 1 }}
+                                                            sx={{ py: 0.75, px: 1, }}
                                                             onClick={() => { void navigate('/profile?tab=templates'); }}
                                                         >
                                                             <ListItemIcon sx={{ minWidth: 32 }}>
@@ -297,7 +280,7 @@ const Home = () => {
                                                             </ListItemIcon>
                                                             <ListItemText
                                                                 primary={
-                                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                                    <Typography variant="body2">
                                                                         {template.name}
                                                                     </Typography>
                                                                 }
@@ -311,7 +294,7 @@ const Home = () => {
                                                             sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
                                                             onClick={() => { void navigate('/profile?tab=templates'); }}
                                                         >
-                                                            <Typography variant="caption" color="primary" sx={{ fontWeight: 600 }}>
+                                                            <Typography variant="caption" color="primary">
                                                                 View all {templates.length} templates
                                                             </Typography>
                                                         </ListItemButton>
@@ -360,7 +343,6 @@ const Home = () => {
                                                         mb: 0,
                                                         bgcolor: snapshot.isDragging ? 'action.selected' : 'transparent',
                                                         boxShadow: snapshot.isDragging ? 2 : 0,
-                                                        borderRadius: 1,
                                                         '&:hover': { bgcolor: 'action.hover' }
                                                     }}
                                                 >

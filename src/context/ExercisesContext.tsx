@@ -25,13 +25,13 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const [error] = useState('');
 
     useEffect(() => {
-        setLoading(true);
+        // loading is true by default
         const unsubscribe = subscribeToExercises((data) => {
             setExercises(data);
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => { unsubscribe(); };
     }, []);
 
     return (

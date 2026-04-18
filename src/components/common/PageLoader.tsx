@@ -21,7 +21,6 @@ const PageLoader: React.FC = () => {
         variant="body2"
         color="text.secondary"
         sx={{
-          fontWeight: 500,
           letterSpacing: '0.05em',
           textTransform: 'uppercase',
           opacity: 0.8,

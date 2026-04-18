@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -150,17 +151,12 @@ export default function ExerciseForm() {
     };
 
     if (loading) return (
-        <Box
-            sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: 8
-            }}><CircularProgress /></Box>
+        <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
     );
 
     return (
         <Container maxWidth="md">
-            <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, borderRadius: 2 }}>
+            <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, }}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     {isEditing ? 'Edit Exercise' : 'Add New Exercise'}
                 </Typography>

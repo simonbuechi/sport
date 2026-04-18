@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -90,7 +91,7 @@ const ExerciseDetails = () => {
 
     useEffect(() => {
         if (profile && id) {
-            setNotes(profile.markedExercises[id]?.notes ?? '');
+            setNotes(profile.markedExercises[id].notes ?? '');
         }
     }, [id, profile]);
 
@@ -98,7 +99,7 @@ const ExerciseDetails = () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises[id]?.favorite ?? false;
+            const currentValue = profile.markedExercises[id].favorite ?? false;
             const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -111,7 +112,7 @@ const ExerciseDetails = () => {
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises[id]?.notes ?? '';
+        const currentNotes = profile.markedExercises[id].notes ?? '';
         if (notes === currentNotes) return;
 
         try {
@@ -139,7 +140,7 @@ const ExerciseDetails = () => {
     };
 
 
-    if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;
+    if (loading) return <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>;
     if (error || !exercise) return (
         <Container><Typography color="error" sx={{
             mt: 4
@@ -150,7 +151,7 @@ const ExerciseDetails = () => {
 
     return (
         <Container maxWidth="lg">
-            <Paper elevation={0} sx={{ p: { xs: 1.5, md: 3 }, bgcolor: 'background.paper', borderRadius: 2 }}>
+            <Paper elevation={0} sx={{ p: { xs: 1.5, md: 3 }, bgcolor: 'background.paper', }}>
                 <Grid container spacing={{ xs: 2, md: 3 }}>
                     <Grid size={{ xs: 12, md: 8 }}>
                         <ExerciseHeader 
@@ -168,7 +169,7 @@ const ExerciseDetails = () => {
                         {exercise.links && exercise.links.length > 0 && (
                             <Box sx={{ mt: { xs: 2, md: 3 } }}>
                                 <Typography variant="h5" gutterBottom>Links & Resources</Typography>
-                                <List sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                                <List sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                                     {exercise.links.map((link, index) => (
                                         <Box key={index}>
                                             <ListItem 
@@ -202,7 +203,7 @@ const ExerciseDetails = () => {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Stack spacing={3} sx={{ position: "sticky", top: 24 }}>
 
                                 <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
                                     <Box
@@ -212,15 +213,10 @@ const ExerciseDetails = () => {
                                             alignItems: "center",
                                             mb: 1
                                         }}>
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1
-                                            }}>
+                                        <Stack spacing={1}>
                                             <EditNote color="primary" />
                                             <Typography variant="h6">My Notes</Typography>
-                                        </Box>
+                                        </Stack>
                                         {isSavingNotes && <CircularProgress size={16} />}
                                     </Box>
                                     <Divider sx={{ mb: 2 }} />
@@ -252,7 +248,7 @@ const ExerciseDetails = () => {
                                 </Paper>
 
                             <ExerciseHistoryCard sessions={sessions} />
-                        </Box>
+                        </Stack>
                     </Grid>
                 </Grid>
             </Paper>

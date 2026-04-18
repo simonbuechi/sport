@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -60,14 +61,14 @@ const SessionForm = () => {
 
                 if (entry.exercises && entry.exercises.length > 0) {
                     setSessionExercises(entry.exercises);
-                } else if (entry.exerciseIds && entry.exerciseIds.length > 0) {
+                } else if (entry.exerciseIds.length > 0) {
                     setSessionExercises(entry.exerciseIds.map(eId => ({
                         exerciseId: eId,
                         sets: []
                     })));
                 }
                 setLoading(false);
-            } else if (!sessionsLoading) {
+            } else {
                 setError('Session not found');
                 setLoading(false);
             }
@@ -141,7 +142,7 @@ const SessionForm = () => {
         }
     };
 
-    const handleSubmit = (e: React.SyntheticEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!currentUser) return;
 
@@ -166,12 +167,12 @@ const SessionForm = () => {
             };
 
             if (isEditing && id) {
-                void updateJournalEntry(currentUser.uid, id, entryData);
+                await updateJournalEntry(currentUser.uid, id, entryData);
             } else {
-                void createJournalEntry(currentUser.uid, entryData);
+                await createJournalEntry(currentUser.uid, entryData);
             }
 
-            navigate('/journal');
+            void navigate('/journal');
         } catch (err) {
             console.error('Error saving session:', err);
             setError(`Failed to save session: ${err instanceof Error ? err.message : String(err)}`);
@@ -181,7 +182,7 @@ const SessionForm = () => {
     };
 
     if (loading || (exercisesLoading && exercises.length === 0)) return (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}><CircularProgress /></Box>
+        <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
     );
 
     return (
@@ -195,7 +196,7 @@ const SessionForm = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-                <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}>
+                <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, }}>
                     <form onSubmit={handleSubmit}>
                         <Grid container spacing={3}>
                             <Grid size={{ xs: 12, sm: 4 }}>
@@ -341,7 +342,7 @@ const SessionForm = () => {
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
-                                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+                                <Stack sx={{ mt: 3 }}>
                                     <Button variant="outlined" onClick={() => navigate('/journal')}>
                                         Cancel
                                     </Button>
@@ -354,7 +355,7 @@ const SessionForm = () => {
                                     >
                                         {submitting ? 'Saving...' : (isEditing ? 'Update Session' : 'Add Session')}
                                     </Button>
-                                </Box>
+                                </Stack>
                             </Grid>
                         </Grid>
                     </form>

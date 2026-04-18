@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -143,22 +144,12 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
     };
 
     return (
-        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, borderRadius: 2 }}>
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3
-                }}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: "center"
-                    }}>
+        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, }}>
+            <Stack sx={{ mb: 3 }}>
+                <Stack>
                     <Straighten color="primary" sx={{ mr: 1, fontSize: 32 }} />
                     <Typography variant="h5" component="h2">Measurements</Typography>
-                </Box>
+                </Stack>
                 <Button 
                     variant="outlined" 
                     startIcon={<Add />} 
@@ -167,7 +158,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                 >
                     Log Size
                 </Button>
-            </Box>
+            </Stack>
             {sortedMeasurements.length === 0 ? (
                 <Typography
                     variant="body2"
@@ -175,8 +166,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                         color: "text.secondary",
                         textAlign: 'center',
                         py: 3,
-                        fontStyle: 'italic'
-                    }}>
+                        }}>
                     No body measurements recorded yet. Track your progress.
                 </Typography>
             ) : (
@@ -187,24 +177,18 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
                             <ListItem
                                 sx={{ px: 1, py: 1.5 }}
                                 secondaryAction={
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            gap: 0.5
-                                        }}>
-                                        <IconButton edge="end" aria-label="edit" size="small" onClick={() => { handleOpenEdit(entry); }}>
-                                            <Edit fontSize="small" />
-                                        </IconButton>
-                                        <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => { handleOpenDelete(entry); }}>
-                                            <Delete fontSize="small" />
-                                        </IconButton>
-                                    </Box>
+                                        <Stack spacing={0.5}>
+                                            <IconButton edge="end" aria-label="edit" size="small" onClick={() => { handleOpenEdit(entry); }}>
+                                                <Edit fontSize="small" />
+                                            </IconButton>
+                                            <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => { handleOpenDelete(entry); }}>
+                                                <Delete fontSize="small" />
+                                            </IconButton>
+                                        </Stack>
                                 }
                             >
                                 <ListItemText
-                                    primary={<Typography sx={{
-                                        fontWeight: "600"
-                                    }}>{new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</Typography>}
+                                    primary={<Typography>{new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</Typography>}
                                     secondary={getMeasurementSummary(entry)}
                                 />
                             </ListItem>

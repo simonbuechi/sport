@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -178,12 +179,7 @@ const Profile = () => {
     };
 
     if (loading || (exercisesLoading && exercises.length === 0)) return (
-        <Box
-            sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: 8
-            }}><CircularProgress /></Box>
+        <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
     );
 
     const getMarkedExercises = (statusKey: 'favorite') => {
@@ -212,7 +208,6 @@ const Profile = () => {
                         iconPosition="start" 
                         label="Profile" 
                         sx={{ 
-                            fontWeight: 600,
                             minHeight: 48,
                             textTransform: 'none',
                         }} 
@@ -222,7 +217,6 @@ const Profile = () => {
                         iconPosition="start" 
                         label="Templates" 
                         sx={{ 
-                            fontWeight: 600,
                             minHeight: 48,
                             textTransform: 'none',
                         }} 
@@ -232,7 +226,6 @@ const Profile = () => {
                         iconPosition="start" 
                         label="Stats" 
                         sx={{ 
-                            fontWeight: 600,
                             minHeight: 48,
                             textTransform: 'none',
                         }} 
@@ -244,25 +237,19 @@ const Profile = () => {
             <CustomTabPanel value={activeTab} index={0}>
                 <Grid container spacing={4}>
                     <Grid size={12}>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: { xs: "column", sm: "row" },
-                                justifyContent: "space-between",
-                                alignItems: { xs: "flex-start", sm: "center" },
-                                gap: 2,
-                                mt: { xs: 1, md: 2 },
-                                mb: { xs: 2, md: 4 }
-                            }}>
+                        <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={2}
+                            sx={{ alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", mt: { xs: 1, md: 2 },
+                                mb: { xs: 2, md: 4 } }}>
                             <Typography variant="h4" component="h1">
                                 Profile
                             </Typography>
-                            <Box sx={{ display: "flex", gap: 1.5 }}>
+                            <Stack spacing={1.5}>
                                 <Button
                                     variant="contained"
                                     startIcon={<Edit />}
                                     onClick={() => { setIsEditDialogOpen(true); }}
-                                    sx={{ borderRadius: 2 }}
                                 >
                                     Edit
                                 </Button>
@@ -270,21 +257,18 @@ const Profile = () => {
                                     variant="outlined"
                                     onClick={handleLogout}
                                     startIcon={<Logout />}
-                                    sx={{ borderRadius: 2 }}
                                 >
                                     Logout
                                 </Button>
-                            </Box>
-                        </Box>
+                            </Stack>
+                        </Stack>
                     </Grid>
                     <Grid size={{ xs: 12, md: 7 }}>
-                        <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 2 }}>
+                        <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, }}>
 
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12 }}>
-                                    <Typography variant="body1" sx={{
-                                        fontWeight: 600
-                                    }}>{profile.name ?? 'Anonymous Athlete'}</Typography>
+                                    <Typography variant="body1">{profile.name ?? 'Anonymous Athlete'}</Typography>
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -309,7 +293,7 @@ const Profile = () => {
                                                 color: "text.secondary",
                                                 mb: 1
                                             }}>Notes & Journey</Typography>
-                                        <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, bgcolor: 'background.default', borderRadius: 2 }}>
+                                        <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, bgcolor: 'background.default', }}>
                                             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                                                 {profile.notes}
                                             </Typography>
@@ -339,7 +323,7 @@ const Profile = () => {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 5 }}>
-                        <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Stack spacing={3} sx={{ position: "sticky", top: 24 }}>
                             <ExerciseListSection
                                 icon={<Favorite color="primary" sx={{ mr: 1 }} />}
                                 title="Favorites"
@@ -347,7 +331,7 @@ const Profile = () => {
                                 expanded={favoritesExpanded}
                                 onToggle={() => { setFavoritesExpanded(!favoritesExpanded); }}
                             />
-                        </Box>
+                        </Stack>
                     </Grid>
                 </Grid>
             </CustomTabPanel>
@@ -384,7 +368,7 @@ const Profile = () => {
                 fullWidth
                 slotProps={{
                     paper: {
-                        sx: { borderRadius: 3 }
+                        sx: { }
                     }
                 }}
             >
@@ -453,7 +437,7 @@ const Profile = () => {
                         </Grid>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, py: 2 }}>
-                        <Button onClick={() => { setIsEditDialogOpen(false); }} color="inherit" sx={{ fontWeight: 600 }}>
+                        <Button onClick={() => { setIsEditDialogOpen(false); }} color="inherit">
                             Cancel
                         </Button>
                         <Button
@@ -461,7 +445,7 @@ const Profile = () => {
                             variant="contained"
                             color="primary"
                             disabled={saving}
-                            sx={{ fontWeight: 600, px: 3 }}
+                            sx={{ px: 3 }}
                         >
                             {saving ? 'Saving...' : 'Save Profile'}
                         </Button>

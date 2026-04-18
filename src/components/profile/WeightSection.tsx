@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -162,22 +163,12 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
     };
 
     return (
-        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, borderRadius: 2 }}>
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3
-                }}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: "center"
-                    }}>
+        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, }}>
+            <Stack sx={{ mb: 3 }}>
+                <Stack>
                     <MonitorWeight color="primary" sx={{ mr: 1, fontSize: 32 }} />
                     <Typography variant="h5" component="h2">Weight Tracking</Typography>
-                </Box>
+                </Stack>
                 <Button 
                     variant="outlined" 
                     startIcon={<Add />} 
@@ -186,7 +177,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                 >
                     Log Weight
                 </Button>
-            </Box>
+            </Stack>
             <Box sx={{ width: '100%', height: 250, mt: 2, mb: 4 }}>
                 <LineChart
                     xAxis={[{ 
@@ -216,8 +207,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                         color: "text.secondary",
                         textAlign: 'center',
                         py: 3,
-                        fontStyle: 'italic'
-                    }}>
+                        }}>
                     No weight entries recorded yet. Track your progress by logging your first weight.
                 </Typography>
             ) : (
@@ -228,24 +218,18 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                             <ListItem
                                 sx={{ px: 1, py: 1.5 }}
                                 secondaryAction={
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            gap: 0.5
-                                        }}>
+                                    <Stack spacing={0.5}>
                                         <IconButton edge="end" aria-label="edit" size="small" onClick={() => { handleOpenEdit(weight); }}>
                                             <Edit fontSize="small" />
                                         </IconButton>
                                         <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => { handleOpenDelete(weight); }}>
                                             <Delete fontSize="small" />
                                         </IconButton>
-                                    </Box>
+                                        </Stack>
                                 }
                             >
                                 <ListItemText
-                                    primary={<Typography sx={{
-                                        fontWeight: "600"
-                                    }}>{weight.weightKg} kg</Typography>}
+                                    primary={<Typography>{weight.weightKg} kg</Typography>}
                                     secondary={`${new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}${weight.bodyFatPercent ? ` • ${String(weight.bodyFatPercent)}% Body Fat` : ''}`}
                                 />
                             </ListItem>

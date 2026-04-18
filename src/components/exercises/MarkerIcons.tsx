@@ -1,4 +1,4 @@
-import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Star from '@mui/icons-material/Star';
 import type { MarkedStatus } from '../../types';
@@ -16,11 +16,11 @@ const MarkerIcons = ({ status, size = 'small', withShadow = false }: MarkerIcons
     if (!status.favorite) return null;
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Stack spacing={0.5}>
             <Tooltip title="Favorite">
                 <Star sx={{ color: 'warning.main', fontSize, filter: shadowFilter }} />
             </Tooltip>
-        </Box>
+        </Stack>
     );
 };
 

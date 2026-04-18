@@ -12,7 +12,6 @@ const OfflineBanner = () => {
             severity="warning"
             icon={<WifiOffIcon fontSize="small" />}
             sx={{
-                borderRadius: 0,
                 py: 0.5,
                 justifyContent: 'center',
                 '& .MuiAlert-message': {

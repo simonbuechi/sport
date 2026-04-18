@@ -1,5 +1,6 @@
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
@@ -84,18 +85,13 @@ const TemplateAccordion = ({
                 }}
             >
                 <Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1
-                        }}>
+                    <Stack spacing={1}>
                         {template.isFavorite && <StarIcon color="warning" fontSize="small" />}
                         <Typography variant="h6" color="primary">
                             {template.name}
                             {template.isArchived && " (Archived)"}
                         </Typography>
-                    </Box>
+                    </Stack>
                     <Typography variant="body2" sx={{
                         color: "text.secondary"
                     }}>
@@ -144,7 +140,6 @@ const TemplateAccordion = ({
                                                             gap: 1.5,
                                                             py: 1.5,
                                                             px: 1,
-                                                            borderRadius: 1,
                                                             bgcolor: snapshot.isDragging ? 'action.selected' : 'transparent',
                                                             '&:hover': { bgcolor: snapshot.isDragging ? 'action.selected' : 'action.hover' },
                                                             borderBottom: idx < template.exercises.length - 1 ? '1px dashed' : 'none',
@@ -246,7 +241,6 @@ const TemplateAccordion = ({
                             variant="body1"
                             sx={{
                                 color: "text.secondary",
-                                fontStyle: 'italic',
                                 py: 2
                             }}>
                             No exercises. Start by adding one below.
@@ -255,7 +249,7 @@ const TemplateAccordion = ({
 
                     <Box sx={{ mt: 2 }}>
                         {activeSearchId === template.id ? (
-                            <Box sx={{ p: 2, bgcolor: 'action.selected', borderRadius: 2 }}>
+                            <Box sx={{ p: 2, bgcolor: 'action.selected', }}>
                                 <Box
                                     sx={{
                                         display: "flex",
@@ -263,9 +257,7 @@ const TemplateAccordion = ({
                                         alignItems: "center",
                                         mb: 1
                                     }}>
-                                    <Typography variant="body2" sx={{
-                                        fontWeight: 600
-                                    }}>Search Exercise</Typography>
+                                    <Typography variant="body2">Search Exercise</Typography>
                                     <Tooltip title="Close Search">
                                         <IconButton size="small" onClick={() => { setActiveSearchId(null); }}>
                                             <CloseIcon fontSize="small" />
@@ -294,7 +286,6 @@ const TemplateAccordion = ({
                                 onClick={() => { setActiveSearchId(template.id); }}
                                 variant="text"
                                 color="primary"
-                                sx={{ fontWeight: 600 }}
                             >
                                 Add Exercise
                             </Button>

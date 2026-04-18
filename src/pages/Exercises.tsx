@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
@@ -130,7 +131,7 @@ const Exercises = () => {
         <Grid container spacing={{ xs: 2, md: 3 }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
-                    <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
+                    <Skeleton variant="rectangular" height={200} />
                 </Grid>
             ))}
         </Grid>
@@ -139,10 +140,10 @@ const Exercises = () => {
     if (loading) {
         return (
             <Container maxWidth="lg" sx={{ mt: 4 }}>
-                <Box sx={{ mb: 4 }}>
+                <Stack spacing={2} sx={{ mb: 4 }}>
                     <Skeleton variant="text" width="40%" height={60} />
-                    <Skeleton variant="rectangular" height={100} sx={{ mt: 2, borderRadius: 2 }} />
-                </Box>
+                    <Skeleton variant="rectangular" height={100} />
+                </Stack>
                 {renderSkeletons()}
             </Container>
         );
@@ -150,19 +151,19 @@ const Exercises = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 2 } }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Stack direction="column" spacing={{ xs: 1, md: 2 }} sx={{ mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
+                <Stack sx={{ justifyContent: "space-between" }}>
                     <Typography variant="h4" component="h1">
                         Exercises
                     </Typography>
 
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Stack spacing={1}>
                         <Tooltip title="New Exercise">
                             <IconButton
                                 component={RouterLink}
                                 to="/exercises/new"
                                 color="primary"
-                                sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 2 }}
+                                sx={{ border: '1px solid', borderColor: 'primary.main', }}
                             >
                                 <Add />
                             </IconButton>
@@ -185,15 +186,10 @@ const Exercises = () => {
                                 </ToggleButton>
                             </Tooltip>
                         </ToggleButtonGroup>
-                    </Box>
-                </Box>
+                    </Stack>
+                </Stack>
 
-                <Box sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', md: 'row' },
-                    gap: 2,
-                    alignItems: 'flex-start'
-                }}>
+                <Stack sx={{ alignItems: "flex-start" }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
                     <TextField
                         fullWidth
                         size="small"
@@ -203,7 +199,6 @@ const Exercises = () => {
                         onChange={(e) => { setSearchTerm(e.target.value); }}
                         sx={{
                             bgcolor: 'background.paper',
-                            borderRadius: 2,
                             flex: { md: '1 1 300px' }
                         }}
                         slotProps={{
@@ -217,13 +212,7 @@ const Exercises = () => {
                         }}
                     />
 
-                    <Box sx={{
-                        display: 'flex',
-                        gap: 2,
-                        flexWrap: 'wrap',
-                        width: { xs: '100%', md: 'auto' },
-                        flex: { md: '0 0 auto' }
-                    }}>
+                    <Stack spacing={2} sx={{ flexWrap: "wrap", width: { xs: '100%', md: 'auto' }, flex: { md: '0 0 auto' } }}>
                         <FormControl size="small" sx={{ minWidth: { xs: 'calc(50% - 8px)', sm: 150 } }}>
                             <InputLabel id="type-filter-label">Type</InputLabel>
                             <Select
@@ -282,9 +271,9 @@ const Exercises = () => {
                                 <MenuItem value="Kettlebell">Kettlebell</MenuItem>
                             </Select>
                         </FormControl>
-                    </Box>
-                </Box>
-            </Box>
+                    </Stack>
+                </Stack>
+            </Stack>
             {currentError && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{currentError}</Alert>}
             {exercises.length === 0 && !currentError ? (
                 <Alert severity="info" sx={{ mt: 4 }}>
@@ -307,7 +296,7 @@ const Exercises = () => {
                     ))}
                 </Grid>
             ) : (
-                <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+                <Paper variant="outlined">
                     <List disablePadding>
                         {displayedExercises.map((exercise, index) => (
                             <ListItem
@@ -335,10 +324,8 @@ const Exercises = () => {
                                 </ListItemAvatar>
                                 <ListItemText
                                     primary={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                            <Typography variant="body1" sx={{
-                                                fontWeight: 600
-                                            }}>
+                                        <Stack sx={{ flexWrap: "wrap" }} spacing={1}>
+                                            <Typography variant="body1">
                                                 {exercise.name}
                                             </Typography>
                                             <Chip
@@ -367,7 +354,7 @@ const Exercises = () => {
                                                     <MarkerIcons status={profile.markedExercises[exercise.id]} />
                                                 </Box>
                                             )}
-                                        </Box>
+                                        </Stack>
                                     }
                                 />
                                 <ChevronRight color="action" />
@@ -377,9 +364,9 @@ const Exercises = () => {
                 </Paper>
             )}
             {displayCount < filteredExercises.length && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-                    <CircularProgress size={32} />
-                </Box>
+                <Stack sx={{ my: 4 }}>
+                        <CircularProgress size={32} />
+                    </Stack>
             )}
             {displayCount >= filteredExercises.length && filteredExercises.length > 0 && (
                 <Typography

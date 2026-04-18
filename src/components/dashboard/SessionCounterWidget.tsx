@@ -12,7 +12,7 @@ const SessionCounterWidget = ({ sessionsInLast7Days, aspirationalMessage }: Sess
             <Typography variant="body2" gutterBottom >
                 You have done <strong>{sessionsInLast7Days}</strong> sport {sessionsInLast7Days === 1 ? 'session' : 'sessions'} in the last 7 days.
             </Typography>
-            <Typography variant="body2" color="primary" sx={{ fontStyle: 'italic', mt: 2, fontWeight: 500 }}>
+            <Typography variant="body2" color="primary" sx={{ mt: 2, }}>
                 &ldquo;{aspirationalMessage}&rdquo;
             </Typography>
         </Box>

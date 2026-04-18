@@ -37,7 +37,7 @@ export const SessionsProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
 
-        if (!loading) setLoading(true);
+        setLoading(true);
         setError('');
 
         // Subscribe to journal entries (limit to 100 for global state, pages can fetch more if needed)
@@ -62,7 +62,7 @@ export const SessionsProvider = ({ children }: { children: ReactNode }) => {
             unsubscribeEntries();
             unsubscribeTemplates();
         };
-    }, [currentUser, loading]);
+    }, [currentUser]);
 
     return (
         <SessionsContext.Provider value={{ entries, templates, loading, error }}>

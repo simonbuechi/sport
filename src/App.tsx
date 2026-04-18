@@ -17,6 +17,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
 const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
 const Journal = lazy(() => import('./pages/Journal'));
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
 const SessionForm = lazy(() => import('./pages/SessionForm'));
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
                     <Route path="exercises/:id/edit" element={<ExerciseForm />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="journal" element={<Journal />} />
+                    <Route path="journal/templates" element={<TemplatesPage />} />
                     <Route path="journal/new" element={<SessionForm />} />
                     <Route path="journal/:id/edit" element={<SessionForm />} />
                   </Route>

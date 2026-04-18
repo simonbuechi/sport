@@ -22,7 +22,6 @@ import Close from '@mui/icons-material/Close';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
 import Person from '@mui/icons-material/Person';
-import Description from '@mui/icons-material/Description';
 import BarChart from '@mui/icons-material/BarChart';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -34,7 +33,6 @@ import ExerciseListSection from '../components/exercises/ExerciseListSection';
 
 const WeightSection = lazy(() => import('../components/profile/WeightSection'));
 const MeasurementsSection = lazy(() => import('../components/profile/MeasurementsSection'));
-const TemplatesSection = lazy(() => import('../components/profile/TemplatesSection'));
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -79,20 +77,18 @@ const Profile = () => {
     // Sync tab with URL parameter
     useEffect(() => {
         const tab = searchParams.get('tab');
-        if (tab === 'templates') setActiveTab(1);
-        else if (tab === 'stats') setActiveTab(2);
+        if (tab === 'stats') setActiveTab(1);
         else setActiveTab(0);
     }, [searchParams]);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
         // Update URL when tab changes manually
-        if (newValue === 1) setSearchParams({ tab: 'templates' });
-        else if (newValue === 2) setSearchParams({ tab: 'stats' });
+        if (newValue === 1) setSearchParams({ tab: 'stats' });
         else setSearchParams({});
     };
 
-    const { exercises, loading: exercisesLoading } = useExercises();
+    const { exercises } = useExercises();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -178,7 +174,7 @@ const Profile = () => {
         setProfile((prev) => ({ ...prev, measurements: newMeasurements }));
     };
 
-    if (loading || (exercisesLoading && exercises.length === 0)) return (
+    if (loading || (exercises.length === 0)) return (
         <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
     );
 
@@ -207,15 +203,6 @@ const Profile = () => {
                         icon={<Person />} 
                         iconPosition="start" 
                         label="Profile" 
-                        sx={{ 
-                            minHeight: 48,
-                            textTransform: 'none',
-                        }} 
-                    />
-                    <Tab 
-                        icon={<Description />} 
-                        iconPosition="start" 
-                        label="Templates" 
                         sx={{ 
                             minHeight: 48,
                             textTransform: 'none',
@@ -336,14 +323,6 @@ const Profile = () => {
                 </Grid>
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={1}>
-                <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>}>
-                    <TemplatesSection 
-                        userId={currentUser?.uid ?? ''} 
-                        exercises={exercises} 
-                    />
-                </Suspense>
-            </CustomTabPanel>
-            <CustomTabPanel value={activeTab} index={2}>
                 <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>}>
                     <Grid container spacing={3}>
                         <Grid size={{ xs: 12, md: 6 }}>

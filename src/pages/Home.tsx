@@ -10,6 +10,7 @@ import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Link from '@mui/material/Link';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -198,15 +199,17 @@ const Home = () => {
                         startIcon={<AddIcon />}
                         onClick={() => { void navigate('/journal/new'); }}
                     >
-                        New Workout
+                        Workout
                     </Button>
-                    <Button
-                        variant="outlined"
-                        startIcon={<SettingsIcon />}
-                        onClick={() => { setIsManageDialogOpen(true); }}
-                    >
-                        Widgets
-                    </Button>
+                    <Tooltip title="Manage Widgets">
+                        <IconButton
+                            onClick={() => { setIsManageDialogOpen(true); }}
+                            color="primary"
+                            sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 1 }}
+                        >
+                            <SettingsIcon />
+                        </IconButton>
+                    </Tooltip>
                 </Stack>
             </Stack>
 

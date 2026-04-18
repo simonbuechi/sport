@@ -24,6 +24,7 @@ import TextField from '@mui/material/TextField';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DescriptionIcon from '@mui/icons-material/Description';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -143,14 +144,24 @@ const Journal = () => {
                 <Typography variant="h4" component="h1">
                     Journal
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={() => navigate('/journal/new')}
-                >
-                    Add Session
-                </Button>
+                <Stack direction="row" spacing={1}>
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<DescriptionIcon />}
+                        onClick={() => navigate('/journal/templates')}
+                    >
+                        Templates
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate('/journal/new')}
+                    >
+                        Workout
+                    </Button>
+                </Stack>
             </Stack>
             <Divider sx={{ mb: { xs: 2, md: 4 } }} />
 
@@ -216,24 +227,26 @@ const Journal = () => {
 
                 {filteredAndSortedEntries.length === 0 ? (
                     <Alert severity="info" variant="outlined">
-                        {entries.length === 0 
-                            ? "No journal entries yet. Start logging your training sessions!" 
+                        {entries.length === 0
+                            ? "No journal entries yet. Start logging your training sessions!"
                             : "No sessions match your filters."}
                     </Alert>
                 ) : (
                     <List sx={{ p: 0 }}>
                         {displayedEntries.map((entry, index) => (
-                            <Paper 
-                                key={entry.id} 
+                            <Paper
+                                key={entry.id}
                                 ref={index === displayedEntries.length - 1 ? lastElementRef : null}
-                                variant="outlined" 
+                                variant="outlined"
                                 sx={{ mb: 2, p: { xs: 1.5, md: 3 }, }}
                             >
-                                <Stack sx={{ justifyContent: "space-between", mb: 1,
-                                        cursor: 'pointer',
-                                        '&:hover': {
-                                            opacity: 0.85
-                                        } }}>
+                                <Stack sx={{
+                                    justifyContent: "space-between", mb: 1,
+                                    cursor: 'pointer',
+                                    '&:hover': {
+                                        opacity: 0.85
+                                    }
+                                }}>
                                     <Typography variant="h6">
                                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                         {entry.time && ` • ${entry.time}`}
@@ -294,14 +307,16 @@ const Journal = () => {
                                         </Box>
                                     ) : (
                                         entry.exerciseIds.length > 0 && (
-                                                <Stack
-                                                    spacing={1}
-                                                    sx={{ flexWrap: "wrap", mb: 2,
-                                                        mt: 1 }}>
-                                                    {entry.exerciseIds.map((id: string) => (
-                                                        <Chip key={id} label={getExerciseName(id)} size="small" variant="outlined" />
-                                                    ))}
-                                                </Stack>
+                                            <Stack
+                                                spacing={1}
+                                                sx={{
+                                                    flexWrap: "wrap", mb: 2,
+                                                    mt: 1
+                                                }}>
+                                                {entry.exerciseIds.map((id: string) => (
+                                                    <Chip key={id} label={getExerciseName(id)} size="small" variant="outlined" />
+                                                ))}
+                                            </Stack>
                                         )
                                     )}
                                     {entry.comment && (

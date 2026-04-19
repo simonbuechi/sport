@@ -60,7 +60,7 @@ export interface UserProfile {
     birthYear?: number;
     height?: number; // body height in cm
     notes: string;
-    markedExercises: Record<string, MarkedStatus>; // exerciseId -> status
+    markedExercises?: Record<string, MarkedStatus>; // exerciseId -> status
     weights?: WeightEntry[];
     measurements?: MeasurementEntry[];
     dashboardWidgets?: string[];

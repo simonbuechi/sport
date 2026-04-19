@@ -1,10 +1,10 @@
 import { createTheme, type PaletteMode } from '@mui/material/styles';
 
 declare module '@mui/material/Paper' {
-  interface PaperPropsVariantOverrides {
-    section: true;
-    widget: true;
-  }
+    interface PaperPropsVariantOverrides {
+        section: true;
+        widget: true;
+    }
 }
 
 // ==========================================
@@ -94,7 +94,7 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
         }
     },
     shape: {
-        borderRadius: 12,
+        borderRadius: 6,
     },
     components: {
         MuiButton: {

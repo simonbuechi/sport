@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -13,32 +15,32 @@ import DialogActions from '@mui/material/DialogActions';
 import type { DropResult } from '@hello-pangea/dnd';
 import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
 import type { TrainingTemplate, Exercise } from '../../types';
-import TemplateDialog from './TemplateDialog';
+import TemplateDialog, { type TemplateFormData } from './TemplateDialog';
 import TemplateSetDialog, { type SetDialogData } from './TemplateSetDialog';
 import TemplateAccordion from './TemplateAccordion';
 
 interface TemplatesSectionProps {
     userId: string;
     exercises: Exercise[];
+    onBack?: () => void;
 }
 
-const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
+const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) => {
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<TrainingTemplate | null>(null);
-
-    // Form state
-    const [name, setName] = useState('');
-    const [templateNotes, setTemplateNotes] = useState('');
-    const [isFavorite, setIsFavorite] = useState(false);
-    const [isArchived, setIsArchived] = useState(false);
     const [saving, setSaving] = useState(false);
     const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
     const [editingNotePath, setEditingNotePath] = useState<{ tid: string, idx: number } | null>(null);
     const [isSetDialogOpen, setIsSetDialogOpen] = useState(false);
     const [setDialogData, setSetDialogData] = useState<SetDialogData | null>(null);
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
+
+    const templatesRef = useRef(templates);
+    useEffect(() => {
+        templatesRef.current = templates;
+    }, [templates]);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -55,94 +57,108 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
         void fetchTemplates();
     }, [userId]);
 
-    const handleOpenDialog = (template?: TrainingTemplate) => {
-        if (template) {
-            setEditingTemplate(template);
-            setName(template.name);
-            setTemplateNotes(template.notes ?? '');
-            setIsFavorite(!!template.isFavorite);
-            setIsArchived(!!template.isArchived);
-        } else {
-            setEditingTemplate(null);
-            setName('');
-            setTemplateNotes('');
-            setIsFavorite(false);
-            setIsArchived(false);
-        }
-        setIsDialogOpen(true);
-    };
+    const exerciseMap = useMemo(() => {
+        return exercises.reduce<Record<string, Exercise>>((acc, ex) => {
+            acc[ex.id] = ex;
+            return acc;
+        }, {});
+    }, [exercises]);
 
-    const handleCloseDialog = () => {
+    const sortedTemplates = useMemo(() => {
+        return [...templates].sort((a, b) => {
+            // Favorites first
+            if (a.isFavorite && !b.isFavorite) return -1;
+            if (!a.isFavorite && b.isFavorite) return 1;
+            // Archived last
+            if (a.isArchived && !b.isArchived) return 1;
+            if (!a.isArchived && b.isArchived) return -1;
+            // Then by name
+            return a.name.localeCompare(b.name);
+        });
+    }, [templates]);
+
+    const handleOpenDialog = useCallback((template?: TrainingTemplate) => {
+        setEditingTemplate(template ?? null);
+        setIsDialogOpen(true);
+    }, []);
+
+    const handleCloseDialog = useCallback(() => {
         setIsDialogOpen(false);
         setEditingTemplate(null);
-        setName('');
-        setTemplateNotes('');
-        setIsFavorite(false);
-        setIsArchived(false);
-    };
+    }, []);
 
-    const handleInlineAdd = async (templateId: string, exercise: Exercise | null) => {
+    const handleInlineAdd = useCallback(async (templateId: string, exercise: Exercise | null) => {
         if (!exercise) return;
-        const template = templates.find(t => t.id === templateId);
+        const template = templatesRef.current.find(t => t.id === templateId);
         if (!template) return;
 
         const newExercises = [...template.exercises, { exerciseId: exercise.id, note: '' }];
+        const updatedTemplate = { ...template, exercises: newExercises };
+
+        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
+        setActiveSearchId(null);
+
         try {
-            await updateTemplate(userId, templateId, { ...template, exercises: newExercises });
-            setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, exercises: newExercises } : t));
-            setActiveSearchId(null);
+            await updateTemplate(userId, templateId, updatedTemplate);
         } catch (err) {
             console.error('Failed to add exercise:', err);
         }
-    };
+    }, [userId]);
 
-    const handleInlineRemove = async (templateId: string, index: number) => {
-        const template = templates.find(t => t.id === templateId);
+    const handleInlineRemove = useCallback(async (templateId: string, index: number) => {
+        const template = templatesRef.current.find(t => t.id === templateId);
         if (!template) return;
 
         const newExercises = template.exercises.filter((_, i) => i !== index);
+        const updatedTemplate = { ...template, exercises: newExercises };
+
+        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
+
         try {
-            await updateTemplate(userId, templateId, { ...template, exercises: newExercises });
-            setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, exercises: newExercises } : t));
+            await updateTemplate(userId, templateId, updatedTemplate);
         } catch (err) {
             console.error('Failed to remove exercise:', err);
         }
-    };
+    }, [userId]);
 
-    const handleInlineUpdateNote = async (templateId: string, index: number, note: string) => {
-        const template = templates.find(t => t.id === templateId);
+    const handleInlineUpdateNote = useCallback(async (templateId: string, index: number, note: string) => {
+        const template = templatesRef.current.find(t => t.id === templateId);
         if (!template) return;
 
         const newExercises = template.exercises.map((ex, i) => i === index ? { ...ex, note } : ex);
+        const updatedTemplate = { ...template, exercises: newExercises };
+
+        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
+        setEditingNotePath(null);
+
         try {
-            await updateTemplate(userId, templateId, { ...template, exercises: newExercises });
-            setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, exercises: newExercises } : t));
-            setEditingNotePath(null);
+            await updateTemplate(userId, templateId, updatedTemplate);
         } catch (err) {
             console.error('Failed to update note:', err);
         }
-    };
+    }, [userId]);
 
-    const handleOnDragEnd = async (result: DropResult, templateId: string) => {
+    const handleOnDragEnd = useCallback(async (result: DropResult, templateId: string) => {
         if (!result.destination) return;
-        
-        const template = templates.find(t => t.id === templateId);
+        const template = templatesRef.current.find(t => t.id === templateId);
         if (!template) return;
 
         const newExercises = Array.from(template.exercises);
         const [reorderedItem] = newExercises.splice(result.source.index, 1);
         newExercises.splice(result.destination.index, 0, reorderedItem);
+        const updatedTemplate = { ...template, exercises: newExercises };
+
+        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
 
         try {
-            await updateTemplate(userId, templateId, { ...template, exercises: newExercises });
-            setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, exercises: newExercises } : t));
+            await updateTemplate(userId, templateId, updatedTemplate);
         } catch (err) {
             console.error('Failed to reorder exercises:', err);
         }
-    };
+    }, [userId]);
 
-    const handleOpenSetDialog = (tid: string, exerciseIdx: number, setIdx?: number) => {
-        const template = templates.find(t => t.id === tid);
+    const handleOpenSetDialog = useCallback((tid: string, exerciseIdx: number, setIdx?: number) => {
+        const template = templatesRef.current.find(t => t.id === tid);
         const exercise = template?.exercises[exerciseIdx];
         const existingSet = setIdx !== undefined ? exercise?.sets?.[setIdx] : null;
 
@@ -155,12 +171,13 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             count: 1
         });
         setIsSetDialogOpen(true);
-    };
+    }, []);
 
     const handleSaveSet = async () => {
         if (!setDialogData) return;
         const { tid, exerciseIdx, setIdx, weight, reps, count } = setDialogData;
-        const template = templates.find(t => t.id === tid);
+
+        const template = templatesRef.current.find(t => t.id === tid);
         if (!template) return;
 
         const newExercises = [...template.exercises];
@@ -168,10 +185,8 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
         const newSets = [...(exercise.sets ?? [])];
 
         if (setIdx !== undefined) {
-            // Edit existing set
             newSets[setIdx] = { ...newSets[setIdx], weight, reps };
         } else {
-            // Add new set(s)
             for (let i = 0; i < count; i++) {
                 newSets.push({
                     id: Math.random().toString(36).slice(2, 11),
@@ -185,52 +200,48 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
         newExercises[exerciseIdx] = exercise;
         const updatedTemplate = { ...template, exercises: newExercises };
 
+        setTemplates(prev => prev.map(t => t.id === tid ? updatedTemplate : t));
+        setIsSetDialogOpen(false);
+        setSetDialogData(null);
+
         try {
             await updateTemplate(userId, tid, updatedTemplate);
-            setTemplates(prev => prev.map(t => t.id === tid ? updatedTemplate : t));
-            setIsSetDialogOpen(false);
-            setSetDialogData(null);
         } catch (err) {
             console.error('Failed to save set:', err);
         }
     };
 
-    const handleRemoveSetFromTemplate = async (tid: string, exerciseIdx: number, setIdx: number) => {
+    const handleRemoveSetFromTemplate = useCallback(async (tid: string, exerciseIdx: number, setIdx: number) => {
         if (!window.confirm('Remove this set?')) return;
-        const template = templates.find(t => t.id === tid);
+        const template = templatesRef.current.find(t => t.id === tid);
         if (!template) return;
 
         const newExercises = [...template.exercises];
         const exercise = { ...newExercises[exerciseIdx] };
         exercise.sets = exercise.sets?.filter((_, i) => i !== setIdx);
         newExercises[exerciseIdx] = exercise;
-        
+
+        const updatedTemplate = { ...template, exercises: newExercises };
+        setTemplates(prev => prev.map(t => t.id === tid ? updatedTemplate : t));
+        setIsSetDialogOpen(false);
+
         try {
-            await updateTemplate(userId, tid, { ...template, exercises: newExercises });
-            setTemplates(prev => prev.map(t => t.id === tid ? { ...t, exercises: newExercises } : t));
-            setIsSetDialogOpen(false);
+            await updateTemplate(userId, tid, updatedTemplate);
         } catch (err) {
             console.error('Failed to remove set:', err);
         }
-    };
+    }, [userId]);
 
-    const handleSave = async () => {
-        if (!name.trim()) return;
-
+    const handleSave = async (formData: TemplateFormData) => {
         setSaving(true);
         try {
-            const templateData = { 
-                name, 
-                notes: templateNotes, 
-                isFavorite, 
-                isArchived 
-            };
             if (editingTemplate) {
-                await updateTemplate(userId, editingTemplate.id, { ...editingTemplate, ...templateData });
-                setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? { ...t, ...templateData } : t));
+                const updatedTemplate = { ...editingTemplate, ...formData };
+                await updateTemplate(userId, editingTemplate.id, updatedTemplate);
+                setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? updatedTemplate : t));
             } else {
-                const id = await createTemplate(userId, { ...templateData, exercises: [] });
-                setTemplates(prev => [...prev, { id, userId, exercises: [], ...templateData }]);
+                const id = await createTemplate(userId, { ...formData, exercises: [] });
+                setTemplates(prev => [...prev, { id, userId, exercises: [], ...formData }]);
             }
             handleCloseDialog();
         } catch (err) {
@@ -270,7 +281,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             ];
 
             const sample = samples[Math.floor(Math.random() * samples.length)];
-            
+
             const templateExercises = sample.exs.map(name => {
                 const found = exercises.find(e => e.name.toLowerCase().includes(name.toLowerCase()));
                 if (!found) return null;
@@ -308,39 +319,46 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             setSaving(false);
         }
     };
-    const sortedTemplates = [...templates].sort((a, b) => {
-        // Favorites first
-        if (a.isFavorite && !b.isFavorite) return -1;
-        if (!a.isFavorite && b.isFavorite) return 1;
-        // Archived last
-        if (a.isArchived && !b.isArchived) return 1;
-        if (!a.isArchived && b.isArchived) return -1;
-        // Then by name
-        return a.name.localeCompare(b.name);
-    });
 
     return (
-        <Box sx={{ mt: 4 }}>
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
+        <Box sx={{ mt: { xs: 1, md: 2 } }}>
+            <Stack 
+                direction="row" 
+                sx={{ 
+                    justifyContent: "space-between", 
                     alignItems: "center",
-                    gap: 1,
-                    mb: 3
-                }}>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => { handleOpenDialog(); }}>
-                    Add
-                </Button>
-                <Button 
-                    variant="outlined" 
-                    startIcon={<InfoIcon />} 
-                    onClick={() => { setIsInfoDialogOpen(true); }}
-                    sx={{ minWidth: 'auto', px: 1.5 }}
-                >
-                    Info
-                </Button>
-            </Box>
+                    mb: { xs: 2, md: 4 }
+                }}
+            >
+                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+                    {onBack && (
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            onClick={onBack}
+                            sx={{ color: 'text.secondary' }}
+                        >
+                            Back
+                        </Button>
+                    )}
+                    <Typography variant="h4" component="h1">
+                        Templates
+                    </Typography>
+                </Stack>
+                
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => { handleOpenDialog(); }}>
+                        Template
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<InfoIcon />}
+                        onClick={() => { setIsInfoDialogOpen(true); }}
+                        sx={{ minWidth: 'auto', px: 1.5 }}
+                    >
+                        Info
+                    </Button>
+                </Stack>
+            </Stack>
             {loading ? (
                 <Typography sx={{
                     color: "text.secondary"
@@ -356,6 +374,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
                             <TemplateAccordion
                                 template={template}
                                 exercises={exercises}
+                                exerciseMap={exerciseMap}
                                 activeSearchId={activeSearchId}
                                 setActiveSearchId={setActiveSearchId}
                                 editingNotePath={editingNotePath}
@@ -373,20 +392,13 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
             )}
 
             <TemplateDialog
+                key={isDialogOpen ? (editingTemplate?.id ?? 'new') : 'closed'}
                 open={isDialogOpen}
                 onClose={handleCloseDialog}
                 onSave={handleSave}
                 onDelete={handleDelete}
                 saving={saving}
                 editingTemplate={editingTemplate}
-                name={name}
-                setName={setName}
-                notes={templateNotes}
-                setNotes={setTemplateNotes}
-                isFavorite={isFavorite}
-                setIsFavorite={setIsFavorite}
-                isArchived={isArchived}
-                setIsArchived={setIsArchived}
                 onCreateSample={handleCreateSample}
             />
 
@@ -404,7 +416,7 @@ const TemplatesSection = ({ userId, exercises }: TemplatesSectionProps) => {
                 onClose={() => { setIsInfoDialogOpen(false); }}
                 slotProps={{
                     paper: {
-                        sx: { }
+                        sx: {}
                     }
                 }}
             >

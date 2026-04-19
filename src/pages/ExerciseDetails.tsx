@@ -28,12 +28,13 @@ const updateExerciseStatus = (
     exerciseId: string,
     statusUpdate: Partial<MarkedStatus>
 ): Record<string, MarkedStatus> => {
-    const currentStatus = profile.markedExercises[exerciseId] ?? {};
+    const markedExercises = profile.markedExercises ?? {};
+    const currentStatus = markedExercises[exerciseId] ?? {};
     const updatedStatus = { ...currentStatus, ...statusUpdate };
 
     const isEmpty = !updatedStatus.favorite && !updatedStatus.notes;
 
-    const updatedMarked = { ...profile.markedExercises };
+    const updatedMarked = { ...markedExercises };
     if (isEmpty) {
         const { [exerciseId]: _, ...rest } = updatedMarked;
         return rest;
@@ -91,7 +92,7 @@ const ExerciseDetails = () => {
 
     useEffect(() => {
         if (profile && id) {
-            setNotes(profile.markedExercises[id].notes ?? '');
+            setNotes(profile.markedExercises?.[id]?.notes ?? '');
         }
     }, [id, profile]);
 
@@ -99,7 +100,7 @@ const ExerciseDetails = () => {
         if (!currentUser || !id || !profile) return;
 
         try {
-            const currentValue = profile.markedExercises[id].favorite ?? false;
+            const currentValue = profile.markedExercises?.[id]?.favorite ?? false;
             const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
 
             setProfile({ ...profile, markedExercises: updatedMarked });
@@ -112,7 +113,7 @@ const ExerciseDetails = () => {
 
     const handleSaveNotes = async () => {
         if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises[id].notes ?? '';
+        const currentNotes = profile.markedExercises?.[id]?.notes ?? '';
         if (notes === currentNotes) return;
 
         try {
@@ -147,7 +148,7 @@ const ExerciseDetails = () => {
         }}>{error || 'Not found'}</Typography></Container>
     );
 
-    const currentStatus = profile?.markedExercises[exercise.id] ?? {};
+    const currentStatus = profile?.markedExercises?.[exercise.id] ?? {};
 
     return (
         <Container maxWidth="lg">
@@ -203,7 +204,7 @@ const ExerciseDetails = () => {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Stack spacing={3} sx={{ position: "sticky", top: 24 }}>
+                        <Stack direction="column" spacing={3} sx={{ position: "sticky", top: 24 }}>
 
                                 <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
                                     <Box
@@ -247,7 +248,7 @@ const ExerciseDetails = () => {
                                     </Typography>
                                 </Paper>
 
-                            <ExerciseHistoryCard sessions={sessions} />
+                            <ExerciseHistoryCard sessions={sessions} exerciseId={exercise.id} />
                         </Stack>
                     </Grid>
                 </Grid>

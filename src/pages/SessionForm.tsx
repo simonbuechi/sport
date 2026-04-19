@@ -23,7 +23,11 @@ import SessionExerciseItem from '../components/journal/SessionExerciseItem';
 
 const SESSION_TYPES: SessionType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
-const SessionForm = () => {
+interface SessionFormProps {
+    readOnly?: boolean;
+}
+
+const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -190,7 +194,7 @@ const SessionForm = () => {
             <Box sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" component="h1">
-                        {isEditing ? 'Edit session' : 'New session'}
+                        {readOnly ? 'Session details' : (isEditing ? 'Edit session' : 'New session')}
                     </Typography>
                 </Box>
 
@@ -208,7 +212,10 @@ const SessionForm = () => {
                                     value={date}
                                     onChange={(e) => { setDate(e.target.value); }}
                                     required
-                                    slotProps={{ inputLabel: { shrink: true } }}
+                                    slotProps={{ 
+                                        inputLabel: { shrink: true },
+                                        input: { readOnly: readOnly }
+                                    }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
@@ -219,7 +226,10 @@ const SessionForm = () => {
                                     size="small"
                                     value={time}
                                     onChange={(e) => { setTime(e.target.value); }}
-                                    slotProps={{ inputLabel: { shrink: true } }}
+                                    slotProps={{ 
+                                        inputLabel: { shrink: true },
+                                        input: { readOnly: readOnly }
+                                    }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
@@ -230,6 +240,7 @@ const SessionForm = () => {
                                     size="small"
                                     value={sessionType}
                                     onChange={(e) => { setSessionType(e.target.value as SessionType); }}
+                                    slotProps={{ select: { disabled: readOnly } }}
                                 >
                                     {SESSION_TYPES.map((type) => (
                                         <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
@@ -247,7 +258,10 @@ const SessionForm = () => {
                                     size="small"
                                     value={length}
                                     onChange={(e) => { setLength(e.target.value === '' ? '' : Number(e.target.value)); }}
-                                    slotProps={{ htmlInput: { min: 0 } }}
+                                    slotProps={{ 
+                                        htmlInput: { min: 0 },
+                                        input: { readOnly: readOnly }
+                                    }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
@@ -258,16 +272,18 @@ const SessionForm = () => {
                                     size="small"
                                     value={maxPulse}
                                     onChange={(e) => { setMaxPulse(e.target.value === '' ? '' : Number(e.target.value)); }}
-                                    slotProps={{ htmlInput: { min: 0 } }}
+                                    slotProps={{ 
+                                        htmlInput: { min: 0 },
+                                        input: { readOnly: readOnly }
+                                    }}
                                 />
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
                                 <Divider sx={{ my: 2 }} />
-                                <Typography variant="h6" gutterBottom>Exercises & Sets</Typography>
-                                
+                                <Typography variant="h6" gutterBottom>{readOnly ? 'Exercises' : 'Exercises & Sets'}</Typography>
                                 <Grid container spacing={2} sx={{ mb: 3 }}>
-                                    {!isEditing && (
+                                    {!isEditing && !readOnly && (
                                         <Grid size={{ xs: 12, sm: 6 }}>
                                             <TextField
                                                 select
@@ -277,6 +293,7 @@ const SessionForm = () => {
                                                 value={selectedTemplateId}
                                                 onChange={(e) => { handleTemplateChange(e.target.value); }}
                                                 helperText="Prepopulates session"
+                                                sx={{ mb: 3 }}
                                             >
                                                 <MenuItem value=""><em>None</em></MenuItem>
                                                 {templates.sort((a, b) => {
@@ -291,7 +308,27 @@ const SessionForm = () => {
                                             </TextField>
                                         </Grid>
                                     )}
-                                    <Grid size={{ xs: 12, sm: isEditing ? 12 : 6 }}>
+                                </Grid>
+
+                                {sessionExercises.map((se) => {
+                                    const exercise = exercises.find(ex => ex.id === se.exerciseId);
+                                    return (
+                                        <SessionExerciseItem
+                                            key={se.exerciseId}
+                                            sessionExercise={se}
+                                            exercise={exercise}
+                                            onRemoveExercise={handleRemoveExercise}
+                                            onAddSet={handleAddSet}
+                                            onUpdateSet={handleUpdateSet}
+                                            onRemoveSet={handleRemoveSet}
+                                            onUpdateExerciseNote={handleUpdateExerciseNote}
+                                            readOnly={readOnly}
+                                        />
+                                    );
+                                })}
+
+                                {!readOnly && (
+                                    <Box sx={{ mt: 2 }}>
                                         <Autocomplete
                                             key={sessionExercises.length}
                                             size="small"
@@ -307,25 +344,10 @@ const SessionForm = () => {
                                                 />
                                             )}
                                             value={null}
+                                            sx={{ maxWidth: isEditing ? '100%' : 400 }}
                                         />
-                                    </Grid>
-                                </Grid>
-
-                                {sessionExercises.map((se) => {
-                                    const exercise = exercises.find(ex => ex.id === se.exerciseId);
-                                    return (
-                                        <SessionExerciseItem
-                                            key={se.exerciseId}
-                                            sessionExercise={se}
-                                            exercise={exercise}
-                                            onRemoveExercise={handleRemoveExercise}
-                                            onAddSet={handleAddSet}
-                                            onUpdateSet={handleUpdateSet}
-                                            onRemoveSet={handleRemoveSet}
-                                            onUpdateExerciseNote={handleUpdateExerciseNote}
-                                        />
-                                    );
-                                })}
+                                    </Box>
+                                )}
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
@@ -337,24 +359,36 @@ const SessionForm = () => {
                                     size="small"
                                     value={comment}
                                     onChange={(e) => { setComment(e.target.value); }}
-                                    placeholder="What went well? What needs work?"
+                                    placeholder={readOnly ? "" : "What went well? What needs work?"}
+                                    slotProps={{ input: { readOnly: readOnly } }}
                                 />
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
-                                <Stack sx={{ mt: 3 }}>
+                                <Stack sx={{ mt: 3, justifyContent: "flex-end" }} direction="row" spacing={2}>
                                     <Button variant="outlined" onClick={() => navigate('/journal')}>
-                                        Cancel
+                                        {readOnly ? 'Back' : 'Cancel'}
                                     </Button>
-                                    <Button 
-                                        type="submit" 
-                                        variant="contained" 
-                                        color="primary" 
-                                        disabled={submitting}
-                                        sx={{ minWidth: 150 }}
-                                    >
-                                        {submitting ? 'Saving...' : (isEditing ? 'Update Session' : 'Add Session')}
-                                    </Button>
+                                    {readOnly ? (
+                                        <Button 
+                                            variant="contained" 
+                                            color="primary" 
+                                            onClick={() => { void navigate(`/journal/${id ?? ''}/edit`); }}
+                                            sx={{ minWidth: 150 }}
+                                        >
+                                            Edit Session
+                                        </Button>
+                                    ) : (
+                                        <Button 
+                                            type="submit" 
+                                            variant="contained" 
+                                            color="primary" 
+                                            disabled={submitting}
+                                            sx={{ minWidth: 150 }}
+                                        >
+                                            {submitting ? 'Saving...' : (isEditing ? 'Update Session' : 'Add Session')}
+                                        </Button>
+                                    )}
                                 </Stack>
                             </Grid>
                         </Grid>

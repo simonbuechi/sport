@@ -103,25 +103,27 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                 )}
             </Box>
             <Stack spacing={1}>
-                    <Button
-                        component={RouterLink}
-                        to={`/exercises/${exercise.id}/edit`}
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        startIcon={<EditNote />}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        startIcon={<Delete />}
-                        onClick={onDelete}
-                    >
-                        Delete
-                    </Button>
+                <Button
+                    component={RouterLink}
+                    to={`/exercises/${exercise.id}/edit`}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={<EditNote />}
+                    disabled
+                >
+                    Edit
+                </Button>
+                <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    startIcon={<Delete />}
+                    onClick={onDelete}
+                    disabled
+                >
+                    Delete
+                </Button>
             </Stack>
         </Stack>
     );

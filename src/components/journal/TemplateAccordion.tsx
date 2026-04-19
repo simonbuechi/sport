@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -11,6 +12,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import Avatar from '@mui/material/Avatar';
 
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -28,6 +30,7 @@ import type { TrainingTemplate, Exercise } from '../../types';
 interface TemplateAccordionProps {
     template: TrainingTemplate;
     exercises: Exercise[];
+    exerciseMap: Record<string, Exercise | undefined>;
     activeSearchId: string | null;
     setActiveSearchId: (id: string | null) => void;
     editingNotePath: { tid: string, idx: number } | null;
@@ -43,6 +46,7 @@ interface TemplateAccordionProps {
 const TemplateAccordion = ({
     template,
     exercises,
+    exerciseMap,
     activeSearchId,
     setActiveSearchId,
     editingNotePath,
@@ -55,8 +59,12 @@ const TemplateAccordion = ({
     onOpenSetDialog
 }: TemplateAccordionProps) => {
 
+    const getExercise = (id: string) => {
+        return exerciseMap[id];
+    };
+
     const getExerciseName = (id: string) => {
-        return exercises.find(ex => ex.id === id)?.name ?? 'Unknown Exercise';
+        return getExercise(id)?.name ?? 'Unknown Exercise';
     };
 
     return (
@@ -87,7 +95,7 @@ const TemplateAccordion = ({
                 <Box>
                     <Stack spacing={1}>
                         {template.isFavorite && <StarIcon color="warning" fontSize="small" />}
-                        <Typography variant="h6" color="primary">
+                        <Typography variant="h6">
                             {template.name}
                             {template.isArchived && " (Archived)"}
                         </Typography>
@@ -157,7 +165,24 @@ const TemplateAccordion = ({
                                                         <Box sx={{
                                                             flexGrow: 1
                                                         }}>
-                                                            <Typography variant="body1" >{getExerciseName(ex.exerciseId)}</Typography>
+                                                            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                                                                <Avatar
+                                                                    src={getExercise(ex.exerciseId)?.icon_url ?
+                                                                        `${import.meta.env.BASE_URL}exercises/${getExercise(ex.exerciseId)?.icon_url ?? ''}`
+                                                                        : undefined}
+                                                                    alt={getExerciseName(ex.exerciseId)}
+                                                                    sx={{
+                                                                        width: 32,
+                                                                        height: 32,
+                                                                        fontSize: '0.875rem'
+                                                                    }}
+                                                                >
+                                                                    {getExerciseName(ex.exerciseId).charAt(0)}
+                                                                </Avatar>
+                                                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                                                    {getExerciseName(ex.exerciseId)}
+                                                                </Typography>
+                                                            </Stack>
 
                                                             {/* Sets List */}
                                                             {ex.sets && ex.sets.length > 0 && (
@@ -219,9 +244,7 @@ const TemplateAccordion = ({
                                                             <Tooltip title="Remove Exercise">
                                                                 <IconButton
                                                                     size="small"
-                                                                    color="error"
                                                                     onClick={() => { onInlineRemove(template.id, idx); }}
-                                                                    sx={{ opacity: 0.6, '&:hover': { opacity: 1 } }}
                                                                 >
                                                                     <DeleteIcon fontSize="inherit" />
                                                                 </IconButton>
@@ -297,4 +320,4 @@ const TemplateAccordion = ({
     );
 };
 
-export default TemplateAccordion;
+export default memo(TemplateAccordion);

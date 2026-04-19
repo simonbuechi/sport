@@ -349,7 +349,7 @@ const Exercises = () => {
                                                 variant="outlined"
                                                 sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
-                                            {profile?.markedExercises[exercise.id] && (
+                                            {profile?.markedExercises?.[exercise.id] && (
                                                 <Box sx={{ ml: 1 }}>
                                                     <MarkerIcons status={profile.markedExercises[exercise.id]} />
                                                 </Box>

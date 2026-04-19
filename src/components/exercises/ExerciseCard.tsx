@@ -17,7 +17,7 @@ interface ExerciseCardProps {
 
 const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
     const navigate = useNavigate();
-    const markerStatus = userProfile?.markedExercises[exercise.id];
+    const markerStatus = userProfile?.markedExercises?.[exercise.id];
 
     return (
         <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

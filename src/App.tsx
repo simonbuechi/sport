@@ -19,6 +19,7 @@ const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
 const Journal = lazy(() => import('./pages/Journal'));
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
 const SessionForm = lazy(() => import('./pages/SessionForm'));
+const ExerciseHistory = lazy(() => import('./pages/ExerciseHistory'));
 
 function App() {
   return (
@@ -36,12 +37,14 @@ function App() {
                     <Route index element={<Home />} />
                     <Route path="exercises" element={<Exercises />} />
                     <Route path="exercises/:id" element={<ExerciseDetails />} />
+                    <Route path="exercises/:id/history" element={<ExerciseHistory />} />
                     <Route path="exercises/new" element={<ExerciseForm />} />
                     <Route path="exercises/:id/edit" element={<ExerciseForm />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="journal" element={<Journal />} />
                     <Route path="journal/templates" element={<TemplatesPage />} />
                     <Route path="journal/new" element={<SessionForm />} />
+                    <Route path="journal/:id" element={<SessionForm readOnly={true} />} />
                     <Route path="journal/:id/edit" element={<SessionForm />} />
                   </Route>
                 </Route>

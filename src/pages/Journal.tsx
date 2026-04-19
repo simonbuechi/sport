@@ -25,23 +25,23 @@ import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
-import { useSessions } from '../context/SessionsContext';
-import { deleteJournalEntry } from '../services/db';
-import type { ActivityLog as JournalEntry, Exercise, SessionType } from '../types';
-import JournalEntryItem from '../components/journal/JournalEntryItem';
+import { useWorkouts } from '../context/WorkoutsContext';
+import { deleteWorkout } from '../services/db';
+import type { Workout, Exercise, WorkoutType } from '../types';
+import WorkoutItem from '../components/journal/WorkoutItem';
 
 
 const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, loading: sessionsLoading } = useSessions();
+    const { entries, loading: sessionsLoading } = useWorkouts();
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
 
     // Filter and Sort State
-    const [typeFilter, setTypeFilter] = useState<SessionType | 'all'>('all');
+    const [typeFilter, setTypeFilter] = useState<WorkoutType | 'all'>('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
@@ -50,7 +50,7 @@ const Journal = () => {
     const observer = useRef<IntersectionObserver | null>(null);
     const [displayCount, setDisplayCount] = useState(20);
 
-    const handleEditClick = useCallback((entry: JournalEntry) => {
+    const handleEditClick = useCallback((entry: Workout) => {
         void navigate(`/journal/${entry.id}/edit`);
     }, [navigate]);
 
@@ -63,8 +63,8 @@ const Journal = () => {
         if (!currentUser || !entryToDelete) return;
 
         try {
-            void deleteJournalEntry(currentUser.uid, entryToDelete);
-            // entries state is managed by SessionsContext and will update via onSnapshot
+            void deleteWorkout(currentUser.uid, entryToDelete);
+            // entries state is managed by WorkoutsContext and will update via onSnapshot
             setDeleteDialogOpen(false);
             setEntryToDelete(null);
         } catch (err) {
@@ -156,13 +156,13 @@ const Journal = () => {
             <Paper variant="section" elevation={0} sx={{ bgcolor: 'background.default' }}>
                 <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
                     <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
-                        <InputLabel id="type-filter-label">Session Type</InputLabel>
+                        <InputLabel id="type-filter-label">Workout Type</InputLabel>
                         <Select
                             labelId="type-filter-label"
                             id="type-filter"
                             value={typeFilter}
-                            label="Session Type"
-                            onChange={(e) => { setTypeFilter(e.target.value as SessionType | 'all'); }}
+                            label="Workout Type"
+                            onChange={(e) => { setTypeFilter(e.target.value as WorkoutType | 'all'); }}
                             sx={{ textTransform: 'capitalize' }}
                         >
                             <MenuItem value="all">All Types</MenuItem>
@@ -209,19 +209,19 @@ const Journal = () => {
                 </Stack>
             </Paper>
 
-            {/* Journal Entries List */}
+            {/* Workouts List */}
             <Box>
 
                 {filteredAndSortedEntries.length === 0 ? (
                     <Alert severity="info" variant="outlined">
                         {entries.length === 0
-                            ? "No journal entries yet. Start logging your training sessions!"
-                            : "No sessions match your filters."}
+                            ? "No workouts yet. Start logging your training workouts!"
+                            : "No workouts match your filters."}
                     </Alert>
                 ) : (
                     <List sx={{ p: 0 }}>
                         {displayedEntries.map((entry, index) => (
-                            <JournalEntryItem
+                            <WorkoutItem
                                 key={entry.id}
                                 ref={index === displayedEntries.length - 1 ? lastElementRef : null}
                                 entry={entry}
@@ -251,10 +251,10 @@ const Journal = () => {
             </Box>
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
-                <DialogTitle>Delete Journal Entry</DialogTitle>
+                <DialogTitle>Delete Workout</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete this training session? This action cannot be undone.
+                        Are you sure you want to delete this training workout? This action cannot be undone.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

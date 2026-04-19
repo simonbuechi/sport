@@ -16,8 +16,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import LinkIcon from '@mui/icons-material/Link';
 import EditNote from '@mui/icons-material/EditNote';
-import { getUserProfile, updateUserProfile, getJournalEntries, deleteExercise } from '../services/db';
-import type { UserProfile, MarkedStatus, ActivityLog as JournalEntry } from '../types';
+import { getUserProfile, updateUserProfile, getWorkouts, deleteExercise } from '../services/db';
+import type { UserProfile, MarkedStatus, Workout } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
@@ -51,7 +51,7 @@ const ExerciseDetails = () => {
 
     const { exercises, loading: exercisesLoading } = useExercises();
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [sessions, setSessions] = useState<JournalEntry[]>([]);
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [notes, setNotes] = useState('');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
@@ -73,11 +73,11 @@ const ExerciseDetails = () => {
                 setProfile(userProf);
 
                 if (id) {
-                    const allEntries = await getJournalEntries(currentUser.uid);
-                    const exerciseSessions = allEntries.filter((entry: JournalEntry) =>
+                    const allEntries = await getWorkouts(currentUser.uid);
+                    const exerciseWorkouts = allEntries.filter((entry: Workout) =>
                         entry.exerciseIds.includes(id)
                     );
-                    setSessions(exerciseSessions);
+                    setWorkouts(exerciseWorkouts);
                 }
             } catch (err) {
                 console.error(err);
@@ -248,7 +248,7 @@ const ExerciseDetails = () => {
                                     </Typography>
                                 </Paper>
 
-                            <ExerciseHistoryCard sessions={sessions} exerciseId={exercise.id} />
+                            <ExerciseHistoryCard workouts={workouts} exerciseId={exercise.id} />
                         </Stack>
                     </Grid>
                 </Grid>

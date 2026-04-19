@@ -30,17 +30,17 @@ import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { getUserProfile, updateUserProfile } from '../services/db';
 import { useAuth } from '../context/AuthContext';
-import { useSessions } from '../context/SessionsContext';
+import { useWorkouts } from '../context/WorkoutsContext';
 import { useNavigate } from 'react-router-dom';
-import type { ActivityLog, UserProfile, TrainingTemplate } from '../types';
+import type { Workout, UserProfile, TrainingTemplate } from '../types';
 import CalendarWidget from '../components/dashboard/CalendarWidget';
-import SessionCounterWidget from '../components/dashboard/SessionCounterWidget';
+import WorkoutCounterWidget from '../components/dashboard/WorkoutCounterWidget';
 
 
 const ALL_DASHBOARD_ELEMENTS = [
     'Project Updates',
     'Weight Tracking',
-    'Session Counter',
+    'Workout Counter',
     'Calendar',
     'Profile',
     'Templates',
@@ -50,14 +50,14 @@ const ALL_DASHBOARD_ELEMENTS = [
     'Feedback'
 ];
 
-const DEFAULT_WIDGETS = ['Project Updates', 'Calendar', 'Session Counter', 'Templates'];
+const DEFAULT_WIDGETS = ['Project Updates', 'Calendar', 'Workout Counter', 'Templates'];
 
 const ASPIRATIONAL_MESSAGES = [
     "Consistency is key! Keep it up.",
     "The only bad workout is the one that didn't happen.",
     "Small steps lead to big results. Stay focused!",
     "You're doing amazing! Your future self will thank you.",
-    "Every session brings you closer to your goals.",
+    "Every workout brings you closer to your goals.",
     "Discipline is doing what needs to be done, even if you don't feel like it.",
     "Success is the sum of small efforts repeated day in and day out."
 ];
@@ -65,7 +65,7 @@ const ASPIRATIONAL_MESSAGES = [
 const Home = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
-    const { entries: allEntries, templates, loading: sessionsLoading } = useSessions();
+    const { entries: allEntries, templates, loading: sessionsLoading } = useWorkouts();
     const [visibleWidgets, setVisibleWidgets] = useState<string[]>([]);
     const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
     const [widgetToClose, setWidgetToClose] = useState<string | null>(null);
@@ -121,7 +121,7 @@ const Home = () => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        return allEntries.filter((entry: ActivityLog) => {
+        return allEntries.filter((entry: Workout) => {
             const entryDate = new Date(entry.date);
             return entryDate >= sevenDaysAgo;
         }).length;
@@ -233,8 +233,8 @@ const Home = () => {
                                 {widget}
                             </Typography>
                             <Box sx={{ flexGrow: 1 }}>
-                                {widget === 'Session Counter' ? (
-                                    <SessionCounterWidget
+                                {widget === 'Workout Counter' ? (
+                                    <WorkoutCounterWidget
                                         sessionsInLast7Days={sessionsInLast7Days}
                                         aspirationalMessage={aspirationalMessage}
                                     />

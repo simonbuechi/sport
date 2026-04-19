@@ -3,7 +3,7 @@ import {
     onSnapshot, limit, type Unsubscribe 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import type { Exercise, UserProfile, ActivityLog, TrainingTemplate } from '../types';
+import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types';
 
 
 // Exercises
@@ -74,17 +74,17 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
     await updateDoc(doc(db, 'users', uid), data);
 };
 
-// Activity Logs
-export const getJournalEntries = async (userId: string): Promise<ActivityLog[]> => {
+// Workouts
+export const getWorkouts = async (userId: string): Promise<Workout[]> => {
     const entriesRef = collection(db, 'users', userId, 'activities');
     const q = query(entriesRef, orderBy('date', 'desc'));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActivityLog));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Workout));
 };
 
-export const subscribeToJournalEntries = (
+export const subscribeToWorkouts = (
     userId: string, 
-    callback: (entries: ActivityLog[]) => void, 
+    callback: (entries: Workout[]) => void, 
     limitCount = 50
 ): Unsubscribe => {
     const entriesRef = collection(db, 'users', userId, 'activities');
@@ -94,24 +94,24 @@ export const subscribeToJournalEntries = (
         limit(limitCount)
     );
     return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
-        const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActivityLog));
+        const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Workout));
         callback(entries);
     });
 };
 
 
-export const createJournalEntry = async (userId: string, entry: Omit<ActivityLog, 'id' | 'userId'>): Promise<string> => {
+export const createWorkout = async (userId: string, entry: Omit<Workout, 'id' | 'userId'>): Promise<string> => {
     const entriesRef = collection(db, 'users', userId, 'activities');
     const docRef = await addDoc(entriesRef, { ...entry, userId });
     return docRef.id;
 };
 
-export const updateJournalEntry = async (userId: string, entryId: string, data: Partial<ActivityLog>): Promise<void> => {
+export const updateWorkout = async (userId: string, entryId: string, data: Partial<Workout>): Promise<void> => {
     const entryRef = doc(db, 'users', userId, 'activities', entryId);
     await updateDoc(entryRef, data);
 };
 
-export const deleteJournalEntry = async (userId: string, entryId: string): Promise<void> => {
+export const deleteWorkout = async (userId: string, entryId: string): Promise<void> => {
     const entryRef = doc(db, 'users', userId, 'activities', entryId);
     await deleteDoc(entryRef);
 };

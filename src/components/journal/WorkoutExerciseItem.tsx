@@ -19,10 +19,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
 import CommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 
-import type { SessionExercise, Exercise, ExerciseSet } from '../../types';
+import type { WorkoutExercise, Exercise, ExerciseSet } from '../../types';
 
-interface SessionExerciseItemProps {
-    sessionExercise: SessionExercise;
+interface WorkoutExerciseItemProps {
+    sessionExercise: WorkoutExercise;
     exercise: Exercise | undefined;
     onRemoveExercise: (exerciseId: string) => void;
     onAddSet: (exerciseId: string) => void;
@@ -32,7 +32,7 @@ interface SessionExerciseItemProps {
     readOnly?: boolean;
 }
 
-const SessionExerciseItem = ({
+const WorkoutExerciseItem = ({
     sessionExercise,
     exercise,
     onRemoveExercise,
@@ -41,7 +41,7 @@ const SessionExerciseItem = ({
     onRemoveSet,
     onUpdateExerciseNote,
     readOnly = false
-}: SessionExerciseItemProps) => {
+}: WorkoutExerciseItemProps) => {
     const [noteEditingSetId, setNoteEditingSetId] = useState<string | null>(null);
     const [isEditingExerciseNote, setIsEditingExerciseNote] = useState(false);
 
@@ -207,4 +207,4 @@ const SessionExerciseItem = ({
     );
 };
 
-export default SessionExerciseItem;
+export default WorkoutExerciseItem;

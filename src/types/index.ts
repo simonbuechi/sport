@@ -74,7 +74,7 @@ export interface ExerciseSet {
     notes?: string;
 }
 
-export interface SessionExercise {
+export interface WorkoutExercise {
     exerciseId: string;
     sets: ExerciseSet[];
     note?: string;
@@ -96,18 +96,18 @@ export interface TrainingTemplate {
     exercises: TemplateExercise[];
 }
 
-export type SessionType = ExerciseType;
+export type WorkoutType = ExerciseType;
 
-export interface ActivityLog {
+export interface Workout {
     id: string;
     userId: string;
     date: string; // ISO string
     time?: string;
     length?: number; // in minutes
-    sessionType?: SessionType;
+    sessionType?: WorkoutType;
     intensity?: number; // 1-5
     maxPulse?: number; // Optional max pulse
     comment: string;
     exerciseIds: string[];
-    exercises?: SessionExercise[]; // New structured data
+    exercises?: WorkoutExercise[]; // New structured data
 }

@@ -1,29 +1,29 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { subscribeToJournalEntries, subscribeToTemplates } from '../services/db';
+import { subscribeToWorkouts, subscribeToTemplates } from '../services/db';
 import { useAuth } from './AuthContext';
-import type { ActivityLog, TrainingTemplate } from '../types';
+import type { Workout, TrainingTemplate } from '../types';
 
-interface SessionsContextType {
-    entries: ActivityLog[];
+interface WorkoutsContextType {
+    entries: Workout[];
     templates: TrainingTemplate[];
     loading: boolean;
     error: string;
 }
 
-const SessionsContext = createContext<SessionsContextType | undefined>(undefined);
+const WorkoutsContext = createContext<WorkoutsContextType | undefined>(undefined);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useSessions = () => {
-    const context = useContext(SessionsContext);
+export const useWorkouts = () => {
+    const context = useContext(WorkoutsContext);
     if (context === undefined) {
-        throw new Error('useSessions must be used within a SessionsProvider');
+        throw new Error('useWorkouts must be used within a WorkoutsProvider');
     }
     return context;
 };
 
-export const SessionsProvider = ({ children }: { children: ReactNode }) => {
+export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const { currentUser } = useAuth();
-    const [entries, setEntries] = useState<ActivityLog[]>([]);
+    const [entries, setEntries] = useState<Workout[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -40,8 +40,8 @@ export const SessionsProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         setError('');
 
-        // Subscribe to journal entries (limit to 100 for global state, pages can fetch more if needed)
-        const unsubscribeEntries = subscribeToJournalEntries(
+        // Subscribe to workouts (limit to 100 for global state, pages can fetch more if needed)
+        const unsubscribeEntries = subscribeToWorkouts(
             currentUser.uid, 
             (data) => {
                 setEntries(data);
@@ -65,8 +65,8 @@ export const SessionsProvider = ({ children }: { children: ReactNode }) => {
     }, [currentUser]);
 
     return (
-        <SessionsContext.Provider value={{ entries, templates, loading, error }}>
+        <WorkoutsContext.Provider value={{ entries, templates, loading, error }}>
             {children}
-        </SessionsContext.Provider>
+        </WorkoutsContext.Provider>
     );
 };

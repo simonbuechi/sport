@@ -12,16 +12,16 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useNavigate } from 'react-router-dom';
-import type { ActivityLog as JournalEntry, Exercise } from '../../types';
+import type { Workout, Exercise } from '../../types';
 
-interface JournalEntryItemProps {
-    entry: JournalEntry;
+interface WorkoutItemProps {
+    entry: Workout;
     exerciseMap: Record<string, Exercise | undefined>;
-    onEdit: (entry: JournalEntry) => void;
+    onEdit: (entry: Workout) => void;
     onDelete: (id: string) => void;
 }
 
-const JournalEntryItem = memo(forwardRef<HTMLDivElement, JournalEntryItemProps>(({ 
+const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({ 
     entry, 
     exerciseMap, 
     onEdit, 
@@ -154,6 +154,6 @@ const JournalEntryItem = memo(forwardRef<HTMLDivElement, JournalEntryItemProps>(
     );
 }));
 
-JournalEntryItem.displayName = 'JournalEntryItem';
+WorkoutItem.displayName = 'WorkoutItem';
 
-export default JournalEntryItem;
+export default WorkoutItem;

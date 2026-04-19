@@ -12,8 +12,8 @@ import IconButton from '@mui/material/IconButton';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import EventNote from '@mui/icons-material/EventNote';
 import ChevronRight from '@mui/icons-material/ChevronRight';
-import { getJournalEntries } from '../services/db';
-import type { ActivityLog as JournalEntry } from '../types';
+import { getWorkouts } from '../services/db';
+import type { Workout } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 
@@ -23,7 +23,7 @@ const ExerciseHistory = () => {
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
     
-    const [sessions, setSessions] = useState<JournalEntry[]>([]);
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -33,15 +33,15 @@ const ExerciseHistory = () => {
     }, [id, exercises, exercisesLoading]);
 
     useEffect(() => {
-        const fetchSessions = async () => {
+        const fetchWorkouts = async () => {
             if (!currentUser || !id) return;
             try {
                 setLoading(true);
-                const allEntries = await getJournalEntries(currentUser.uid);
-                const exerciseSessions = allEntries.filter((entry: JournalEntry) =>
+                const allEntries = await getWorkouts(currentUser.uid);
+                const exerciseWorkouts = allEntries.filter((entry: Workout) =>
                     entry.exerciseIds.includes(id)
                 );
-                setSessions(exerciseSessions);
+                setWorkouts(exerciseWorkouts);
             } catch (err) {
                 console.error(err);
                 setError('Failed to load history');
@@ -50,7 +50,7 @@ const ExerciseHistory = () => {
             }
         };
 
-        void fetchSessions();
+        void fetchWorkouts();
     }, [id, currentUser]);
 
     if (loading || exercisesLoading) return <Container sx={{ mt: 8, textAlign: 'center' }}><CircularProgress /></Container>;
@@ -71,36 +71,36 @@ const ExerciseHistory = () => {
                     {exercise.name} - Full History
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                    Total sessions: {sessions.length}
+                    Total workouts: {workouts.length}
                 </Typography>
             </Box>
 
             <Stack spacing={2}>
-                {sessions.length > 0 ? (
-                    sessions.map(session => {
-                        const exerciseData = session.exercises?.find(ex => ex.exerciseId === id);
+                {workouts.length > 0 ? (
+                    workouts.map(workout => {
+                        const exerciseData = workout.exercises?.find(ex => ex.exerciseId === id);
                         
                         return (
                             <Paper 
-                                key={session.id} 
+                                key={workout.id} 
                                 variant="outlined" 
                                 sx={{ 
                                     p: 2, 
                                     cursor: 'pointer',
                                     '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' }
                                 }}
-                                onClick={() => navigate(`/journal/${session.id}`)}
+                                onClick={() => navigate(`/journal/${workout.id}`)}
                             >
                                 <Stack direction="row" sx={{ mb: 1.5, justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                                         <EventNote color="primary" />
                                         <Box>
                                             <Typography variant="h6">
-                                                {new Date(session.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                                {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
-                                                {session.sessionType ?? 'Training Session'}
-                                                {session.length ? ` • ${String(session.length)} min` : ''}
+                                                {workout.sessionType ?? 'Training Workout'}
+                                                {workout.length ? ` • ${String(workout.length)} min` : ''}
                                             </Typography>
                                         </Box>
                                     </Stack>

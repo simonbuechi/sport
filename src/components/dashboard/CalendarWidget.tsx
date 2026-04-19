@@ -6,10 +6,10 @@ import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import type { ActivityLog } from '../../types';
+import type { Workout } from '../../types';
 
 interface CalendarWidgetProps {
-    entries: ActivityLog[];
+    entries: Workout[];
 }
 
 const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
@@ -41,7 +41,7 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
     for (let day = 1; day <= daysInMonth; day++) {
         const dayStr = String(day).padStart(2, '0');
         const fullDateStr = `${String(viewDate.getFullYear())}-${monthStr}-${dayStr}`;
-        const hasSession = activeDates.has(fullDateStr);
+        const hasWorkout = activeDates.has(fullDateStr);
         const isToday = today.getDate() === day && today.getMonth() === viewDate.getMonth() && today.getFullYear() === viewDate.getFullYear();
 
         days.push(
@@ -54,15 +54,15 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
                     height: '28px',
                     lineHeight: '28px',
                     margin: 'auto',
-                    bgcolor: hasSession ? 'primary.main' : 'transparent',
-                    color: hasSession ? 'white' : 'text.primary',
+                    bgcolor: hasWorkout ? 'primary.main' : 'transparent',
+                    color: hasWorkout ? 'white' : 'text.primary',
                     border: isToday ? '2px solid' : 'none',
                     borderColor: 'primary.light',
-                    fontWeight: isToday || hasSession ? 600 : 400,
+                    fontWeight: isToday || hasWorkout ? 600 : 400,
                     fontSize: '0.75rem',
                     transition: 'all 0.2s',
                     '&:hover': {
-                        bgcolor: hasSession ? 'primary.dark' : 'action.hover'
+                        bgcolor: hasWorkout ? 'primary.dark' : 'action.hover'
                     }
                 }}
             >

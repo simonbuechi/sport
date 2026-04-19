@@ -16,23 +16,23 @@ import Divider from '@mui/material/Divider';
 
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
-import { useSessions } from '../context/SessionsContext';
-import { createJournalEntry, updateJournalEntry } from '../services/db';
-import type { ActivityLog as JournalEntry, Exercise, SessionType, SessionExercise, ExerciseSet } from '../types';
-import SessionExerciseItem from '../components/journal/SessionExerciseItem';
+import { useWorkouts } from '../context/WorkoutsContext';
+import { createWorkout, updateWorkout } from '../services/db';
+import type { Workout, Exercise, WorkoutType, WorkoutExercise, ExerciseSet } from '../types';
+import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
 
-const SESSION_TYPES: SessionType[] = ['strength', 'cardio', 'flexibility', 'other'];
+const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
-interface SessionFormProps {
+interface WorkoutFormProps {
     readOnly?: boolean;
 }
 
-const SessionForm = ({ readOnly = false }: SessionFormProps) => {
+const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, templates, loading: sessionsLoading } = useSessions();
+    const { entries, templates, loading: sessionsLoading } = useWorkouts();
     const isEditing = Boolean(id);
 
     const [loading, setLoading] = useState(isEditing);
@@ -43,10 +43,10 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
     const [length, setLength] = useState<number | ''>('');
-    const [sessionType, setSessionType] = useState<SessionType>('strength');
+    const [sessionType, setWorkoutType] = useState<WorkoutType>('strength');
     const [comment, setComment] = useState('');
     const [maxPulse, setMaxPulse] = useState<number | ''>('');
-    const [sessionExercises, setSessionExercises] = useState<SessionExercise[]>([]);
+    const [sessionExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
     useEffect(() => {
@@ -59,21 +59,21 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                 setDate(entry.date);
                 setTime(entry.time ?? '');
                 setLength(entry.length ?? '');
-                setSessionType(entry.sessionType ?? 'strength');
+                setWorkoutType(entry.sessionType ?? 'strength');
                 setMaxPulse(entry.maxPulse ?? '');
                 setComment(entry.comment);
 
                 if (entry.exercises && entry.exercises.length > 0) {
-                    setSessionExercises(entry.exercises);
+                    setWorkoutExercises(entry.exercises);
                 } else if (entry.exerciseIds.length > 0) {
-                    setSessionExercises(entry.exerciseIds.map(eId => ({
+                    setWorkoutExercises(entry.exerciseIds.map(eId => ({
                         exerciseId: eId,
                         sets: []
                     })));
                 }
                 setLoading(false);
             } else {
-                setError('Session not found');
+                setError('Workout not found');
                 setLoading(false);
             }
         } else {
@@ -84,18 +84,18 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     const handleAddExercise = (exercise: Exercise | null) => {
         if (!exercise) return;
         if (sessionExercises.find(se => se.exerciseId === exercise.id)) return;
-        setSessionExercises(prev => [...prev, {
+        setWorkoutExercises(prev => [...prev, {
             exerciseId: exercise.id,
             sets: [{ id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }]
         }]);
     };
 
     const handleRemoveExercise = (exerciseId: string) => {
-        setSessionExercises(prev => prev.filter(se => se.exerciseId !== exerciseId));
+        setWorkoutExercises(prev => prev.filter(se => se.exerciseId !== exerciseId));
     };
 
     const handleAddSet = (exerciseId: string) => {
-        setSessionExercises(prev => prev.map(se =>
+        setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, sets: [...se.sets, { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }] }
                 : se
@@ -103,7 +103,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     };
 
     const handleRemoveSet = (exerciseId: string, setId: string) => {
-        setSessionExercises(prev => prev.map(se =>
+        setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, sets: se.sets.filter(s => s.id !== setId) }
                 : se
@@ -111,7 +111,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     };
 
     const handleUpdateSet = (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => {
-        setSessionExercises(prev => prev.map(se =>
+        setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, sets: se.sets.map(s => s.id === setId ? { ...s, ...updates } : s) }
                 : se
@@ -119,7 +119,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     };
     
     const handleUpdateExerciseNote = (exerciseId: string, note: string) => {
-        setSessionExercises(prev => prev.map(se =>
+        setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, note }
                 : se
@@ -132,7 +132,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
 
         const template = templates.find(t => t.id === templateId);
         if (template?.exercises) {
-            const mappedExercises: SessionExercise[] = template.exercises.map(te => ({
+            const mappedExercises: WorkoutExercise[] = template.exercises.map(te => ({
                 exerciseId: te.exerciseId,
                 note: te.note,
                 sets: te.sets?.map(s => ({
@@ -142,7 +142,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                     notes: s.notes ?? ''
                 })) ?? [{ id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }]
             }));
-            setSessionExercises(mappedExercises);
+            setWorkoutExercises(mappedExercises);
         }
     };
 
@@ -159,7 +159,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                 sets: se.sets.filter(s => s.weight !== undefined && s.reps !== undefined)
             }));
 
-            const entryData: Omit<JournalEntry, 'id' | 'userId'> = {
+            const entryData: Omit<Workout, 'id' | 'userId'> = {
                 date,
                 time: time || undefined,
                 length: Number(length) || undefined,
@@ -171,15 +171,15 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
             };
 
             if (isEditing && id) {
-                await updateJournalEntry(currentUser.uid, id, entryData);
+                await updateWorkout(currentUser.uid, id, entryData);
             } else {
-                await createJournalEntry(currentUser.uid, entryData);
+                await createWorkout(currentUser.uid, entryData);
             }
 
             void navigate('/journal');
         } catch (err) {
-            console.error('Error saving session:', err);
-            setError(`Failed to save session: ${err instanceof Error ? err.message : String(err)}`);
+            console.error('Error saving workout:', err);
+            setError(`Failed to save workout: ${err instanceof Error ? err.message : String(err)}`);
         } finally {
             setSubmitting(false);
         }
@@ -194,7 +194,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
             <Box sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" component="h1">
-                        {readOnly ? 'Session details' : (isEditing ? 'Edit session' : 'New session')}
+                        {readOnly ? 'Workout details' : (isEditing ? 'Edit workout' : 'New workout')}
                     </Typography>
                 </Box>
 
@@ -235,11 +235,11 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
                                     select
-                                    label="Session Type"
+                                    label="Workout Type"
                                     fullWidth
                                     size="small"
                                     value={sessionType}
-                                    onChange={(e) => { setSessionType(e.target.value as SessionType); }}
+                                    onChange={(e) => { setWorkoutType(e.target.value as WorkoutType); }}
                                     slotProps={{ select: { disabled: readOnly } }}
                                 >
                                     {SESSION_TYPES.map((type) => (
@@ -292,7 +292,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                                                 size="small"
                                                 value={selectedTemplateId}
                                                 onChange={(e) => { handleTemplateChange(e.target.value); }}
-                                                helperText="Prepopulates session"
+                                                helperText="Prepopulates workout"
                                                 sx={{ mb: 3 }}
                                             >
                                                 <MenuItem value=""><em>None</em></MenuItem>
@@ -313,7 +313,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                                 {sessionExercises.map((se) => {
                                     const exercise = exercises.find(ex => ex.id === se.exerciseId);
                                     return (
-                                        <SessionExerciseItem
+                                        <WorkoutExerciseItem
                                             key={se.exerciseId}
                                             sessionExercise={se}
                                             exercise={exercise}
@@ -376,7 +376,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                                             onClick={() => { void navigate(`/journal/${id ?? ''}/edit`); }}
                                             sx={{ minWidth: 150 }}
                                         >
-                                            Edit Session
+                                            Edit Workout
                                         </Button>
                                     ) : (
                                         <Button 
@@ -386,7 +386,7 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
                                             disabled={submitting}
                                             sx={{ minWidth: 150 }}
                                         >
-                                            {submitting ? 'Saving...' : (isEditing ? 'Update Session' : 'Add Session')}
+                                            {submitting ? 'Saving...' : (isEditing ? 'Update Workout' : 'Add Workout')}
                                         </Button>
                                     )}
                                 </Stack>
@@ -399,4 +399,4 @@ const SessionForm = ({ readOnly = false }: SessionFormProps) => {
     );
 };
 
-export default SessionForm;
+export default WorkoutForm;

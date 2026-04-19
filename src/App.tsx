@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ExercisesProvider } from './context/ExercisesContext';
-import { SessionsProvider } from './context/SessionsContext';
+import { WorkoutsProvider } from './context/WorkoutsContext';
 import { PwaProvider } from './context/PwaContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -18,7 +18,7 @@ const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
 const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
 const Journal = lazy(() => import('./pages/Journal'));
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
-const SessionForm = lazy(() => import('./pages/SessionForm'));
+const WorkoutForm = lazy(() => import('./pages/WorkoutForm'));
 const ExerciseHistory = lazy(() => import('./pages/ExerciseHistory'));
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
     <PwaProvider>
       <AuthProvider>
         <ExercisesProvider>
-          <SessionsProvider>
+          <WorkoutsProvider>
             <Router basename="/">
               <Routes>
                 <Route path="/" element={<Layout />}>
@@ -43,16 +43,16 @@ function App() {
                     <Route path="profile" element={<Profile />} />
                     <Route path="journal" element={<Journal />} />
                     <Route path="journal/templates" element={<TemplatesPage />} />
-                    <Route path="journal/new" element={<SessionForm />} />
-                    <Route path="journal/:id" element={<SessionForm readOnly={true} />} />
-                    <Route path="journal/:id/edit" element={<SessionForm />} />
+                    <Route path="journal/new" element={<WorkoutForm />} />
+                    <Route path="journal/:id" element={<WorkoutForm readOnly={true} />} />
+                    <Route path="journal/:id/edit" element={<WorkoutForm />} />
                   </Route>
                 </Route>
 
               </Routes>
             </Router>
             <ReloadPrompt />
-          </SessionsProvider>
+          </WorkoutsProvider>
         </ExercisesProvider>
       </AuthProvider>
     </PwaProvider>

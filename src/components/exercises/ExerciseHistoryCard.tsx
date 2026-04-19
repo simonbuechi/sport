@@ -8,30 +8,30 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import EventNote from '@mui/icons-material/EventNote';
-import type { ActivityLog as JournalEntry } from '../../types';
+import type { Workout } from '../../types';
 
 interface ExerciseHistoryCardProps {
-    sessions: JournalEntry[];
+    workouts: Workout[];
     exerciseId: string;
 }
 
-const ExerciseHistoryCard = ({ sessions, exerciseId }: ExerciseHistoryCardProps) => {
+const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps) => {
     const navigate = useNavigate();
-    if (sessions.length === 0) return null;
+    if (workouts.length === 0) return null;
 
-    const recentSessions = sessions.slice(0, 5);
+    const recentWorkouts = workouts.slice(0, 5);
 
     return (
         <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
             <Typography variant="h6" gutterBottom>Training History</Typography>
             <Divider sx={{ mb: 2 }} />
             <List disablePadding>
-                {recentSessions.map(session => {
-                    const exerciseData = session.exercises?.find(ex => ex.exerciseId === exerciseId);
+                {recentWorkouts.map(workout => {
+                    const exerciseData = workout.exercises?.find(ex => ex.exerciseId === exerciseId);
 
                     return (
                         <ListItem
-                            key={session.id}
+                            key={workout.id}
                             disablePadding
                             sx={{
                                 mb: 2,
@@ -42,12 +42,12 @@ const ExerciseHistoryCard = ({ sessions, exerciseId }: ExerciseHistoryCardProps)
                                 p: 1,
                                 borderRadius: 1
                             }}
-                            onClick={() => { void navigate(`/journal/${session.id}`); }}
+                            onClick={() => { void navigate(`/journal/${workout.id}`); }}
                         >
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                                 <EventNote fontSize="small" color="primary" />
                                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flexGrow: 1 }}>
-                                    {new Date(session.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                 </Typography>
                             </Stack>
 

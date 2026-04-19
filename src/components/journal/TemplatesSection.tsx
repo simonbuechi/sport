@@ -423,7 +423,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                 <DialogTitle>Training Templates</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        You can set up templates for your workouts with a set of exercises and sets. When logging a new session, you can select your template.
+                        You can set up templates for your workouts with a set of exercises and sets. When logging a new workout, you can select your template.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ pb: 2, px: 3 }}>

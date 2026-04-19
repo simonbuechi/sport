@@ -40,14 +40,14 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         setError('');
 
-        // Subscribe to workouts (limit to 100 for global state, pages can fetch more if needed)
+        // Subscribe to workouts (limit to 1000 for global state, pages can fetch more if needed)
         const unsubscribeEntries = subscribeToWorkouts(
             currentUser.uid, 
             (data) => {
                 setEntries(data);
                 setLoading(false);
             }, 
-            100
+            1000
         );
 
         // Subscribe to templates

@@ -157,17 +157,6 @@ const Exercises = () => {
                         Exercises
                     </Typography>
 
-                    <Stack spacing={1}>
-                        <Tooltip title="New Exercise">
-                            <IconButton
-                                component={RouterLink}
-                                to="/exercises/new"
-                                color="primary"
-                                sx={{ border: '1px solid', borderColor: 'primary.main', }}
-                            >
-                                <Add />
-                            </IconButton>
-                        </Tooltip>
                         <ToggleButtonGroup
                             value={viewMode}
                             exclusive
@@ -186,7 +175,6 @@ const Exercises = () => {
                                 </ToggleButton>
                             </Tooltip>
                         </ToggleButtonGroup>
-                    </Stack>
                 </Stack>
 
                 <Stack sx={{ alignItems: "flex-start" }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -276,12 +264,38 @@ const Exercises = () => {
             </Stack>
             {currentError && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{currentError}</Alert>}
             {exercises.length === 0 && !currentError ? (
-                <Alert severity="info" sx={{ mt: 4 }}>
-                    No exercises found in the database.
+                <Alert 
+                    severity="info" 
+                    sx={{ mt: 4 }}
+                    action={
+                        <IconButton
+                            color="inherit"
+                            size="small"
+                            component={RouterLink}
+                            to="/exercises/new"
+                        >
+                            <Add />
+                        </IconButton>
+                    }
+                >
+                    No exercises found in the database. <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>Create the first one.</RouterLink>
                 </Alert>
             ) : displayedExercises.length === 0 ? (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                    No exercises match the selected filter or search.
+                <Alert 
+                    severity="info" 
+                    sx={{ mt: 2 }}
+                    action={
+                        <IconButton
+                            color="inherit"
+                            size="small"
+                            component={RouterLink}
+                            to="/exercises/new"
+                        >
+                            <Add />
+                        </IconButton>
+                    }
+                >
+                    No exercises match the selected filter or search. <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>Create a new one?</RouterLink>
                 </Alert>
             ) : viewMode === 'grid' ? (
                 <Grid container spacing={{ xs: 2, md: 3 }}>
@@ -329,11 +343,11 @@ const Exercises = () => {
                                                 {exercise.name}
                                             </Typography>
                                             <Chip
-                                                label={exercise.type}
+                                                label={exercise.type.charAt(0).toUpperCase() + exercise.type.slice(1)}
                                                 size="small"
                                                 color="primary"
                                                 variant="outlined"
-                                                sx={{ textTransform: 'capitalize', display: { xs: 'none', sm: 'inline-flex' } }}
+                                                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
                                             <Chip
                                                 label={exercise.bodypart}

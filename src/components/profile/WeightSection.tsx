@@ -23,6 +23,8 @@ import MonitorWeight from '@mui/icons-material/MonitorWeight';
 import { LineChart } from '@mui/x-charts/LineChart';
 import type { UserProfile, WeightEntry } from '../../types';
 import { updateUserProfile } from '../../services/db';
+import { getChartDefaults, xAxisDateFormatter } from '../../theme/charts';
+import { useTheme } from '@mui/material/styles';
 
 interface WeightSectionProps {
     profile: Partial<UserProfile>;
@@ -30,19 +32,21 @@ interface WeightSectionProps {
 }
 
 export default function WeightSection({ profile, onWeightsUpdated }: WeightSectionProps) {
+    const theme = useTheme();
+    const defaults = getChartDefaults(theme);
     const weights = profile.weights ?? [];
-    
+
     // Sort weights by date descending
     const sortedWeights = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // Prepare chart data (last 6 months, sorted ascending)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    
+
     const chartData = [...weights]
         .filter(w => new Date(w.date) >= sixMonthsAgo)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
+
     const chartDates = chartData.map(w => new Date(w.date));
     const chartWeights = chartData.map(w => w.weightKg);
 
@@ -51,7 +55,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
     const [editingWeight, setEditingWeight] = useState<WeightEntry | null>(null);
     const [weightToDelete, setWeightToDelete] = useState<WeightEntry | null>(null);
     const [saving, setSaving] = useState(false);
-    
+
     // Form fields
     const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
     const [formWeight, setFormWeight] = useState('');
@@ -82,7 +86,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
     const handleSave = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!profile.uid) return;
-        
+
         try {
             setSaving(true);
             const numWeight = parseFloat(formWeight);
@@ -90,7 +94,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                 alert("Please enter a valid weight");
                 return;
             }
-            
+
             const numBodyFat = formBodyFat ? parseFloat(formBodyFat) : undefined;
             if (numBodyFat !== undefined && (isNaN(numBodyFat) || numBodyFat < 0 || numBodyFat > 100)) {
                 alert("Please enter a valid body fat percentage (0-100)");
@@ -98,16 +102,16 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
             }
 
             let newWeights = [...weights];
-            
+
             if (editingWeight) {
                 // Update existing
                 newWeights = newWeights.map(w => {
                     if (w.id === editingWeight.id) {
-                        const updated: WeightEntry = { 
-                            ...w, 
-                            date: formDate, 
-                            weightKg: numWeight, 
-                            bodyFatPercent: numBodyFat 
+                        const updated: WeightEntry = {
+                            ...w,
+                            date: formDate,
+                            weightKg: numWeight,
+                            bodyFatPercent: numBodyFat
                         };
                         // Remove undefined values
                         return Object.fromEntries(
@@ -132,7 +136,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
 
             // Save to database
             await updateUserProfile(profile.uid, { weights: newWeights });
-            
+
             // Notify parent
             onWeightsUpdated(newWeights);
             setIsAddEditOpen(false);
@@ -146,7 +150,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
 
     const handleDelete = async () => {
         if (!profile.uid || !weightToDelete) return;
-        
+
         try {
             setSaving(true);
             const newWeights = weights.filter(w => w.id !== weightToDelete.id);
@@ -169,9 +173,9 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                     <MonitorWeight color="primary" sx={{ mr: 1, fontSize: 32 }} />
                     <Typography variant="h5" component="h2">Weight Tracking</Typography>
                 </Stack>
-                <Button 
-                    variant="outlined" 
-                    startIcon={<Add />} 
+                <Button
+                    variant="outlined"
+                    startIcon={<Add />}
                     onClick={handleOpenAdd}
                     size="small"
                 >
@@ -180,24 +184,24 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
             </Stack>
             <Box sx={{ width: '100%', height: 250, mt: 2, mb: 4 }}>
                 <LineChart
-                    xAxis={[{ 
-                        data: chartDates, 
+                    {...defaults}
+                    xAxis={[{
+                        data: chartDates,
                         scaleType: 'time',
                         min: sixMonthsAgo,
                         max: new Date(),
-                        tickNumber: 6,
-                        valueFormatter: (value) => {
-                            const date = new Date(value as string | number | Date);
-                            return date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
-                        }
+                        valueFormatter: xAxisDateFormatter,
                     }]}
-                    series={[{ 
+                    yAxis={[{
+                        min: Math.max(0, Math.min(...chartWeights) - 2),
+                        max: Math.max(...chartWeights) + 2,
+                    }]}
+                    series={[{
                         data: chartWeights,
                         label: 'Weight (kg)',
                         showMark: true,
-                        curve: 'linear'
+                        curve: 'catmullRom',
                     }]}
-                    margin={{ top: 20, right: 20, bottom: 35, left: 40 }}
                 />
             </Box>
             {sortedWeights.length === 0 ? (
@@ -207,7 +211,7 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                         color: "text.secondary",
                         textAlign: 'center',
                         py: 3,
-                        }}>
+                    }}>
                     No weight entries recorded yet. Track your progress by logging your first weight.
                 </Typography>
             ) : (
@@ -216,21 +220,24 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                         <Box key={weight.id}>
                             {index > 0 && <Divider component="li" />}
                             <ListItem
-                                sx={{ px: 1, py: 1.5 }}
+                                sx={{ px: 1, py: 0 }}
                                 secondaryAction={
-                                    <Stack spacing={0.5}>
-                                        <IconButton edge="end" aria-label="edit" size="small" onClick={() => { handleOpenEdit(weight); }}>
-                                            <Edit fontSize="small" />
+                                    <Stack direction="row" spacing={0.5}>
+                                        <IconButton aria-label="edit" size="small" onClick={() => { handleOpenEdit(weight); }}>
+                                            <Edit sx={{ fontSize: 18 }} />
                                         </IconButton>
-                                        <IconButton edge="end" aria-label="delete" size="small" color="error" onClick={() => { handleOpenDelete(weight); }}>
-                                            <Delete fontSize="small" />
+                                        <IconButton aria-label="delete" size="small" onClick={() => { handleOpenDelete(weight); }}>
+                                            <Delete sx={{ fontSize: 18 }} />
                                         </IconButton>
-                                        </Stack>
+                                    </Stack>
                                 }
                             >
                                 <ListItemText
-                                    primary={<Typography>{weight.weightKg} kg</Typography>}
-                                    secondary={`${new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}${weight.bodyFatPercent ? ` • ${String(weight.bodyFatPercent)}% Body Fat` : ''}`}
+                                    primary={<Typography variant="body1">{weight.weightKg} kg</Typography>}
+                                    secondary={<Typography variant="caption" color="text.secondary">
+                                        {new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                        {weight.bodyFatPercent ? ` • ${String(weight.bodyFatPercent)}% BF` : ''}
+                                    </Typography>}
                                 />
                             </ListItem>
                         </Box>
@@ -247,55 +254,55 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
                 }}
             >
                 <DialogTitle>{editingWeight ? 'Edit Weight Entry' : 'Log New Weight'}</DialogTitle>
-                    <DialogContent dividers>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 3,
-                                py: 1
-                            }}>
-                            <TextField
-                                label="Date"
-                                type="date"
-                                fullWidth
-                                required
-                                value={formDate}
-                                onChange={(e) => { setFormDate(e.target.value); }}
-                                slotProps={{
-                                    inputLabel: { shrink: true }
-                                }}
-                            />
-                            <TextField
-                                label="Weight (kg)"
-                                type="number"
-                                fullWidth
-                                required
-                                value={formWeight}
-                                onChange={(e) => { setFormWeight(e.target.value); }}
-                                slotProps={{
-                                    htmlInput: { min: 20, max: 250, step: 0.1 }
-                                }}
-                            />
-                            <TextField
-                                label="Body Fat %"
-                                type="number"
-                                fullWidth
-                                value={formBodyFat}
-                                onChange={(e) => { setFormBodyFat(e.target.value); }}
-                                placeholder="Optional"
-                                slotProps={{
-                                    htmlInput: { min: 0, max: 100, step: 0.1 }
-                                }}
-                            />
-                        </Box>
-                    </DialogContent>
-                    <DialogActions sx={{ p: 2 }}>
-                        <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
-                        <Button type="submit" variant="contained" disabled={saving}>
-                            {saving ? 'Saving...' : 'Save'}
-                        </Button>
-                    </DialogActions>
+                <DialogContent dividers>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 3,
+                            py: 1
+                        }}>
+                        <TextField
+                            label="Date"
+                            type="date"
+                            fullWidth
+                            required
+                            value={formDate}
+                            onChange={(e) => { setFormDate(e.target.value); }}
+                            slotProps={{
+                                inputLabel: { shrink: true }
+                            }}
+                        />
+                        <TextField
+                            label="Weight (kg)"
+                            type="number"
+                            fullWidth
+                            required
+                            value={formWeight}
+                            onChange={(e) => { setFormWeight(e.target.value); }}
+                            slotProps={{
+                                htmlInput: { min: 20, max: 250, step: 0.1 }
+                            }}
+                        />
+                        <TextField
+                            label="Body Fat %"
+                            type="number"
+                            fullWidth
+                            value={formBodyFat}
+                            onChange={(e) => { setFormBodyFat(e.target.value); }}
+                            placeholder="Optional"
+                            slotProps={{
+                                htmlInput: { min: 0, max: 100, step: 0.1 }
+                            }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 2 }}>
+                    <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
+                    <Button type="submit" variant="contained" disabled={saving}>
+                        {saving ? 'Saving...' : 'Save'}
+                    </Button>
+                </DialogActions>
             </Dialog>
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteOpen} onClose={() => { if (!saving) { setIsDeleteOpen(false); } }} maxWidth="xs" fullWidth>

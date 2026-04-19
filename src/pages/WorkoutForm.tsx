@@ -41,7 +41,7 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
 
     // Form state
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
+    const [time, setTime] = useState(`${new Date().getHours().toString().padStart(2, '0')}:00`);
     const [length, setLength] = useState<number | ''>('');
     const [sessionType, setWorkoutType] = useState<WorkoutType>('strength');
     const [comment, setComment] = useState('');
@@ -243,8 +243,8 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                                     slotProps={{ select: { disabled: readOnly } }}
                                 >
                                     {SESSION_TYPES.map((type) => (
-                                        <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
-                                            {type}
+                                        <MenuItem key={type} value={type}>
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
                                         </MenuItem>
                                     ))}
                                 </TextField>

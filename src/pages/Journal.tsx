@@ -48,7 +48,7 @@ const Journal = () => {
 
     // Infinite Scroll State
     const observer = useRef<IntersectionObserver | null>(null);
-    const [displayCount, setDisplayCount] = useState(20);
+    const [displayCount, setDisplayCount] = useState(10);
 
     const handleEditClick = useCallback((entry: Workout) => {
         void navigate(`/journal/${entry.id}/edit`);
@@ -99,7 +99,7 @@ const Journal = () => {
 
         observer.current = new IntersectionObserver(obsEntries => {
             if (obsEntries[obsEntries.length - 1].isIntersecting && displayCount < filteredAndSortedEntries.length) {
-                setDisplayCount(prev => prev + 20);
+                setDisplayCount(prev => prev + 10);
             }
         });
 
@@ -150,7 +150,6 @@ const Journal = () => {
                     </Button>
                 </Stack>
             </Stack>
-            <Divider sx={{ mb: { xs: 2, md: 4 } }} />
 
             {/* Filter and Sort Bar */}
             <Paper variant="section" elevation={0} sx={{ bgcolor: 'background.default' }}>

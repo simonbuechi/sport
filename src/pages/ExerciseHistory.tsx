@@ -6,12 +6,17 @@ import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
-import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import ArrowBack from '@mui/icons-material/ArrowBack';
-import EventNote from '@mui/icons-material/EventNote';
 import ChevronRight from '@mui/icons-material/ChevronRight';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableRow from '@mui/material/TableRow';
+import Tooltip from '@mui/material/Tooltip';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getWorkouts } from '../services/db';
 import type { Workout } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -22,7 +27,7 @@ const ExerciseHistory = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    
+
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -38,9 +43,10 @@ const ExerciseHistory = () => {
             try {
                 setLoading(true);
                 const allEntries = await getWorkouts(currentUser.uid);
-                const exerciseWorkouts = allEntries.filter((entry: Workout) =>
-                    entry.exerciseIds.includes(id)
-                );
+                // Filter and sort by date descending
+                const exerciseWorkouts = allEntries
+                    .filter((entry: Workout) => entry.exerciseIds.includes(id))
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 setWorkouts(exerciseWorkouts);
             } catch (err) {
                 console.error(err);
@@ -75,70 +81,70 @@ const ExerciseHistory = () => {
                 </Typography>
             </Box>
 
-            <Stack spacing={2}>
-                {workouts.length > 0 ? (
-                    workouts.map(workout => {
-                        const exerciseData = workout.exercises?.find(ex => ex.exerciseId === id);
-                        
-                        return (
-                            <Paper 
-                                key={workout.id} 
-                                variant="outlined" 
-                                sx={{ 
-                                    p: 2, 
-                                    cursor: 'pointer',
-                                    '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' }
-                                }}
-                                onClick={() => navigate(`/journal/${workout.id}`)}
-                            >
-                                <Stack direction="row" sx={{ mb: 1.5, justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                                        <EventNote color="primary" />
-                                        <Box>
-                                            <Typography variant="h6">
-                                                {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {workouts.length > 0 ? (
+                <TableContainer component={Paper} variant="outlined" sx={{ width: '100%', overflowX: 'auto' }}>
+                    <Table size="small" aria-label="exercise history table" sx={{ minWidth: 300 }}>
+
+                        <TableBody>
+                            {workouts.map(workout => {
+                                const exerciseData = workout.exercises?.find(ex => ex.exerciseId === id);
+                                if (!exerciseData) return null;
+
+                                return (
+                                    <TableRow
+                                        key={workout.id}
+                                        hover
+                                        sx={{
+                                            cursor: 'pointer',
+                                            '&:last-child td, &:last-child th': { border: 0 }
+                                        }}
+                                        onClick={() => navigate(`/journal/${workout.id}`)}
+                                    >
+                                        <TableCell component="th" scope="row" sx={{ verticalAlign: 'top', pt: 1.5 }}>
+                                            <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
+                                                {new Date(workout.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
-                                                {workout.sessionType ?? 'Training Workout'}
-                                                {workout.length ? ` • ${String(workout.length)} min` : ''}
+                                            <Typography variant="body2" color="text.secondary" sx={{ textTransform: 'capitalize', display: 'block' }}>
+                                                {workout.sessionType ?? 'Workout'}
                                             </Typography>
-                                        </Box>
-                                    </Stack>
-                                    <IconButton size="small">
-                                        <ChevronRight />
-                                    </IconButton>
-                                </Stack>
-                                
-                                <Divider sx={{ mb: 1.5 }} />
-                                
-                                {exerciseData && (
-                                    <Stack spacing={1}>
-                                        {exerciseData.sets.map((set, idx) => (
-                                            <Box key={set.id} sx={{ display: 'flex', alignItems: 'baseline' }}>
-                                                <Typography variant="body2" sx={{ fontWeight: 'bold', minWidth: 60 }}>
-                                                    Set {idx + 1}:
-                                                </Typography>
-                                                <Typography variant="body2">
-                                                    {set.weight}kg x {set.reps}
-                                                    {set.notes && (
-                                                        <Typography component="span" variant="body2" sx={{ fontStyle: 'italic', ml: 1, color: 'text.secondary' }}>
-                                                            - {set.notes}
+                                        </TableCell>
+                                        <TableCell sx={{ verticalAlign: 'top', pt: 1.5 }}>
+                                            <Stack spacing={0.5}>
+                                                {exerciseData.sets.map((set, idx) => (
+                                                    <Box key={set.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                        <Typography variant="body2">
+                                                            <Box component="span" sx={{ color: 'text.secondary', mr: 0.5 }}>
+                                                                {idx + 1}.
+                                                            </Box>
+                                                            {set.weight}kg × {set.reps}
                                                         </Typography>
-                                                    )}
-                                                </Typography>
-                                            </Box>
-                                        ))}
-                                    </Stack>
-                                )}
-                            </Paper>
-                        );
-                    })
-                ) : (
-                    <Typography variant="body1" color="text.secondary" align="center" sx={{ py: 4 }}>
+                                                        {set.notes && (
+                                                            <Tooltip title={set.notes} arrow placement="top">
+                                                                <InfoOutlinedIcon sx={{ fontSize: 16, color: 'text.secondary', ml: 0.5, cursor: 'help' }} />
+                                                            </Tooltip>
+                                                        )}
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        </TableCell>
+                                        <TableCell align="right" sx={{ verticalAlign: 'middle' }}>
+                                            <IconButton size="small" color="primary">
+                                                <ChevronRight />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            ) : (
+                <Paper variant="outlined" sx={{ py: 6, textAlign: 'center', bgcolor: 'background.default' }}>
+                    <Typography variant="body1" color="text.secondary">
                         No history found for this exercise.
                     </Typography>
-                )}
-            </Stack>
+                </Paper>
+            )}
         </Container>
     );
 };

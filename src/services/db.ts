@@ -85,7 +85,7 @@ export const getWorkouts = async (userId: string): Promise<Workout[]> => {
 export const subscribeToWorkouts = (
     userId: string, 
     callback: (entries: Workout[]) => void, 
-    limitCount = 50
+    limitCount = 1000
 ): Unsubscribe => {
     const entriesRef = collection(db, 'users', userId, 'activities');
     const q = query(

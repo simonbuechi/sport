@@ -19,7 +19,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
     const navigate = useNavigate();
     if (workouts.length === 0) return null;
 
-    const recentWorkouts = workouts.slice(0, 5);
+    const recentWorkouts = workouts.slice(0, 3);
 
     return (
         <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>

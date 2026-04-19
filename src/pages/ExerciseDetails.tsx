@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
+import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
 
 const updateExerciseStatus = (
     profile: UserProfile,
@@ -166,6 +167,10 @@ const ExerciseDetails = () => {
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
                             {exercise.description ?? 'No description available.'}
                         </Typography>
+
+                        <Box sx={{ mt: { xs: 3, md: 4 } }}>
+                            <ExerciseProgressChart workouts={workouts} exerciseId={exercise.id} />
+                        </Box>
 
                         {exercise.links && exercise.links.length > 0 && (
                             <Box sx={{ mt: { xs: 2, md: 3 } }}>

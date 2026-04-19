@@ -30,9 +30,6 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
     const navigate = useNavigate();
     const [expanded, setExpanded] = useState(false);
 
-    const getExerciseName = (id: string) => {
-        return exerciseMap[id]?.name ?? 'Unknown Exercise';
-    };
 
     return (
         <Paper
@@ -58,7 +55,12 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                         {entry.time && ` • ${entry.time}`}
                     </Typography>
                     {entry.sessionType && (
-                        <Chip size="small" label={entry.sessionType} color="primary" variant="outlined" sx={{ textTransform: 'capitalize' }} />
+                        <Chip 
+                            size="small" 
+                            label={entry.sessionType.charAt(0).toUpperCase() + entry.sessionType.slice(1)} 
+                            color="primary" 
+                            variant="outlined" 
+                        />
                     )}
                 </Stack>
                 <Stack
@@ -85,26 +87,6 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                 {entry.maxPulse && (
                     <Chip size="small" label={`Max Pulse: ${String(entry.maxPulse)}`} variant="outlined" color="secondary" />
                 )}
-                {entry.exerciseIds.map((id: string) => {
-                    const exercise = exerciseMap[id];
-                    return (
-                        <Chip 
-                            key={id} 
-                            label={getExerciseName(id)} 
-                            size="small" 
-                            variant="outlined"
-                            avatar={
-                                <Avatar
-                                    src={exercise?.icon_url ?
-                                        `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
-                                        : undefined}
-                                >
-                                    {(exercise?.name ?? 'U').charAt(0)}
-                                </Avatar>
-                            }
-                        />
-                    );
-                })}
             </Stack>
 
             <Collapse in={expanded}>

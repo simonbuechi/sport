@@ -11,8 +11,7 @@ import ReloadPrompt from './components/common/ReloadPrompt';
 // Lazy load pages
 const Home = lazy(() => import('./pages/Home'));
 const Exercises = lazy(() => import('./pages/Exercises'));
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
+const Auth = lazy(() => import('./pages/Auth'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
 const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
@@ -32,8 +31,8 @@ function App() {
             <Router basename="/">
               <Routes>
                 <Route path="/" element={<Layout />}>
-                  <Route path="login" element={<Login />} />
-                  <Route path="register" element={<Register />} />
+                  <Route path="login" element={<Auth />} />
+                  <Route path="register" element={<Auth />} />
                   
                   <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                     <Route index element={<Home />} />

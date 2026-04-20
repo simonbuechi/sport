@@ -62,14 +62,7 @@ export default defineConfig([
       ],
       // Professional rules
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-floating-promises': 'error',
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: "JSXElement[openingElement.name.name='Stack'] JSXAttribute[name.name=/^(justifyContent|alignItems)$/]",
-          message: 'Do not use layout props (justifyContent, alignItems) directly on MUI Stack component. Put them inside the sx prop instead to avoid TypeScript overload errors.',
-        }
-      ],
+      '@typescript-eslint/no-floating-promises': 'error'
     },
   },
 ])

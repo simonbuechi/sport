@@ -24,7 +24,7 @@ export const subscribeToExercises = (callback: (exercises: Exercise[]) => void):
         orderBy('popular', 'desc'),
         orderBy('name')
     );
-    return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
+    return onSnapshot(q, (snapshot) => {
         const exercises = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
         callback(exercises);
     });
@@ -93,7 +93,7 @@ export const subscribeToWorkouts = (
         orderBy('date', 'desc'), 
         limit(limitCount)
     );
-    return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
+    return onSnapshot(q, (snapshot) => {
         const entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Workout));
         callback(entries);
     });
@@ -129,7 +129,7 @@ export const subscribeToTemplates = (
     callback: (templates: TrainingTemplate[]) => void
 ): Unsubscribe => {
     const templatesRef = collection(db, 'users', userId, 'templates');
-    return onSnapshot(templatesRef, { includeMetadataChanges: true }, (snapshot) => {
+    return onSnapshot(templatesRef, (snapshot) => {
         const templates = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TrainingTemplate));
         callback(templates);
     });

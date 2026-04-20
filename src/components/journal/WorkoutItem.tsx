@@ -12,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import type { Workout, Exercise } from '../../types';
+import type { Workout, Exercise, BodyPart } from '../../types';
 import { formatWeight, formatCount } from '../../utils/format';
 
 interface WorkoutItemProps {
@@ -54,6 +54,12 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                     <Typography variant="h6">
                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                         {entry.time && ` • ${entry.time}`}
+                        {(() => {
+                            const bodyParts = entry.exercises?.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p) ?? [];
+                            const uniqueParts = Array.from(new Set(bodyParts));
+                            const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== 'Whole Body') : uniqueParts;
+                            return filteredParts.length > 0 ? ` • ${filteredParts.join(', ')}` : '';
+                        })()}
                     </Typography>
                 </Stack>
                 <Stack

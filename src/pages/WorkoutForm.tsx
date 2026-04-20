@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -13,6 +12,8 @@ import Grid from '@mui/material/Grid';
 import Autocomplete from '@mui/material/Autocomplete';
 import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
@@ -23,11 +24,7 @@ import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
 
 const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
-interface WorkoutFormProps {
-    readOnly?: boolean;
-}
-
-const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
+const WorkoutForm = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -45,12 +42,17 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
     const [length, setLength] = useState<number | ''>('');
     const [sessionType, setWorkoutType] = useState<WorkoutType>('strength');
     const [comment, setComment] = useState('');
+    const [localComment, setLocalComment] = useState('');
     const [maxPulse, setMaxPulse] = useState<number | ''>('');
     const [sessionExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+    const [isAutoSaving, setIsAutoSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+    const [autoSaveError, setAutoSaveError] = useState<string>('');
+    const lastSavedDataRef = useRef<string>('');
 
     useEffect(() => {
-        if (!currentUser || sessionsLoading) return;
+        if (!currentUser || sessionsLoading || !loading) return;
         
         if (isEditing && id) {
             const entry = entries.find(e => e.id === id);
@@ -62,6 +64,7 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                 setWorkoutType(entry.sessionType ?? 'strength');
                 setMaxPulse(entry.maxPulse ?? '');
                 setComment(entry.comment);
+                setLocalComment(entry.comment);
 
                 if (entry.exercises && entry.exercises.length > 0) {
                     setWorkoutExercises(entry.exercises);
@@ -71,6 +74,24 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                         sets: []
                     })));
                 }
+                
+                // Initialize last saved data to prevent immediate redundant auto-save
+                const filteredExercises = (entry.exercises ?? []).map(se => ({
+                    ...se,
+                    sets: se.sets.filter(s => s.weight !== undefined && s.reps !== undefined)
+                }));
+                const entryData = {
+                    date: entry.date,
+                    time: entry.time ?? undefined,
+                    length: entry.length ?? undefined,
+                    sessionType: entry.sessionType ?? 'strength',
+                    maxPulse: entry.maxPulse ?? undefined,
+                    comment: entry.comment.trim(),
+                    exerciseIds: filteredExercises.map(se => se.exerciseId),
+                    exercises: filteredExercises
+                };
+                lastSavedDataRef.current = JSON.stringify(entryData);
+                
                 setLoading(false);
             } else {
                 setError('Workout not found');
@@ -79,52 +100,116 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
         } else {
             setLoading(false);
         }
-    }, [currentUser, id, isEditing, entries, sessionsLoading]);
+    }, [currentUser, id, isEditing, entries, sessionsLoading, loading]);
 
-    const handleAddExercise = (exercise: Exercise | null) => {
+    // Debounced auto-save
+    useEffect(() => {
+        if (!currentUser || loading || submitting) return;
+
+        // Don't auto-save if it's a new workout and no meaningful data has been entered yet
+        const hasData = sessionExercises.length > 0 || comment.trim() !== '' || length !== '' || maxPulse !== '' || time !== `${new Date().getHours().toString().padStart(2, '0')}:00`;
+        if (!isEditing && !hasData) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                const filteredExercises = sessionExercises.map(se => ({
+                    ...se,
+                    sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || (s.notes && s.notes.trim() !== ''))
+                }));
+
+                const entryData: Omit<Workout, 'id' | 'userId'> = {
+                    date,
+                    time: time || undefined,
+                    length: Number(length) || undefined,
+                    sessionType,
+                    maxPulse: Number(maxPulse) || undefined,
+                    comment: comment.trim(),
+                    exerciseIds: filteredExercises.map(se => se.exerciseId),
+                    exercises: filteredExercises
+                };
+
+                // Avoid redundant writes if data hasn't changed
+                const dataStr = JSON.stringify(entryData);
+                if (dataStr === lastSavedDataRef.current) return;
+
+                setIsAutoSaving(true);
+                setAutoSaveError('');
+
+                if (isEditing && id) {
+                    await updateWorkout(currentUser.uid, id, entryData);
+                } else {
+                    const newId = await createWorkout(currentUser.uid, entryData);
+                    // Update ref before navigating to prevent the immediate re-render from triggering another save
+                    lastSavedDataRef.current = dataStr;
+                    void navigate(`/journal/${newId}/edit`, { replace: true });
+                }
+                
+                lastSavedDataRef.current = dataStr;
+                setLastSaved(new Date());
+            } catch (err) {
+                console.error('Auto-save error:', err);
+                setAutoSaveError('Auto-save failed');
+            } finally {
+                setIsAutoSaving(false);
+            }
+        }, 2000);
+        return () => { clearTimeout(timer); };
+    }, [currentUser, id, isEditing, loading, submitting, date, time, length, sessionType, comment, maxPulse, sessionExercises, navigate]);
+
+    // Sync local comment to main state with a debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localComment !== comment) {
+                setComment(localComment);
+            }
+        }, 500);
+        return () => { clearTimeout(timer); };
+    }, [localComment, comment]);
+
+    const handleAddExercise = useCallback((exercise: Exercise | null) => {
         if (!exercise) return;
         if (sessionExercises.find(se => se.exerciseId === exercise.id)) return;
         setWorkoutExercises(prev => [...prev, {
             exerciseId: exercise.id,
-            sets: [{ id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }]
+            sets: [{ id: Math.random().toString(36).slice(2, 11) }]
         }]);
-    };
+    }, [sessionExercises]);
 
-    const handleRemoveExercise = (exerciseId: string) => {
+    const handleRemoveExercise = useCallback((exerciseId: string) => {
         setWorkoutExercises(prev => prev.filter(se => se.exerciseId !== exerciseId));
-    };
+    }, []);
 
-    const handleAddSet = (exerciseId: string) => {
+    const handleAddSet = useCallback((exerciseId: string) => {
         setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
-                ? { ...se, sets: [...se.sets, { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }] }
+                ? { ...se, sets: [...se.sets, { id: Math.random().toString(36).slice(2, 11) }] }
                 : se
         ));
-    };
+    }, []);
 
-    const handleRemoveSet = (exerciseId: string, setId: string) => {
+    const handleRemoveSet = useCallback((exerciseId: string, setId: string) => {
         setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, sets: se.sets.filter(s => s.id !== setId) }
                 : se
         ));
-    };
+    }, []);
 
-    const handleUpdateSet = (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => {
+    const handleUpdateSet = useCallback((exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => {
         setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, sets: se.sets.map(s => s.id === setId ? { ...s, ...updates } : s) }
                 : se
         ));
-    };
+    }, []);
     
-    const handleUpdateExerciseNote = (exerciseId: string, note: string) => {
+    const handleUpdateExerciseNote = useCallback((exerciseId: string, note: string) => {
         setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
                 ? { ...se, note }
                 : se
         ));
-    };
+    }, []);
 
     const handleTemplateChange = (templateId: string) => {
         setSelectedTemplateId(templateId);
@@ -137,10 +222,10 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                 note: te.note,
                 sets: te.sets?.map(s => ({
                     id: Math.random().toString(36).slice(2, 11),
-                    weight: s.weight ?? 0,
-                    reps: s.reps ?? 0,
+                    weight: s.weight,
+                    reps: s.reps,
                     notes: s.notes ?? ''
-                })) ?? [{ id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }]
+                })) ?? [{ id: Math.random().toString(36).slice(2, 11) }]
             }));
             setWorkoutExercises(mappedExercises);
         }
@@ -156,7 +241,7 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
 
             const filteredExercises = sessionExercises.map(se => ({
                 ...se,
-                sets: se.sets.filter(s => s.weight !== undefined && s.reps !== undefined)
+                sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || (s.notes && s.notes.trim() !== ''))
             }));
 
             const entryData: Omit<Workout, 'id' | 'userId'> = {
@@ -176,7 +261,7 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                 await createWorkout(currentUser.uid, entryData);
             }
 
-            void navigate('/journal');
+            void navigate(isEditing ? `/journal/${id ?? ''}` : '/journal');
         } catch (err) {
             console.error('Error saving workout:', err);
             setError(`Failed to save workout: ${err instanceof Error ? err.message : String(err)}`);
@@ -186,25 +271,43 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
     };
 
     if (loading || (exercisesLoading && exercises.length === 0)) return (
-        <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
+        <Box sx={{ mt: 8, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
     );
 
     return (
         <Container maxWidth="lg">
             <Box sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <IconButton onClick={() => navigate(isEditing ? `/journal/${id ?? ''}` : '/journal')} sx={{ mr: 1 }}>
+                        <ArrowBackIcon />
+                    </IconButton>
                     <Typography variant="h4" component="h1">
-                        {readOnly ? 'Workout details' : (isEditing ? 'Edit workout' : 'New workout')}
+                        {isEditing ? 'Edit Workout' : 'New Workout'}
                     </Typography>
                 </Box>
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+                {autoSaveError && <Alert severity="warning" sx={{ mb: 3, py: 0 }}>{autoSaveError}</Alert>}
 
-                <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, }}>
+                <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, position: 'relative' }}>
+                    {isAutoSaving && (
+                        <Box sx={{ position: 'absolute', top: 8, right: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CircularProgress size={12} />
+                            <Typography variant="caption" color="text.secondary">Saving...</Typography>
+                        </Box>
+                    )}
+                    {!isAutoSaving && lastSaved && (
+                        <Box sx={{ position: 'absolute', top: 8, right: 16 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Saved at {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </Typography>
+                        </Box>
+                    )}
                     <form onSubmit={handleSubmit}>
                         <Grid container spacing={3}>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
+                                    variant="filled"
                                     label="Date"
                                     type="date"
                                     fullWidth
@@ -212,35 +315,30 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                                     value={date}
                                     onChange={(e) => { setDate(e.target.value); }}
                                     required
-                                    slotProps={{ 
-                                        inputLabel: { shrink: true },
-                                        input: { readOnly: readOnly }
-                                    }}
+                                    slotProps={{ inputLabel: { shrink: true } }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
+                                    variant="filled"
                                     label="Time"
                                     type="time"
                                     fullWidth
                                     size="small"
                                     value={time}
                                     onChange={(e) => { setTime(e.target.value); }}
-                                    slotProps={{ 
-                                        inputLabel: { shrink: true },
-                                        input: { readOnly: readOnly }
-                                    }}
+                                    slotProps={{ inputLabel: { shrink: true } }}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
                                     select
+                                    variant="filled"
                                     label="Workout Type"
                                     fullWidth
                                     size="small"
                                     value={sessionType}
                                     onChange={(e) => { setWorkoutType(e.target.value as WorkoutType); }}
-                                    slotProps={{ select: { disabled: readOnly } }}
                                 >
                                     {SESSION_TYPES.map((type) => (
                                         <MenuItem key={type} value={type}>
@@ -250,43 +348,52 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                                 </TextField>
                             </Grid>
 
-                            <Grid size={{ xs: 12, sm: 6 }}>
+                            <Grid size={{ xs: 12, sm: 3 }}>
                                 <TextField
+                                    variant="filled"
                                     label="Length (min)"
                                     type="number"
                                     fullWidth
                                     size="small"
                                     value={length}
                                     onChange={(e) => { setLength(e.target.value === '' ? '' : Number(e.target.value)); }}
-                                    slotProps={{ 
-                                        htmlInput: { min: 0 },
-                                        input: { readOnly: readOnly }
-                                    }}
+                                    slotProps={{ htmlInput: { min: 0 } }}
                                 />
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 6 }}>
+                            <Grid size={{ xs: 12, sm: 3 }}>
                                 <TextField
+                                    variant="filled"
                                     label="Max Pulse"
                                     type="number"
                                     fullWidth
                                     size="small"
                                     value={maxPulse}
                                     onChange={(e) => { setMaxPulse(e.target.value === '' ? '' : Number(e.target.value)); }}
-                                    slotProps={{ 
-                                        htmlInput: { min: 0 },
-                                        input: { readOnly: readOnly }
-                                    }}
+                                    slotProps={{ htmlInput: { min: 0 } }}
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    variant="filled"
+                                    label="Notes"
+                                    fullWidth
+                                    size="small"
+                                    value={localComment}
+                                    onChange={(e) => { setLocalComment(e.target.value); }}
+                                    placeholder="Quick notes..."
                                 />
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
                                 <Divider sx={{ my: 2 }} />
-                                <Typography variant="h6" gutterBottom>{readOnly ? 'Exercises' : 'Exercises & Sets'}</Typography>
+                                <Typography variant="h6" gutterBottom>Exercises & Sets</Typography>
                                 <Grid container spacing={2} sx={{ mb: 3 }}>
-                                    {!isEditing && !readOnly && (
+                                    {sessionExercises.length === 0 && (
                                         <Grid size={{ xs: 12, sm: 6 }}>
                                             <TextField
                                                 select
+                                                variant="filled"
                                                 label="Use Template"
                                                 fullWidth
                                                 size="small"
@@ -322,74 +429,46 @@ const WorkoutForm = ({ readOnly = false }: WorkoutFormProps) => {
                                             onUpdateSet={handleUpdateSet}
                                             onRemoveSet={handleRemoveSet}
                                             onUpdateExerciseNote={handleUpdateExerciseNote}
-                                            readOnly={readOnly}
                                         />
                                     );
                                 })}
 
-                                {!readOnly && (
-                                    <Box sx={{ mt: 2 }}>
-                                        <Autocomplete
-                                            key={sessionExercises.length}
-                                            size="small"
-                                            options={exercises.filter(ex => !sessionExercises.find(se => se.exerciseId === ex.id))}
-                                            getOptionLabel={(option) => option.name}
-                                            onChange={(_, newValue) => { handleAddExercise(newValue); }}
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    variant="outlined"
-                                                    label="Add Exercise"
-                                                    placeholder="Search exercises..."
-                                                />
-                                            )}
-                                            value={null}
-                                            sx={{ maxWidth: isEditing ? '100%' : 400 }}
-                                        />
-                                    </Box>
-                                )}
+                                <Box sx={{ mt: 2 }}>
+                                    <Autocomplete
+                                        key={sessionExercises.length}
+                                        size="small"
+                                        options={exercises.filter(ex => !sessionExercises.find(se => se.exerciseId === ex.id))}
+                                        getOptionLabel={(option) => option.name}
+                                        onChange={(_, newValue) => { handleAddExercise(newValue); }}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                variant="filled"
+                                                label="Add Exercise"
+                                                placeholder="Search exercises..."
+                                            />
+                                        )}
+                                        value={null}
+                                        sx={{ maxWidth: isEditing ? '100%' : 400 }}
+                                    />
+                                </Box>
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
-                                <TextField
-                                    label="Notes / Comments"
-                                    multiline
-                                    rows={4}
-                                    fullWidth
-                                    size="small"
-                                    value={comment}
-                                    onChange={(e) => { setComment(e.target.value); }}
-                                    placeholder={readOnly ? "" : "What went well? What needs work?"}
-                                    slotProps={{ input: { readOnly: readOnly } }}
-                                />
-                            </Grid>
-
-                            <Grid size={{ xs: 12 }}>
-                                <Stack sx={{ mt: 3, justifyContent: "flex-end" }} direction="row" spacing={2}>
-                                    <Button variant="outlined" onClick={() => navigate('/journal')}>
-                                        {readOnly ? 'Back' : 'Cancel'}
+                                <Box sx={{ mt: 3, display: 'flex', justifyContent: "flex-end", gap: 2 }}>
+                                    <Button variant="outlined" onClick={() => navigate(isEditing ? `/journal/${id ?? ''}` : '/journal')}>
+                                        Cancel
                                     </Button>
-                                    {readOnly ? (
-                                        <Button 
-                                            variant="contained" 
-                                            color="primary" 
-                                            onClick={() => { void navigate(`/journal/${id ?? ''}/edit`); }}
-                                            sx={{ minWidth: 150 }}
-                                        >
-                                            Edit Workout
-                                        </Button>
-                                    ) : (
-                                        <Button 
-                                            type="submit" 
-                                            variant="contained" 
-                                            color="primary" 
-                                            disabled={submitting}
-                                            sx={{ minWidth: 150 }}
-                                        >
-                                            {submitting ? 'Saving...' : (isEditing ? 'Update Workout' : 'Add Workout')}
-                                        </Button>
-                                    )}
-                                </Stack>
+                                    <Button 
+                                        type="submit" 
+                                        variant="contained" 
+                                        color="primary" 
+                                        disabled={submitting}
+                                        sx={{ minWidth: 150 }}
+                                    >
+                                        {submitting ? 'Saving...' : (isEditing ? 'Update Workout' : 'Add Workout')}
+                                    </Button>
+                                </Box>
                             </Grid>
                         </Grid>
                     </form>

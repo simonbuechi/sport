@@ -19,6 +19,7 @@ const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
 const Journal = lazy(() => import('./pages/Journal'));
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
 const WorkoutForm = lazy(() => import('./pages/WorkoutForm'));
+const WorkoutDetails = lazy(() => import('./pages/WorkoutDetails'));
 const ExerciseHistory = lazy(() => import('./pages/ExerciseHistory'));
 const WeightHistory = lazy(() => import('./pages/BodyHistory'));
 
@@ -48,7 +49,7 @@ function App() {
                     <Route path="journal" element={<Journal />} />
                     <Route path="journal/templates" element={<TemplatesPage />} />
                     <Route path="journal/new" element={<WorkoutForm />} />
-                    <Route path="journal/:id" element={<WorkoutForm readOnly={true} />} />
+                    <Route path="journal/:id" element={<WorkoutDetails />} />
                     <Route path="journal/:id/edit" element={<WorkoutForm />} />
                   </Route>
                 </Route>

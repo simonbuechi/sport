@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { subscribeToWorkouts, subscribeToTemplates } from '../services/db';
 import { useAuth } from './AuthContext';
 import type { Workout, TrainingTemplate } from '../types';
@@ -64,8 +64,10 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         };
     }, [currentUser]);
 
+    const value = useMemo(() => ({ entries, templates, loading, error }), [entries, templates, loading, error]);
+
     return (
-        <WorkoutsContext.Provider value={{ entries, templates, loading, error }}>
+        <WorkoutsContext.Provider value={value}>
             {children}
         </WorkoutsContext.Provider>
     );

@@ -1,23 +1,22 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import Tooltip from '@mui/material/Tooltip';
 
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
 import CommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
+import WorkoutSetItem from './WorkoutSetItem';
 
 import type { WorkoutExercise, Exercise, ExerciseSet } from '../../types';
 
@@ -29,7 +28,6 @@ interface WorkoutExerciseItemProps {
     onUpdateSet: (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => void;
     onRemoveSet: (exerciseId: string, setId: string) => void;
     onUpdateExerciseNote: (exerciseId: string, note: string) => void;
-    readOnly?: boolean;
 }
 
 const WorkoutExerciseItem = ({
@@ -39,8 +37,7 @@ const WorkoutExerciseItem = ({
     onAddSet,
     onUpdateSet,
     onRemoveSet,
-    onUpdateExerciseNote,
-    readOnly = false
+    onUpdateExerciseNote
 }: WorkoutExerciseItemProps) => {
     const [noteEditingSetId, setNoteEditingSetId] = useState<string | null>(null);
     const [isEditingExerciseNote, setIsEditingExerciseNote] = useState(false);
@@ -50,7 +47,7 @@ const WorkoutExerciseItem = ({
     return (
         <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'grey.50', }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: sessionExercise.note ? 0.5 : 2 }}>
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Avatar
                         src={exercise?.icon_url ?
                             `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
@@ -63,27 +60,28 @@ const WorkoutExerciseItem = ({
                     <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                         {exercise?.name ?? 'Unknown Exercise'}
                     </Typography>
-                    <IconButton 
-                        size="small" 
-                        onClick={() => { setIsEditingExerciseNote(true); }} 
-                        color={sessionExercise.note ? "primary" : "default"}
-                        sx={{ ml: 0.5 }}
-                        disabled={readOnly && !sessionExercise.note}
-                    >
-                        <CommentIcon fontSize="small" />
-                    </IconButton>
-                </Stack>
-                {!readOnly && (
+                    <Tooltip title="Add Notes" arrow>
+                        <IconButton
+                            size="small"
+                            onClick={() => { setIsEditingExerciseNote(true); }}
+                            color={sessionExercise.note ? "primary" : "default"}
+                            sx={{ ml: 0.5 }}
+                        >
+                            {sessionExercise.note ? <CommentIcon fontSize="small" /> : <CommentOutlinedIcon fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+                <Tooltip title="Remove Exercise" arrow>
                     <IconButton size="small" onClick={() => { onRemoveExercise(sessionExercise.exerciseId); }} color="error">
                         <CloseIcon fontSize="small" />
                     </IconButton>
-                )}
+                </Tooltip>
             </Box>
             
             {sessionExercise.note && (
-                <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
                     sx={{ mb: 2, pl: 0.5, cursor: 'pointer' }}
                     onClick={() => { setIsEditingExerciseNote(true); }}
                 >
@@ -93,63 +91,23 @@ const WorkoutExerciseItem = ({
             
             <Box sx={{ pl: { xs: 0, sm: 1 } }}>
                 {sessionExercise.sets.map((set, index) => (
-                    <Grid container spacing={1} key={set.id} sx={{ alignItems: "center", mb: 2, flexWrap: "nowrap" }}>
-                        <Grid size="auto" sx={{ minWidth: 24 }}>
-                            <Typography variant="body2" color="text.secondary">{index + 1}</Typography>
-                        </Grid>
-                        <Grid size={4}>
-                            <TextField
-                                label={index === 0 ? "Weight" : ""}
-                                placeholder="kg"
-                                type="number"
-                                size="small"
-                                fullWidth
-                                value={set.weight ?? ''}
-                                onChange={(e) => { onUpdateSet(sessionExercise.exerciseId, set.id, { weight: Number(e.target.value) }); }}
-                                sx={{ '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' } }}
-                                slotProps={{ input: { readOnly: readOnly } }}
-                            />
-                        </Grid>
-                        <Grid size={4}>
-                            <TextField
-                                label={index === 0 ? "Reps" : ""}
-                                placeholder="reps"
-                                type="number"
-                                size="small"
-                                fullWidth
-                                value={set.reps ?? ''}
-                                onChange={(e) => { onUpdateSet(sessionExercise.exerciseId, set.id, { reps: Number(e.target.value) }); }}
-                                sx={{ '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' } }}
-                                slotProps={{ input: { readOnly: readOnly } }}
-                            />
-                        </Grid>
-                        <Grid size="auto">
-                            <IconButton 
-                                size="small" 
-                                onClick={() => { setNoteEditingSetId(set.id); }}
-                                color={set.notes ? "primary" : "default"}
-                            >
-                                {set.notes ? <CommentIcon fontSize="small" /> : <CommentOutlinedIcon fontSize="small" />}
-                            </IconButton>
-                        </Grid>
-                        {!readOnly && (
-                            <Grid size="auto">
-                                <IconButton size="small" onClick={() => { onRemoveSet(sessionExercise.exerciseId, set.id); }} color="error">
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
-                            </Grid>
-                        )}
-                    </Grid>
+                    <WorkoutSetItem
+                        key={set.id}
+                        exerciseId={sessionExercise.exerciseId}
+                        set={set}
+                        index={index}
+                        onUpdateSet={onUpdateSet}
+                        onRemoveSet={onRemoveSet}
+                        onEditNotes={setNoteEditingSetId}
+                    />
                 ))}
-                {!readOnly && (
-                    <Button 
-                        startIcon={<AddIcon />} 
-                        size="small" 
-                        onClick={() => { onAddSet(sessionExercise.exerciseId); }}
-                    >
-                        Add Set
-                    </Button>
-                )}
+                <Button 
+                    startIcon={<AddIcon />} 
+                    size="small" 
+                    onClick={() => { onAddSet(sessionExercise.exerciseId); }}
+                >
+                    Add Set
+                </Button>
             </Box>
 
             {/* Note Modal */}
@@ -162,17 +120,17 @@ const WorkoutExerciseItem = ({
                 <DialogTitle>Set {sessionExercise.sets.findIndex(s => s.id === noteEditingSetId) + 1} Notes</DialogTitle>
                 <DialogContent dividers>
                     <TextField
+                        variant="filled"
                         fullWidth
                         multiline
                         rows={4}
-                        placeholder={readOnly ? "" : "Add notes for this set..."}
+                        placeholder="Add notes for this set..."
                         value={editingSet?.notes ?? ''}
                         onChange={(e) => { 
-                            if (noteEditingSetId && !readOnly) {
+                            if (noteEditingSetId) {
                                 onUpdateSet(sessionExercise.exerciseId, noteEditingSetId, { notes: e.target.value });
                             }
                         }}
-                        slotProps={{ input: { readOnly: readOnly } }}
                     />
                 </DialogContent>
                 <DialogActions>
@@ -190,13 +148,13 @@ const WorkoutExerciseItem = ({
                 <DialogTitle>{exercise?.name ?? 'Exercise'} Notes</DialogTitle>
                 <DialogContent dividers>
                     <TextField
+                        variant="filled"
                         fullWidth
                         multiline
                         rows={4}
-                        placeholder={readOnly ? "" : "General notes for this exercise..."}
+                        placeholder="General notes for this exercise..."
                         value={sessionExercise.note ?? ''}
-                        onChange={(e) => { if (!readOnly) onUpdateExerciseNote(sessionExercise.exerciseId, e.target.value); }}
-                        slotProps={{ input: { readOnly: readOnly } }}
+                        onChange={(e) => { onUpdateExerciseNote(sessionExercise.exerciseId, e.target.value); }}
                     />
                 </DialogContent>
                 <DialogActions>
@@ -207,4 +165,4 @@ const WorkoutExerciseItem = ({
     );
 };
 
-export default WorkoutExerciseItem;
+export default memo(WorkoutExerciseItem);

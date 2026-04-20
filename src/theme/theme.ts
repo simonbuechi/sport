@@ -1,4 +1,4 @@
-import { createTheme, type PaletteMode } from '@mui/material/styles';
+import { createTheme, alpha, type PaletteMode } from '@mui/material/styles';
 
 declare module '@mui/material/Paper' {
     interface PaperPropsVariantOverrides {
@@ -259,6 +259,29 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                     padding: '6px',
                     objectFit: 'contain',
                 },
+            },
+        },
+        MuiFilledInput: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                    borderTopLeftRadius: 8,
+                    borderTopRightRadius: 8,
+                    '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                    },
+                    '&.Mui-focused': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                    },
+                    '&:before': {
+                        borderBottomColor: alpha(theme.palette.primary.main, 0.2),
+                    },
+                }),
+            },
+        },
+        MuiTextField: {
+            defaultProps: {
+                variant: 'filled',
             },
         },
     },

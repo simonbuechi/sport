@@ -11,6 +11,7 @@ import InputLabel from '@mui/material/InputLabel';
 import { useTheme } from '@mui/material/styles';
 import type { Workout } from '../../types';
 import { getChartDefaults, xAxisDateFormatter } from '../../theme/charts';
+import { calculate1RM } from '../../utils/fitness';
 
 interface ExerciseProgressChartProps {
     workouts: Workout[];
@@ -29,17 +30,17 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
             w.exerciseIds.includes(exerciseId) && w.exercises
         );
 
-        // 2. Extract max weight for each workout
+        // 2. Extract max 1RM for each workout
         const dataPoints = relevantWorkouts.map(w => {
             const exerciseData = w.exercises?.find(ex => ex.exerciseId === exerciseId);
-            const maxWeight = exerciseData?.sets.reduce((max, set) => {
-                const w = set.weight || 0;
-                return w > max ? w : max;
-            }, 0) || 0;
+            const max1RM = exerciseData?.sets.reduce((max, set) => {
+                const current1RM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
+                return current1RM > max ? current1RM : max;
+            }, 0) ?? 0;
 
             return {
                 date: new Date(w.date),
-                weight: maxWeight
+                weight: Math.round(max1RM)
             };
         });
 
@@ -57,16 +58,6 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
 
         return sortedData.filter(d => d.date >= cutoff);
     }, [workouts, exerciseId, timeFrame]);
-
-    if (chartData.length < 2) {
-        return (
-            <Paper variant="outlined" sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                    Not enough data points to show progress chart. Log more workouts to see your progress!
-                </Typography>
-            </Paper>
-        );
-    }
 
     const chartDates = chartData.map(d => d.date);
     const chartWeights = chartData.map(d => d.weight);
@@ -103,18 +94,23 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
                         valueFormatter: xAxisDateFormatter,
                     }]}
                     yAxis={[{
-                        min: Math.max(0, Math.min(...chartWeights) - 5),
-                        max: Math.max(...chartWeights) + 5,
+                        min: chartWeights.length > 0 ? Math.max(0, Math.min(...chartWeights) - 5) : 0,
+                        max: chartWeights.length > 0 ? Math.max(...chartWeights) + 5 : 100,
                     }]}
                     series={[{
                         data: chartWeights,
-                        label: 'Max Weight (kg)',
+                        label: 'Max 1RM (kg)',
                         showMark: false,
                         area: true,
                         color: theme.palette.primary.main,
                     }]}
                 />
             </Box>
+            {chartData.length < 2 && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
+                    Not enough data points yet to show progress.
+                </Typography>
+            )}
         </Paper>
     );
 };

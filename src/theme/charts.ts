@@ -53,4 +53,4 @@ export const xAxisDateFormatter = (value: string | number | Date) => {
 /**
  * Standard weight formatter
  */
-export const weightFormatter = (value: number | null) => (value !== null ? `${value}kg` : '');
+export const weightFormatter = (value: number | null) => (value !== null ? `${String(value)}kg` : '');

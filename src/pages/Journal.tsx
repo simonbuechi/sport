@@ -7,8 +7,8 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
-import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
+import Grid from '@mui/material/Grid';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -26,16 +26,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
-import { deleteWorkout } from '../services/db';
+import { deleteWorkout, createWorkout } from '../services/db';
 import type { Workout, Exercise, WorkoutType } from '../types';
 import WorkoutItem from '../components/journal/WorkoutItem';
+
+const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
 
 const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, loading: sessionsLoading } = useWorkouts();
+    const { entries, templates, loading: sessionsLoading } = useWorkouts();
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
@@ -49,6 +51,16 @@ const Journal = () => {
     // Infinite Scroll State
     const observer = useRef<IntersectionObserver | null>(null);
     const [displayCount, setDisplayCount] = useState(10);
+
+    // Add Workout Dialog State
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [newWorkoutData, setNewWorkoutData] = useState({
+        date: new Date().toISOString().split('T')[0],
+        time: `${new Date().getHours().toString().padStart(2, '0')}:00`,
+        sessionType: 'strength' as WorkoutType,
+        templateId: ''
+    });
 
     const handleEditClick = useCallback((entry: Workout) => {
         void navigate(`/journal/${entry.id}/edit`);
@@ -69,6 +81,40 @@ const Journal = () => {
             setEntryToDelete(null);
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleAddWorkout = async () => {
+        if (!currentUser) return;
+        
+        try {
+            setSubmitting(true);
+            const template = templates.find(t => t.id === newWorkoutData.templateId);
+            const workoutData: Omit<Workout, 'id' | 'userId'> = {
+                date: newWorkoutData.date,
+                time: newWorkoutData.time,
+                sessionType: newWorkoutData.sessionType,
+                comment: template ? `Template: ${template.name}` : '',
+                exerciseIds: template ? template.exercises.map(e => e.exerciseId) : [],
+                exercises: template ? template.exercises.map(te => ({
+                    exerciseId: te.exerciseId,
+                    note: te.note,
+                    sets: te.sets?.map(s => ({
+                        id: Math.random().toString(36).slice(2, 11),
+                        weight: s.weight ?? 0,
+                        reps: s.reps ?? 0,
+                        notes: s.notes ?? ''
+                    })) ?? [{ id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 0 }]
+                })) : []
+            };
+
+            const newId = await createWorkout(currentUser.uid, workoutData);
+            setAddDialogOpen(false);
+            void navigate(`/journal/${newId}/edit`);
+        } catch (err) {
+            console.error('Error creating workout:', err);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -144,7 +190,15 @@ const Journal = () => {
                         variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
-                        onClick={() => navigate('/journal/new')}
+                        onClick={() => {
+                            setNewWorkoutData({
+                                date: new Date().toISOString().split('T')[0],
+                                time: `${new Date().getHours().toString().padStart(2, '0')}:00`,
+                                sessionType: 'strength' as WorkoutType,
+                                templateId: ''
+                            });
+                            setAddDialogOpen(true);
+                        }}
                     >
                         Workout
                     </Button>
@@ -260,6 +314,86 @@ const Journal = () => {
                     <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
                     <Button onClick={confirmDelete} color="error" variant="contained">
                         Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Add Workout Dialog */}
+            <Dialog open={addDialogOpen} onClose={() => { if (!submitting) setAddDialogOpen(false); }} maxWidth="xs" fullWidth>
+                <DialogTitle>Add Workout</DialogTitle>
+                <DialogContent>
+                    <Grid container spacing={2} sx={{ mt: 1 }}>
+                        <Grid size={{ xs: 6 }}>
+                            <TextField
+                                label="Date"
+                                type="date"
+                                fullWidth
+                                size="small"
+                                value={newWorkoutData.date}
+                                onChange={(e) => { setNewWorkoutData(prev => ({ ...prev, date: e.target.value })); }}
+                                slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 6 }}>
+                            <TextField
+                                label="Time"
+                                type="time"
+                                fullWidth
+                                size="small"
+                                value={newWorkoutData.time}
+                                onChange={(e) => { setNewWorkoutData(prev => ({ ...prev, time: e.target.value })); }}
+                                slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Workout Type</InputLabel>
+                                <Select
+                                    value={newWorkoutData.sessionType}
+                                    label="Workout Type"
+                                    onChange={(e) => { setNewWorkoutData(prev => ({ ...prev, sessionType: e.target.value as WorkoutType })); }}
+                                >
+                                    {SESSION_TYPES.map((type) => (
+                                        <MenuItem key={type} value={type}>
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Template</InputLabel>
+                                <Select
+                                    value={newWorkoutData.templateId}
+                                    label="Template"
+                                    onChange={(e) => { setNewWorkoutData(prev => ({ ...prev, templateId: e.target.value })); }}
+                                >
+                                    <MenuItem value=""><em>None</em></MenuItem>
+                                    {templates.sort((a, b) => {
+                                        if (a.isFavorite && !b.isFavorite) return -1;
+                                        if (!a.isFavorite && b.isFavorite) return 1;
+                                        return a.name.localeCompare(b.name);
+                                    }).map((t) => (
+                                        <MenuItem key={t.id} value={t.id}>
+                                            {t.isFavorite && '★ '}{t.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                    <Button onClick={() => { setAddDialogOpen(false); }} disabled={submitting}>Cancel</Button>
+                    <Button 
+                        onClick={handleAddWorkout} 
+                        variant="contained" 
+                        color="primary" 
+                        disabled={submitting}
+                        sx={{ minWidth: 120 }}
+                    >
+                        {submitting ? <CircularProgress size={24} /> : 'Add Workout'}
                     </Button>
                 </DialogActions>
             </Dialog>

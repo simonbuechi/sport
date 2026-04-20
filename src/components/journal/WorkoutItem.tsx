@@ -11,8 +11,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import type { Workout, Exercise } from '../../types';
+import { formatWeight, formatCount } from '../../utils/format';
 
 interface WorkoutItemProps {
     entry: Workout;
@@ -21,11 +22,11 @@ interface WorkoutItemProps {
     onDelete: (id: string) => void;
 }
 
-const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({ 
-    entry, 
-    exerciseMap, 
-    onEdit, 
-    onDelete 
+const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
+    entry,
+    exerciseMap,
+    onEdit,
+    onDelete
 }, ref) => {
     const navigate = useNavigate();
     const [expanded, setExpanded] = useState(false);
@@ -37,10 +38,10 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
             variant="outlined"
             sx={{ mb: 2, p: { xs: 1.5, md: 3 } }}
         >
-            <Stack 
+            <Stack
                 direction="row"
                 sx={{
-                    justifyContent: "space-between", 
+                    justifyContent: "space-between",
                     mb: 1,
                     cursor: 'pointer',
                     '&:hover': {
@@ -54,14 +55,6 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                         {entry.time && ` • ${entry.time}`}
                     </Typography>
-                    {entry.sessionType && (
-                        <Chip 
-                            size="small" 
-                            label={entry.sessionType.charAt(0).toUpperCase() + entry.sessionType.slice(1)} 
-                            color="primary" 
-                            variant="outlined" 
-                        />
-                    )}
                 </Stack>
                 <Stack
                     direction="row"
@@ -80,18 +73,46 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                 </Stack>
             </Stack>
 
-            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
-                {entry.length && (
-                    <Chip size="small" label={`${String(entry.length)} min`} variant="outlined" />
-                )}
-                {entry.maxPulse && (
-                    <Chip size="small" label={`Max Pulse: ${String(entry.maxPulse)}`} variant="outlined" color="secondary" />
-                )}
-            </Stack>
+            {!expanded && entry.exercises && entry.exercises.length > 0 && (
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
+                    {(() => {
+                        const numEx = entry.exercises.length;
+                        const totalSets = entry.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+                        const totalReps = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + (s.reps ?? 0), 0), 0);
+                        const totalVolume = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + ((s.weight ?? 0) * (s.reps ?? 0)), 0), 0);
+                        
+                        return (
+                            <>
+                                <Chip size="small" label={`${String(numEx)} exercises`} variant="outlined" color="primary" />
+                                <Chip size="small" label={`${formatCount(totalSets)} sets`} variant="outlined" color="primary" />
+                                <Chip size="small" label={`${formatCount(totalReps)} reps`} variant="outlined" color="primary" />
+                                <Chip size="small" label={`${formatWeight(totalVolume)} kg`} variant="outlined" color="primary" sx={{ fontWeight: 'bold' }} />
+                            </>
+                        );
+                    })()}
+                </Stack>
+            )}
+
+            {expanded && (
+                <Box sx={{ mb: 2, mt: -0.5 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        {[
+                            entry.sessionType ? entry.sessionType.charAt(0).toUpperCase() + entry.sessionType.slice(1) : null,
+                            entry.length ? `${String(entry.length)} min` : null,
+                            entry.maxPulse ? `Max Pulse: ${String(entry.maxPulse)}` : null
+                        ].filter(Boolean).join(' • ')}
+                    </Typography>
+                    {entry.comment && (
+                        <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-line' }}>
+                            {entry.comment}
+                        </Typography>
+                    )}
+                </Box>
+            )}
 
             <Collapse in={expanded}>
                 {entry.exercises && entry.exercises.length > 0 && (
-                    <Box sx={{ mb: 2, mt: 1 }}>
+                    <Box sx={{ mb: 1, mt: 1 }}>
                         {entry.exercises.map((se) => {
                             const exercise = exerciseMap[se.exerciseId];
                             return (
@@ -105,31 +126,55 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                                             sx={{
                                                 width: 32,
                                                 height: 32,
-                                                fontSize: '0.875rem'
+                                                fontSize: '0.875rem',
+                                                cursor: exercise ? 'pointer' : 'default',
+                                                '&:hover': { opacity: 0.8 }
                                             }}
+                                            component={exercise ? RouterLink : 'div'}
+                                            to={exercise ? `/exercises/${exercise.id}` : undefined}
                                         >
                                             {(exercise?.name ?? 'U').charAt(0)}
                                         </Avatar>
-                                        <Typography variant="subtitle2" color="primary" sx={{ fontWeight: "bold" }}>
-                                            {exercise?.name ?? 'Unknown Exercise'}
-                                        </Typography>
-                                    </Stack>
-                                    <Stack spacing={1} sx={{ flexWrap: "wrap", mt: 0.5 }}>
-                                        {se.sets.map((set, idx) => (
-                                            <Typography key={set.id} variant="body2" sx={{ bgcolor: 'white', px: 1, py: 0.5, border: '1px solid', borderColor: 'grey.300' }}>
-                                                Set {idx + 1}: {set.weight}kg x {set.reps} {set.notes && `(${set.notes})`}
+                                        <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                                            <Typography
+                                                variant="subtitle2"
+                                                color="primary"
+                                                sx={{
+                                                    fontWeight: "bold",
+                                                    textDecoration: 'none',
+                                                    '&:hover': { textDecoration: exercise ? 'underline' : 'none' },
+                                                    cursor: exercise ? 'pointer' : 'default'
+                                                }}
+                                                component={exercise ? RouterLink : 'div'}
+                                                to={exercise ? `/exercises/${exercise.id}` : undefined}
+                                            >
+                                                {exercise?.name ?? 'Unknown Exercise'}
                                             </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {(() => {
+                                                    const sets = se.sets.length;
+                                                    const reps = se.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+                                                    const volume = se.sets.reduce((sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), 0);
+                                                    return `${String(sets)} sets, ${String(reps)} reps, ${String(volume)} kg`;
+                                                })()}
+                                            </Typography>
+                                        </Stack>
+                                    </Stack>
+                                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mt: 1 }}>
+                                        {se.sets.map((set, idx) => (
+                                            <Chip
+                                                key={set.id}
+                                                size="small"
+                                                variant="outlined"
+                                                color="primary"
+                                                label={`S${String(idx + 1)}: ${String(set.weight)}kg × ${String(set.reps)}${set.notes ? ` (${set.notes})` : ''}`}
+                                            />
                                         ))}
                                     </Stack>
                                 </Box>
                             );
                         })}
                     </Box>
-                )}
-                {entry.comment && (
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mt: 1 }}>
-                        {entry.comment}
-                    </Typography>
                 )}
             </Collapse>
         </Paper>

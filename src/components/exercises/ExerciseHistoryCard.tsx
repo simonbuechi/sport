@@ -9,6 +9,8 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import EventNote from '@mui/icons-material/EventNote';
 import type { Workout } from '../../types';
+import { calculate1RM } from '../../utils/fitness';
+import { formatWeight, formatCount } from '../../utils/format';
 
 interface ExerciseHistoryCardProps {
     workouts: Workout[];
@@ -46,21 +48,25 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                         >
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                                 <EventNote fontSize="small" color="primary" />
-                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flexGrow: 1 }}>
+                                <Typography variant="body2" sx={{ flexGrow: 1 }}>
                                     {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                 </Typography>
                             </Stack>
 
                             <Box sx={{ ml: 3.5 }}>
                                 {exerciseData && (
-                                    <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                                        {exerciseData.sets.map((set, idx) => (
-                                            <Typography key={set.id} variant="caption" sx={{ display: 'block' }}>
-                                                Set {idx + 1}: {set.weight}kg x {set.reps}
-                                                {set.notes && <Typography component="span" variant="caption" sx={{ fontStyle: 'italic', ml: 1, color: 'text.secondary' }}>- {set.notes}</Typography>}
-                                            </Typography>
-                                        ))}
-                                    </Stack>
+                                    <Typography variant="body2">
+                                        {(() => {
+                                            const totalReps = exerciseData.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+                                            const totalVolume = exerciseData.sets.reduce((sum, s) => sum + ((s.weight || 0) * (s.reps || 0)), 0);
+                                            const max1RM = exerciseData.sets.reduce((max, s) => {
+                                                const current1RM = calculate1RM(s.weight || 0, s.reps || 0);
+                                                return current1RM > max ? current1RM : max;
+                                            }, 0);
+
+                                            return `1RM: ${formatWeight(Math.round(max1RM))}kg, Reps: ${formatCount(totalReps)}, Volume: ${formatWeight(totalVolume)}kg`;
+                                        })()}
+                                    </Typography>
                                 )}
                             </Box>
                         </ListItem>

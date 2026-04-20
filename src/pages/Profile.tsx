@@ -17,16 +17,16 @@ import IconButton from '@mui/material/IconButton';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
-import Favorite from '@mui/icons-material/Favorite';
+import Star from '@mui/icons-material/Star';
 import Close from '@mui/icons-material/Close';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
-import Person from '@mui/icons-material/Person';
-import BarChart from '@mui/icons-material/BarChart';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import History from '@mui/icons-material/History';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile, createUserProfile } from '../services/db';
 import { useExercises } from '../context/ExercisesContext';
+import { useWorkouts } from '../context/WorkoutsContext';
 import { lazy, Suspense } from 'react';
 import type { UserProfile, Exercise, WeightEntry, MeasurementEntry } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
@@ -72,29 +72,32 @@ const Profile = () => {
     });
 
     const [activeTab, setActiveTab] = useState(0);
-    const [searchParams, setSearchParams] = useSearchParams();
+    const { pathname } = useLocation();
 
-    // Sync tab with URL parameter
+    // Sync tab with URL path
     useEffect(() => {
-        const tab = searchParams.get('tab');
-        if (tab === 'stats') setActiveTab(1);
+        if (pathname === '/profile/body') setActiveTab(1);
+        else if (pathname === '/profile/stats') setActiveTab(2);
         else setActiveTab(0);
-    }, [searchParams]);
+    }, [pathname]);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
-        // Update URL when tab changes manually
-        if (newValue === 1) setSearchParams({ tab: 'stats' });
-        else setSearchParams({});
+        // Update URL path when tab changes
+        if (newValue === 1) void navigate('/profile/body');
+        else if (newValue === 2) void navigate('/profile/stats');
+        else void navigate('/profile');
     };
 
     const { exercises } = useExercises();
+    const { entries: workouts } = useWorkouts();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [favoritesExpanded, setFavoritesExpanded] = useState(true);
+    const [usedExpanded, setUsedExpanded] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -188,6 +191,9 @@ const Profile = () => {
 
     const favoriteTechs = getMarkedExercises('favorite');
 
+    const usedExerciseIds = new Set(workouts.flatMap(w => w.exerciseIds));
+    const usedExercises = exercises.filter(ex => usedExerciseIds.has(ex.id)).sort((a, b) => a.name.localeCompare(b.name));
+
     return (
         <Container maxWidth="lg">
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: { xs: 1, md: 2 } }}>
@@ -200,21 +206,36 @@ const Profile = () => {
                     textColor="primary"
                 >
                     <Tab 
-                        icon={<Person />} 
-                        iconPosition="start" 
                         label="Profile" 
                         sx={{ 
                             minHeight: 48,
                             textTransform: 'none',
+                            '&.Mui-selected': {
+                                bgcolor: 'action.selected',
+                                borderRadius: '8px 8px 0 0',
+                            }
                         }} 
                     />
                     <Tab 
-                        icon={<BarChart />} 
-                        iconPosition="start" 
+                        label="Body" 
+                        sx={{ 
+                            minHeight: 48,
+                            textTransform: 'none',
+                            '&.Mui-selected': {
+                                bgcolor: 'action.selected',
+                                borderRadius: '8px 8px 0 0',
+                            }
+                        }} 
+                    />
+                    <Tab 
                         label="Stats" 
                         sx={{ 
                             minHeight: 48,
                             textTransform: 'none',
+                            '&.Mui-selected': {
+                                bgcolor: 'action.selected',
+                                borderRadius: '8px 8px 0 0',
+                            }
                         }} 
                     />
                 </Tabs>
@@ -224,31 +245,44 @@ const Profile = () => {
             <CustomTabPanel value={activeTab} index={0}>
                 <Grid container spacing={4}>
                     <Grid size={12}>
-                        <Stack
-                            direction={{ xs: "column", sm: "row" }}
+                        <Grid 
+                            container 
+                            sx={{ 
+                                alignItems: { xs: "flex-start", sm: "center" }, 
+                                justifyContent: "space-between", 
+                                mt: { xs: 1, md: 2 },
+                                mb: { xs: 2, md: 4 } 
+                            }}
                             spacing={2}
-                            sx={{ alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", mt: { xs: 1, md: 2 },
-                                mb: { xs: 2, md: 4 } }}>
-                            <Typography variant="h4" component="h1">
-                                Profile
-                            </Typography>
-                            <Stack spacing={1.5}>
-                                <Button
-                                    variant="contained"
-                                    startIcon={<Edit />}
-                                    onClick={() => { setIsEditDialogOpen(true); }}
-                                >
-                                    Edit
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    onClick={handleLogout}
-                                    startIcon={<Logout />}
-                                >
-                                    Logout
-                                </Button>
-                            </Stack>
-                        </Stack>
+                        >
+                            <Grid>
+                                <Typography variant="h4" component="h1">
+                                    Profile
+                                </Typography>
+                            </Grid>
+                            <Grid>
+                                <Grid container spacing={1.5}>
+                                    <Grid>
+                                        <Button
+                                            variant="contained"
+                                            startIcon={<Edit />}
+                                            onClick={() => { setIsEditDialogOpen(true); }}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </Grid>
+                                    <Grid>
+                                        <Button
+                                            variant="outlined"
+                                            onClick={handleLogout}
+                                            startIcon={<Logout />}
+                                        >
+                                            Logout
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Grid>
                     </Grid>
                     <Grid size={{ xs: 12, md: 7 }}>
                         <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, }}>
@@ -310,15 +344,26 @@ const Profile = () => {
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 5 }}>
-                        <Stack spacing={3} sx={{ position: "sticky", top: 24 }}>
-                            <ExerciseListSection
-                                icon={<Favorite color="primary" sx={{ mr: 1 }} />}
-                                title="Favorites"
-                                techniques={favoriteTechs}
-                                expanded={favoritesExpanded}
-                                onToggle={() => { setFavoritesExpanded(!favoritesExpanded); }}
-                            />
-                        </Stack>
+                        <Grid container spacing={3}>
+                            <Grid size={12}>
+                                <ExerciseListSection
+                                    icon={<Star color="warning" sx={{ mr: 1 }} />}
+                                    title="Favorites"
+                                    techniques={favoriteTechs}
+                                    expanded={favoritesExpanded}
+                                    onToggle={() => { setFavoritesExpanded(!favoritesExpanded); }}
+                                />
+                            </Grid>
+                            <Grid size={12}>
+                                <ExerciseListSection
+                                    icon={<History color="action" sx={{ mr: 1 }} />}
+                                    title="Used Exercises"
+                                    techniques={usedExercises}
+                                    expanded={usedExpanded}
+                                    onToggle={() => { setUsedExpanded(!usedExpanded); }}
+                                />
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </Grid>
             </CustomTabPanel>
@@ -339,6 +384,11 @@ const Profile = () => {
                         </Grid>
                     </Grid>
                 </Suspense>
+            </CustomTabPanel>
+            <CustomTabPanel value={activeTab} index={2}>
+                <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', mt: 4 }}>
+                    <Typography color="text.secondary">Detailed analytics and progress stats coming soon!</Typography>
+                </Paper>
             </CustomTabPanel>
             <Dialog
                 open={isEditDialogOpen}

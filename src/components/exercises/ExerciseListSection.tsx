@@ -6,12 +6,10 @@ import ListItem from '@mui/material/ListItem';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
-import Divider from '@mui/material/Divider';
 
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { Link as RouterLink } from 'react-router-dom';
-import LinkIcon from '@mui/icons-material/Link';
 import type { Exercise } from '../../types';
 import type { ReactNode } from 'react';
 
@@ -48,9 +46,8 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
             </Box>
             <Collapse in={expanded}>
                 <Box sx={{
-                    mt: 2
+                    mt: 1
                 }}>
-                    <Divider sx={{ mb: 2 }} />
                     {techniques.length === 0 ? (
                         <Typography variant="body2" sx={{
                             color: "text.secondary"
@@ -90,7 +87,6 @@ const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: Ex
                                     <Typography variant="body2" sx={{ mr: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {tech.name}
                                     </Typography>
-                                    {tech.links && tech.links.length > 0 && <LinkIcon sx={{ fontSize: 14, color: 'text.secondary', ml: 'auto' }} />}
                                 </ListItem>
                             ))}
                         </List>

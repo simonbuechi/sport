@@ -45,6 +45,9 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
         warning: {
             main: mode === 'dark' ? THEME_COLORS.dark.warning : THEME_COLORS.light.warning,
         },
+        error: {
+            main: '#757575',
+        },
     },
     typography: {
         fontSize: 12, // Default is 14px. Adjust this to globally change font size.

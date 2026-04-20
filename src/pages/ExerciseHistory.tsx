@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
@@ -15,12 +14,12 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
-import Tooltip from '@mui/material/Tooltip';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getWorkouts } from '../services/db';
 import type { Workout } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
+import { calculate1RM } from '../utils/fitness';
+import { formatWeight, formatCount } from '../utils/format';
 
 const ExerciseHistory = () => {
     const { id } = useParams<{ id: string }>();
@@ -109,23 +108,20 @@ const ExerciseHistory = () => {
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ verticalAlign: 'top', pt: 1.5 }}>
-                                            <Stack spacing={0.5}>
-                                                {exerciseData.sets.map((set, idx) => (
-                                                    <Box key={set.id} sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                                                        <Typography variant="body2">
-                                                            <Box component="span" sx={{ color: 'text.secondary', mr: 0.5 }}>
-                                                                {idx + 1}.
-                                                            </Box>
-                                                            {set.weight}kg × {set.reps}
-                                                        </Typography>
-                                                        {set.notes && (
-                                                            <Tooltip title={set.notes} arrow placement="top">
-                                                                <InfoOutlinedIcon sx={{ fontSize: 16, color: 'text.secondary', ml: 0.5, cursor: 'help' }} />
-                                                            </Tooltip>
-                                                        )}
-                                                    </Box>
-                                                ))}
-                                            </Stack>
+                                            {(() => {
+                                                const totalReps = exerciseData.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+                                                const totalVolume = exerciseData.sets.reduce((sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), 0);
+                                                const max1RM = exerciseData.sets.reduce((max, s) => {
+                                                    const current1RM = calculate1RM(s.weight ?? 0, s.reps ?? 0);
+                                                    return current1RM > max ? current1RM : max;
+                                                }, 0);
+
+                                                return (
+                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                        1RM: {formatWeight(Math.round(max1RM))}kg, Reps: {formatCount(totalReps)}, Volume: {formatWeight(totalVolume)}kg
+                                                    </Typography>
+                                                );
+                                            })()}
                                         </TableCell>
                                         <TableCell align="right" sx={{ verticalAlign: 'middle' }}>
                                             <IconButton size="small" color="primary">

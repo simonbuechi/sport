@@ -2,19 +2,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Allow anyone to read and write exercises (so the "Add Sample Data" works for you right now)
+    // Allow anyone to read exercises, but only the admin can modify them
     match /exercises/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == 'Ib3y7vFU94QZbgbXB7flrrHGbtk1';
     }
     
     // Allow users to read and write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       
-      // Allow public reads to the activities subcollection for the API
+      // Workout activities are private to the user
       match /activities/{document=**} {
-        allow read: if true;
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
       match /templates/{document=**} {

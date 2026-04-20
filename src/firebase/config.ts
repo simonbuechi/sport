@@ -4,13 +4,13 @@ import { getFirestore, initializeFirestore, persistentLocalCache, connectFiresto
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA_extiKYUhQ4sAi705Jo6DCXAejxXCgqA",
-  authDomain: "sport-e35a2.firebaseapp.com",
-  projectId: "sport-e35a2",
-  storageBucket: "sport-e35a2.firebasestorage.app",
-  messagingSenderId: "398990731473",
-  appId: "1:398990731473:web:91579ca19a65679d8bbdf0",
-  measurementId: "G-9Q7XSSH558"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

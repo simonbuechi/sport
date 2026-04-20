@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import PageLoader from '../components/common/PageLoader';
 import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -7,7 +8,6 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -40,7 +40,7 @@ const WorkoutDetails = () => {
     const { exercises, loading: exercisesLoading } = useExercises();
     const { entries, loading: sessionsLoading } = useWorkouts();
 
-    const workout = useMemo(() => entries.find(e => e.id === id) || null, [entries, id]);
+    const workout = useMemo(() => entries.find(e => e.id === id) ?? null, [entries, id]);
     const error = useMemo(() => {
         if (!currentUser || sessionsLoading) return '';
         return !workout ? 'Workout not found' : '';
@@ -92,13 +92,7 @@ const WorkoutDetails = () => {
     }, [workout, entries, id]);
 
     if (loading || (exercisesLoading && exercises.length === 0)) {
-        return (
-            <Container maxWidth="lg">
-                <Box sx={{ mt: 8, display: 'flex', justifyContent: 'center' }}>
-                    <CircularProgress />
-                </Box>
-            </Container>
-        );
+        return <PageLoader />;
     }
 
     if (error || !workout || !stats) {
@@ -135,7 +129,7 @@ const WorkoutDetails = () => {
                     <Button
                         variant="contained"
                         startIcon={<EditIcon />}
-                        onClick={() => navigate(`/journal/${id}/edit`)}
+                        onClick={() => navigate(`/journal/${id ?? ''}/edit`)}
                     >
                         Edit
                     </Button>
@@ -151,7 +145,7 @@ const WorkoutDetails = () => {
                                     <Typography variant="caption" color="text.secondary">Date & Time</Typography>
                                     <Typography variant="body1">
                                         {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                        {workout.time && ` at ${workout.time}`}
+                                        {workout.time && ` at ${workout.time ?? ''}`}
                                     </Typography>
                                 </Grid>
                                 <Grid size={12}>
@@ -253,7 +247,7 @@ const WorkoutDetails = () => {
                                                     </ListItemAvatar>
                                                     <ListItemText 
                                                         primary={<Typography variant="h6">{exercise?.name ?? 'Unknown Exercise'}</Typography>}
-                                                        secondary={`Volume: ${formatNumber(exStats.volume)} kg • Reps: ${exStats.reps}`}
+                                                        secondary={`Volume: ${formatNumber(exStats.volume)} kg • Reps: ${String(exStats.reps)}`}
                                                     />
                                                 </ListItem>
                                             </List>
@@ -302,7 +296,7 @@ const WorkoutDetails = () => {
                                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                                             <Typography variant="body1" sx={{ fontWeight: isPR ? 'bold' : 'normal', color: isPR ? 'primary.main' : 'inherit' }}>
                                                                                 <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>1RM:</Box>
-                                                                                {oneRM > 0 ? `${String(formatNumber(oneRM, 1))} kg` : '-'}
+                                                                                {oneRM > 0 ? `${formatNumber(oneRM, 1)} kg` : '-'}
                                                                             </Typography>
                                                                             {isPR && (
                                                                                 <Tooltip title="New All-Time Personal Record!">

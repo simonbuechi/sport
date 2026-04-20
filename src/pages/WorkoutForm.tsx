@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -21,6 +21,7 @@ import { useWorkouts } from '../context/WorkoutsContext';
 import { createWorkout, updateWorkout } from '../services/db';
 import type { Workout, Exercise, WorkoutType, WorkoutExercise, ExerciseSet } from '../types';
 import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
+import PageLoader from '../components/common/PageLoader';
 
 const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
@@ -231,6 +232,32 @@ const WorkoutForm = () => {
         }
     };
 
+    const previousExercisesMap = useMemo<Record<string, WorkoutExercise>>(() => {
+        if (sessionsLoading || !entries.length) return {};
+        
+        const map: Record<string, WorkoutExercise> = {};
+        const currentDateTime = new Date(`${date}T${time || '00:00'}`).getTime();
+        
+        sessionExercises.forEach(se => {
+            const exerciseId = se.exerciseId;
+            // Since entries are already sorted by date desc, the first one we find in the past is the most recent
+            const prevWorkout = entries.find(e => 
+                e.id !== id && 
+                e.exerciseIds.includes(exerciseId) && 
+                new Date(`${e.date}T${e.time ?? '00:00'}`).getTime() < currentDateTime
+            );
+                
+            if (prevWorkout) {
+                const prevEx = prevWorkout.exercises?.find(ex => ex.exerciseId === exerciseId);
+                if (prevEx) {
+                    map[exerciseId] = prevEx;
+                }
+            }
+        });
+        
+        return map;
+    }, [entries, sessionsLoading, date, time, id, sessionExercises]);
+
     const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!currentUser) return;
@@ -271,7 +298,7 @@ const WorkoutForm = () => {
     };
 
     if (loading || (exercisesLoading && exercises.length === 0)) return (
-        <Box sx={{ mt: 8, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
+        <PageLoader />
     );
 
     return (
@@ -429,6 +456,7 @@ const WorkoutForm = () => {
                                             onUpdateSet={handleUpdateSet}
                                             onRemoveSet={handleRemoveSet}
                                             onUpdateExerciseNote={handleUpdateExerciseNote}
+                                            previousExercise={previousExercisesMap[se.exerciseId]}
                                         />
                                     );
                                 })}

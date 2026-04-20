@@ -3,7 +3,6 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
@@ -21,6 +20,11 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddIcon from '@mui/icons-material/Add';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +33,7 @@ import { useWorkouts } from '../context/WorkoutsContext';
 import { deleteWorkout, createWorkout } from '../services/db';
 import type { Workout, Exercise, WorkoutType } from '../types';
 import WorkoutItem from '../components/journal/WorkoutItem';
+import PageLoader from '../components/common/PageLoader';
 
 const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
@@ -50,7 +55,7 @@ const Journal = () => {
 
     // Infinite Scroll State
     const observer = useRef<IntersectionObserver | null>(null);
-    const [displayCount, setDisplayCount] = useState(10);
+    const [displayCount, setDisplayCount] = useState(5);
 
     // Add Workout Dialog State
     const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -86,7 +91,7 @@ const Journal = () => {
 
     const handleAddWorkout = async () => {
         if (!currentUser) return;
-        
+
         try {
             setSubmitting(true);
             const template = templates.find(t => t.id === newWorkoutData.templateId);
@@ -145,7 +150,7 @@ const Journal = () => {
 
         observer.current = new IntersectionObserver(obsEntries => {
             if (obsEntries[obsEntries.length - 1].isIntersecting && displayCount < filteredAndSortedEntries.length) {
-                setDisplayCount(prev => prev + 10);
+                setDisplayCount(prev => prev + 5);
             }
         });
 
@@ -166,9 +171,7 @@ const Journal = () => {
     const isLoading = (sessionsLoading && entries.length === 0) || (exercisesLoading && exercises.length === 0);
 
     if (isLoading) return (
-        <Stack sx={{ mt: 8 }}>
-            <CircularProgress />
-        </Stack>
+        <PageLoader />
     );
 
     return (
@@ -206,61 +209,82 @@ const Journal = () => {
             </Stack>
 
             {/* Filter and Sort Bar */}
-            <Paper variant="section" elevation={0} sx={{ bgcolor: 'background.default' }}>
-                <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
-                        <InputLabel id="type-filter-label">Workout Type</InputLabel>
-                        <Select
-                            labelId="type-filter-label"
-                            id="type-filter"
-                            value={typeFilter}
-                            label="Workout Type"
-                            onChange={(e) => { setTypeFilter(e.target.value as WorkoutType | 'all'); }}
-                            sx={{ textTransform: 'capitalize' }}
-                        >
-                            <MenuItem value="all">All Types</MenuItem>
-                            <MenuItem value="strength" sx={{ textTransform: 'capitalize' }}>Strength</MenuItem>
-                            <MenuItem value="cardio" sx={{ textTransform: 'capitalize' }}>Cardio</MenuItem>
-                            <MenuItem value="flexibility" sx={{ textTransform: 'capitalize' }}>Flexibility</MenuItem>
-                            <MenuItem value="other" sx={{ textTransform: 'capitalize' }}>Other</MenuItem>
-                        </Select>
-                    </FormControl>
+            <Accordion
+                elevation={0}
+                sx={{
+                    bgcolor: 'background.default',
+                    mb: 3,
+                    '&:before': { display: 'none' },
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '8px !important'
+                }}
+            >
+                <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    sx={{ px: 2 }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <FilterListIcon color="primary" fontSize="small" />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Filters & Sorting</Typography>
+                    </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0, pb: 2, px: 2 }}>
+                    <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
+                            <InputLabel id="type-filter-label">Workout Type</InputLabel>
+                            <Select
+                                labelId="type-filter-label"
+                                id="type-filter"
+                                value={typeFilter}
+                                label="Workout Type"
+                                onChange={(e) => { setTypeFilter(e.target.value as WorkoutType | 'all'); }}
+                                sx={{ textTransform: 'capitalize' }}
+                            >
+                                <MenuItem value="all">All Types</MenuItem>
+                                <MenuItem value="strength" sx={{ textTransform: 'capitalize' }}>Strength</MenuItem>
+                                <MenuItem value="cardio" sx={{ textTransform: 'capitalize' }}>Cardio</MenuItem>
+                                <MenuItem value="flexibility" sx={{ textTransform: 'capitalize' }}>Flexibility</MenuItem>
+                                <MenuItem value="other" sx={{ textTransform: 'capitalize' }}>Other</MenuItem>
+                            </Select>
+                        </FormControl>
 
-                    <TextField
-                        label="From"
-                        type="date"
-                        size="small"
-                        value={startDate}
-                        onChange={(e) => { setStartDate(e.target.value); }}
-                        sx={{ minWidth: { xs: '100%', md: 150 } }}
-                        slotProps={{ inputLabel: { shrink: true } }}
-                    />
+                        <TextField
+                            label="From"
+                            type="date"
+                            size="small"
+                            value={startDate}
+                            onChange={(e) => { setStartDate(e.target.value); }}
+                            sx={{ minWidth: { xs: '100%', md: 150 } }}
+                            slotProps={{ inputLabel: { shrink: true } }}
+                        />
 
-                    <TextField
-                        label="To"
-                        type="date"
-                        size="small"
-                        value={endDate}
-                        onChange={(e) => { setEndDate(e.target.value); }}
-                        sx={{ minWidth: { xs: '100%', md: 150 } }}
-                        slotProps={{ inputLabel: { shrink: true } }}
-                    />
+                        <TextField
+                            label="To"
+                            type="date"
+                            size="small"
+                            value={endDate}
+                            onChange={(e) => { setEndDate(e.target.value); }}
+                            sx={{ minWidth: { xs: '100%', md: 150 } }}
+                            slotProps={{ inputLabel: { shrink: true } }}
+                        />
 
-                    <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 }, ml: { md: 'auto' } }}>
-                        <InputLabel id="sort-by-label">Sort By</InputLabel>
-                        <Select
-                            labelId="sort-by-label"
-                            id="sort-by"
-                            value={sortBy}
-                            label="Sort By"
-                            onChange={(e) => { setSortBy(e.target.value); }}
-                        >
-                            <MenuItem value="recent">Most Recent</MenuItem>
-                            <MenuItem value="oldest">Oldest</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Stack>
-            </Paper>
+                        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 }, ml: { md: 'auto' } }}>
+                            <InputLabel id="sort-by-label">Sort By</InputLabel>
+                            <Select
+                                labelId="sort-by-label"
+                                id="sort-by"
+                                value={sortBy}
+                                label="Sort By"
+                                onChange={(e) => { setSortBy(e.target.value); }}
+                            >
+                                <MenuItem value="recent">Most Recent</MenuItem>
+                                <MenuItem value="oldest">Oldest</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Stack>
+                </AccordionDetails>
+            </Accordion>
 
             {/* Workouts List */}
             <Box>
@@ -386,10 +410,10 @@ const Journal = () => {
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 3 }}>
                     <Button onClick={() => { setAddDialogOpen(false); }} disabled={submitting}>Cancel</Button>
-                    <Button 
-                        onClick={handleAddWorkout} 
-                        variant="contained" 
-                        color="primary" 
+                    <Button
+                        onClick={handleAddWorkout}
+                        variant="contained"
+                        color="primary"
                         disabled={submitting}
                         sx={{ minWidth: 120 }}
                     >

@@ -17,6 +17,7 @@ interface WorkoutSetItemProps {
     onUpdateSet: (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => void;
     onRemoveSet: (exerciseId: string, setId: string) => void;
     onEditNotes: (setId: string) => void;
+    previousSet?: ExerciseSet;
 }
 
 const WorkoutSetItem = ({
@@ -25,7 +26,8 @@ const WorkoutSetItem = ({
     index,
     onUpdateSet,
     onRemoveSet,
-    onEditNotes
+    onEditNotes,
+    previousSet
 }: WorkoutSetItemProps) => {
     // Local state for instant feedback while typing
     const [localWeight, setLocalWeight] = useState<string>(set.weight?.toString() ?? '');
@@ -105,6 +107,15 @@ const WorkoutSetItem = ({
                     </Tooltip>
                 </Grid>
             </Grid>
+            {previousSet && (previousSet.weight !== undefined || previousSet.reps !== undefined) && (
+                <Box sx={{ ml: 4, mt: -1.5, mb: 1, display: 'flex', gap: 1 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                        Last: {previousSet.weight !== undefined ? `${previousSet.weight}kg` : ''} 
+                        {previousSet.weight !== undefined && previousSet.reps !== undefined ? ' × ' : ''}
+                        {previousSet.reps !== undefined ? `${previousSet.reps} reps` : ''}
+                    </Typography>
+                </Box>
+            )}
         </Box>
     );
 };

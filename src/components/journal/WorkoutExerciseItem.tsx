@@ -28,6 +28,7 @@ interface WorkoutExerciseItemProps {
     onUpdateSet: (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => void;
     onRemoveSet: (exerciseId: string, setId: string) => void;
     onUpdateExerciseNote: (exerciseId: string, note: string) => void;
+    previousExercise?: WorkoutExercise;
 }
 
 const WorkoutExerciseItem = ({
@@ -37,7 +38,8 @@ const WorkoutExerciseItem = ({
     onAddSet,
     onUpdateSet,
     onRemoveSet,
-    onUpdateExerciseNote
+    onUpdateExerciseNote,
+    previousExercise
 }: WorkoutExerciseItemProps) => {
     const [noteEditingSetId, setNoteEditingSetId] = useState<string | null>(null);
     const [isEditingExerciseNote, setIsEditingExerciseNote] = useState(false);
@@ -99,6 +101,7 @@ const WorkoutExerciseItem = ({
                         onUpdateSet={onUpdateSet}
                         onRemoveSet={onRemoveSet}
                         onEditNotes={setNoteEditingSetId}
+                        previousSet={previousExercise?.sets?.[index]}
                     />
                 ))}
                 <Button 

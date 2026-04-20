@@ -15,6 +15,7 @@ import Chip from '@mui/material/Chip';
 import { FormControlLabel, Checkbox } from '@mui/material';
 import { getExerciseById, createExercise, updateExercise } from '../services/db';
 import type { Exercise, ExerciseType, BodyPart, ExerciseCategory } from '../types';
+import { isValidSafeUrl, sanitizeUrl } from '../utils/security';
 
 const EXERCISE_TYPES: ExerciseType[] = ['strength', 'cardio', 'flexibility', 'other'];
 const BODY_PARTS: BodyPart[] = ['Whole Body', 'Legs', 'Back', 'Shoulders', 'Chest', 'Biceps', 'Triceps', 'Core', 'Forearms'];
@@ -109,9 +110,14 @@ export default function ExerciseForm() {
         const url = linkInput.url.trim();
         if (!url) return;
         
+        if (!isValidSafeUrl(url)) {
+            setError('Please enter a valid URL (starting with http:// or https://)');
+            return;
+        }
+        
         setFormData({
             ...formData,
-            links: [...(formData.links ?? []), { url, label: linkInput.label.trim() || undefined }]
+            links: [...(formData.links ?? []), { url: sanitizeUrl(url), label: linkInput.label.trim() || undefined }]
         });
         setLinkInput({ url: '', label: '' });
     };

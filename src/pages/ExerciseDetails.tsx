@@ -23,6 +23,7 @@ import { useExercises } from '../context/ExercisesContext';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
+import { sanitizeUrl } from '../utils/security';
 
 const updateExerciseStatus = (
     profile: UserProfile,
@@ -180,7 +181,7 @@ const ExerciseDetails = () => {
                                         <Box key={index}>
                                             <ListItem 
                                                 component="a" 
-                                                href={link.url} 
+                                                href={sanitizeUrl(link.url)} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
                                                 sx={{ 

@@ -21,7 +21,11 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
 
     return (
         <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardActionArea onClick={() => navigate(`/exercises/${exercise.id}`)} sx={{ flexGrow: 1 }}>
+            <CardActionArea 
+                onClick={() => navigate(`/exercises/${exercise.id}`)} 
+                sx={{ flexGrow: 1 }}
+                aria-label={`View details for ${exercise.name}`}
+            >
                 <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}>
                         <Stack sx={{ flexWrap: "wrap" }} spacing={0.5}>

@@ -29,3 +29,13 @@ export const formatWeight = (value: number | string): string => {
 export const formatCount = (value: number | string): string => {
     return formatNumber(value, 0);
 };
+/**
+ * Returns the current date and time in a format suitable for HTML5 input fields.
+ */
+export const getDefaultDateTime = () => {
+    const now = new Date();
+    return {
+        date: now.toISOString().split('T')[0],
+        time: `${now.getHours().toString().padStart(2, '0')}:00`
+    };
+};

@@ -43,7 +43,7 @@ const Auth = () => {
                 await createUserWithEmailAndPassword(auth, email, password);
             }
             
-            await navigate('/');
+            void navigate('/');
         } catch (err) {
             setError(isLogin ? 'Failed to log in' : 'Failed to create an account');
             console.error(err);
@@ -57,7 +57,7 @@ const Auth = () => {
             setError('');
             setLoading(true);
             await googleSignIn();
-            await navigate('/');
+            void navigate('/');
         } catch (err) {
             setError(isLogin ? 'Failed to log in with Google' : 'Failed to sign up with Google');
             console.error(err);

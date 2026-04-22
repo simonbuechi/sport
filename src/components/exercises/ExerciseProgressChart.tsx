@@ -27,12 +27,12 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
     const chartData = useMemo(() => {
         // 1. Filter workouts for this exercise and those that have structured exercise data
         const relevantWorkouts = workouts.filter(w =>
-            w.exerciseIds.includes(exerciseId) && w.exercises
+            w.exerciseIds.includes(exerciseId)
         );
 
         // 2. Extract max 1RM for each workout
         const dataPoints = relevantWorkouts.map(w => {
-            const exerciseData = w.exercises?.find(ex => ex.exerciseId === exerciseId);
+            const exerciseData = w.exercises.find(ex => ex.exerciseId === exerciseId);
             const max1RM = exerciseData?.sets.reduce((max, set) => {
                 const current1RM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
                 return current1RM > max ? current1RM : max;
@@ -54,7 +54,7 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
         if (timeFrame === '1m') cutoff.setMonth(cutoff.getMonth() - 1);
         else if (timeFrame === '3m') cutoff.setMonth(cutoff.getMonth() - 3);
         else if (timeFrame === '6m') cutoff.setMonth(cutoff.getMonth() - 6);
-        else if (timeFrame === '1y') cutoff.setFullYear(cutoff.getFullYear() - 1);
+        else cutoff.setFullYear(cutoff.getFullYear() - 1);
 
         return sortedData.filter(d => d.date >= cutoff);
     }, [workouts, exerciseId, timeFrame]);

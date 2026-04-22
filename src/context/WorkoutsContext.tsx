@@ -30,7 +30,6 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         if (!currentUser) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setEntries(prev => prev.length > 0 ? [] : prev);
             setTemplates(prev => prev.length > 0 ? [] : prev);
             setLoading(prev => prev ? false : prev);

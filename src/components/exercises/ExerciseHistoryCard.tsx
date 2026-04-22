@@ -29,7 +29,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
             <Divider sx={{ mb: 2 }} />
             <List disablePadding>
                 {recentWorkouts.map(workout => {
-                    const exerciseData = workout.exercises?.find(ex => ex.exerciseId === exerciseId);
+                    const exerciseData = workout.exercises.find(ex => ex.exerciseId === exerciseId);
 
                     return (
                         <ListItem
@@ -57,10 +57,10 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                                 {exerciseData && (
                                     <Typography variant="body2">
                                         {(() => {
-                                            const totalReps = exerciseData.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
-                                            const totalVolume = exerciseData.sets.reduce((sum, s) => sum + ((s.weight || 0) * (s.reps || 0)), 0);
+                                            const totalReps = exerciseData.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+                                            const totalVolume = exerciseData.sets.reduce((sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), 0);
                                             const max1RM = exerciseData.sets.reduce((max, s) => {
-                                                const current1RM = calculate1RM(s.weight || 0, s.reps || 0);
+                                                const current1RM = calculate1RM(s.weight ?? 0, s.reps ?? 0);
                                                 return current1RM > max ? current1RM : max;
                                             }, 0);
 

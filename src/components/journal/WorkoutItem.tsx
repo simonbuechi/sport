@@ -14,6 +14,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import type { Workout, Exercise, BodyPart } from '../../types';
 import { formatWeight, formatCount } from '../../utils/format';
+import { useMemo } from 'react';
 
 interface WorkoutItemProps {
     entry: Workout;
@@ -30,6 +31,15 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
 }, ref) => {
     const navigate = useNavigate();
     const [expanded, setExpanded] = useState(false);
+
+    const stats = useMemo(() => {
+        const numEx = entry.exercises.length;
+        const totalSets = entry.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+        const totalReps = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + (s.reps ?? 0), 0), 0);
+        const totalVolume = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + ((s.weight ?? 0) * (s.reps ?? 0)), 0), 0);
+        
+        return { numEx, totalSets, totalReps, totalVolume };
+    }, [entry.exercises]);
 
 
     return (
@@ -55,7 +65,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                         {entry.time && ` • ${entry.time}`}
                         {(() => {
-                            const bodyParts = entry.exercises?.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p) ?? [];
+                            const bodyParts = entry.exercises.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p);
                             const uniqueParts = Array.from(new Set(bodyParts));
                             const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== 'Whole Body') : uniqueParts;
                             return filteredParts.length > 0 ? ` • ${filteredParts.join(', ')}` : '';
@@ -79,23 +89,12 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                 </Stack>
             </Stack>
 
-            {!expanded && entry.exercises && entry.exercises.length > 0 && (
+            {!expanded && entry.exercises.length > 0 && (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
-                    {(() => {
-                        const numEx = entry.exercises.length;
-                        const totalSets = entry.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-                        const totalReps = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + (s.reps ?? 0), 0), 0);
-                        const totalVolume = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + ((s.weight ?? 0) * (s.reps ?? 0)), 0), 0);
-                        
-                        return (
-                            <>
-                                <Chip size="small" label={`${String(numEx)} exercises`} variant="outlined" color="primary" />
-                                <Chip size="small" label={`${formatCount(totalSets)} sets`} variant="outlined" color="primary" />
-                                <Chip size="small" label={`${formatCount(totalReps)} reps`} variant="outlined" color="primary" />
-                                <Chip size="small" label={`${formatWeight(totalVolume)} kg`} variant="outlined" color="primary" sx={{ fontWeight: 'bold' }} />
-                            </>
-                        );
-                    })()}
+                    <Chip size="small" label={`${String(stats.numEx)} exercises`} variant="outlined" color="primary" />
+                    <Chip size="small" label={`${formatCount(stats.totalSets)} sets`} variant="outlined" color="primary" />
+                    <Chip size="small" label={`${formatCount(stats.totalReps)} reps`} variant="outlined" color="primary" />
+                    <Chip size="small" label={`${formatWeight(stats.totalVolume)} kg`} variant="outlined" color="primary" sx={{ fontWeight: 'bold' }} />
                 </Stack>
             )}
 
@@ -117,7 +116,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
             )}
 
             <Collapse in={expanded}>
-                {entry.exercises && entry.exercises.length > 0 && (
+                {entry.exercises.length > 0 && (
                     <Box sx={{ mb: 1, mt: 1 }}>
                         {entry.exercises.map((se) => {
                             const exercise = exerciseMap[se.exerciseId];

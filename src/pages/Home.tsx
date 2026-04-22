@@ -130,6 +130,9 @@ const Home = () => {
     const handleUpdateWidgets = async (newWidgets: string[], newOrder?: string[]) => {
         if (!currentUser) return;
 
+        const previousWidgets = [...visibleWidgets];
+        const previousOrder = [...orderedAllWidgets];
+
         try {
             setVisibleWidgets(newWidgets);
             const updates: Partial<UserProfile> = { dashboardWidgets: newWidgets };
@@ -140,7 +143,13 @@ const Home = () => {
             await updateUserProfile(currentUser.uid, updates);
         } catch (err) {
             console.error('Failed to update dashboard settings:', err);
-            setError('Failed to save dashboard settings.');
+            setError('Failed to save dashboard settings. Your changes were rolled back.');
+            // Rollback state on failure
+            setVisibleWidgets(previousWidgets);
+            setOrderedAllWidgets(previousOrder);
+            
+            // Clear error after 5 seconds
+            setTimeout(() => { setError(''); }, 5000);
         }
     };
 

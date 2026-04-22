@@ -21,15 +21,15 @@ import Star from '@mui/icons-material/Star';
 import Close from '@mui/icons-material/Close';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
-import History from '@mui/icons-material/History';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile, createUserProfile } from '../services/db';
+import { useUserProfile } from '../hooks/useUserProfile';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { lazy, Suspense } from 'react';
 import type { UserProfile, Exercise, WeightEntry, MeasurementEntry } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
+import HistoryIcon from '@mui/icons-material/History';
 
 const WeightSection = lazy(() => import('../components/profile/WeightSection'));
 const MeasurementsSection = lazy(() => import('../components/profile/MeasurementsSection'));
@@ -63,14 +63,7 @@ function CustomTabPanel(props: TabPanelProps) {
 const Profile = () => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
-    const [profile, setProfile] = useState<Partial<UserProfile>>({
-        name: '',
-        birthYear: undefined,
-        height: undefined,
-        notes: '',
-        markedExercises: {}
-    });
-
+    const { profile, updateProfile, setProfile, loading: profileLoading } = useUserProfile();
     const [activeTab, setActiveTab] = useState(0);
     const { pathname } = useLocation();
 
@@ -91,7 +84,6 @@ const Profile = () => {
 
     const { exercises } = useExercises();
     const { entries: workouts } = useWorkouts();
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
@@ -99,34 +91,7 @@ const Profile = () => {
     const [favoritesExpanded, setFavoritesExpanded] = useState(true);
     const [usedExpanded, setUsedExpanded] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!currentUser) return;
-            try {
-                setLoading(true);
-                const [userData] = await Promise.all([
-                    getUserProfile(currentUser.uid)
-                ]);
-
-                if (userData) {
-                    setProfile(userData);
-                } else {
-                    // If no profile exists, set the name to email prefix or display name as default
-                    setProfile(prev => ({
-                        ...prev,
-                        name: currentUser.displayName ?? currentUser.email?.split('@')[0] ?? ''
-                    }));
-                }
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load profile data');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void fetchData();
-    }, [currentUser]);
+    // Profile is now handled by useUserProfile hook
 
     const handleChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number | boolean | undefined = event.target.value;
@@ -135,13 +100,13 @@ const Profile = () => {
             value = event.target.value === '' ? undefined : Number(event.target.value);
         }
 
-        setProfile({ ...profile, [field]: value });
+        if (profile) setProfile({ ...profile, [field]: value });
     };
 
     const handleLogout = async () => {
         try {
             await logout();
-            await navigate('/login');
+            void navigate('/login');
         } catch (error) {
             console.error("Failed to log out", error);
         }
@@ -149,15 +114,14 @@ const Profile = () => {
 
     const handleSave = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        if (!currentUser) return;
+        if (!currentUser || !profile) return;
 
         try {
             setSaving(true);
             setError('');
             setMessage('');
 
-            // Use setDoc with merge (createUserProfile) unconditionally — no extra read needed
-            await createUserProfile(currentUser.uid, profile);
+            await updateProfile(profile);
 
             setMessage('Profile updated successfully');
             setIsEditDialogOpen(false);
@@ -170,14 +134,14 @@ const Profile = () => {
     };
 
     const handleWeightsUpdated = (newWeights: WeightEntry[]) => {
-        setProfile((prev) => ({ ...prev, weights: newWeights }));
+        if (profile) setProfile((prev) => prev ? ({ ...prev, weights: newWeights }) : null);
     };
 
     const handleMeasurementsUpdated = (newMeasurements: MeasurementEntry[]) => {
-        setProfile((prev) => ({ ...prev, measurements: newMeasurements }));
+        if (profile) setProfile((prev) => prev ? ({ ...prev, measurements: newMeasurements }) : null);
     };
 
-    if (loading || (exercises.length === 0)) return (
+    if (profileLoading || (exercises.length === 0) || !profile) return (
         <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
     );
 
@@ -289,7 +253,7 @@ const Profile = () => {
 
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12 }}>
-                                    <Typography variant="body1">{profile.name ?? 'Anonymous Athlete'}</Typography>
+                                    <Typography variant="body1">{profile.name}</Typography>
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -356,7 +320,7 @@ const Profile = () => {
                             </Grid>
                             <Grid size={12}>
                                 <ExerciseListSection
-                                    icon={<History color="action" sx={{ mr: 1 }} />}
+                                    icon={<HistoryIcon color="action" sx={{ mr: 1 }} />}
                                     title="Used Exercises"
                                     techniques={usedExercises}
                                     expanded={usedExpanded}
@@ -423,7 +387,7 @@ const Profile = () => {
                                 <TextField
                                     label="Name"
                                     fullWidth
-                                    value={profile.name ?? ''}
+                                    value={profile.name}
                                     onChange={handleChange('name')}
                                     required
                                 />
@@ -458,7 +422,7 @@ const Profile = () => {
                                     multiline
                                     rows={4}
                                     fullWidth
-                                    value={profile.notes ?? ''}
+                                    value={profile.notes}
                                     onChange={handleChange('notes')}
                                     placeholder="Keep track of your overall fitness goals, notes, or general thoughts..."
                                 />

@@ -109,5 +109,5 @@ export interface Workout {
     maxPulse?: number; // Optional max pulse
     comment: string;
     exerciseIds: string[];
-    exercises?: WorkoutExercise[]; // New structured data
+    exercises: WorkoutExercise[];
 }

@@ -14,12 +14,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Chip from '@mui/material/Chip';
 import { FormControlLabel, Checkbox } from '@mui/material';
 import { getExerciseById, createExercise, updateExercise } from '../services/db';
-import type { Exercise, ExerciseType, BodyPart, ExerciseCategory } from '../types';
+import type { Exercise } from '../types';
 import { isValidSafeUrl, sanitizeUrl } from '../utils/security';
 
-const EXERCISE_TYPES: ExerciseType[] = ['strength', 'cardio', 'flexibility', 'other'];
-const BODY_PARTS: BodyPart[] = ['Whole Body', 'Legs', 'Back', 'Shoulders', 'Chest', 'Biceps', 'Triceps', 'Core', 'Forearms'];
-const CATEGORIES: ExerciseCategory[] = ['Bodyweight', 'Barbell', 'Dumbbell', 'Machine', 'Cable', 'Kettlebell'];
+import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
 
 
 export default function ExerciseForm() {
@@ -99,10 +97,10 @@ export default function ExerciseForm() {
         setAliasInput('');
     };
 
-    const handleRemoveAlias = (indexToRemove: number) => {
+    const handleRemoveAlias = (aliasToRemove: string) => {
         setFormData({
             ...formData,
-            aliases: formData.aliases.filter((_, index) => index !== indexToRemove)
+            aliases: formData.aliases.filter((alias) => alias !== aliasToRemove)
         });
     };
     
@@ -306,11 +304,11 @@ export default function ExerciseForm() {
                                     flexWrap: "wrap",
                                     gap: 1
                                 }}>
-                                {formData.aliases.map((alias, index) => (
+                                {formData.aliases.map((alias) => (
                                     <Chip 
-                                        key={index} 
+                                        key={alias} 
                                         label={alias} 
-                                        onDelete={() => { handleRemoveAlias(index); }}
+                                        onDelete={() => { handleRemoveAlias(alias); }}
                                         size="small"
                                     />
                                 ))}
@@ -358,7 +356,7 @@ export default function ExerciseForm() {
                                 }}>
                                 {formData.links?.map((link, index) => (
                                     <Paper 
-                                        key={index}
+                                        key={`${link.url}-${String(index)}`}
                                         variant="outlined" 
                                         sx={{ 
                                             p: 1, 

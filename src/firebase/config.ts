@@ -44,7 +44,7 @@ export const storage = getStorage(app);
 if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
     connectAuthEmulator(auth, 'http://127.0.0.1:9099');
     connectFirestoreEmulator(db, '127.0.0.1', 8080);
-    console.log('Firebase Emulators Connected');
+    if (import.meta.env.DEV) console.log('Firebase Emulators Connected');
 }
 
 export default app;

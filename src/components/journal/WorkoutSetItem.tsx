@@ -50,11 +50,13 @@ const WorkoutSetItem = ({
         return () => { clearTimeout(timer); };
     }, [localWeight, localReps, exerciseId, set.id, set.weight, set.reps, onUpdateSet]);
 
-    // Ensure local state is updated if parent state changes (e.g. from template or undo)
-    useEffect(() => {
+    const [prevSet, setPrevSet] = useState({ weight: set.weight, reps: set.reps });
+
+    if (set.weight !== prevSet.weight || set.reps !== prevSet.reps) {
+        setPrevSet({ weight: set.weight, reps: set.reps });
         setLocalWeight(set.weight?.toString() ?? '');
         setLocalReps(set.reps?.toString() ?? '');
-    }, [set.weight, set.reps]);
+    }
 
     return (
         <Box>
@@ -110,9 +112,9 @@ const WorkoutSetItem = ({
             {previousSet && (previousSet.weight !== undefined || previousSet.reps !== undefined) && (
                 <Box sx={{ ml: 4, mt: -1.5, mb: 1, display: 'flex', gap: 1 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Last: {previousSet.weight !== undefined ? `${previousSet.weight}kg` : ''} 
+                        Last: {previousSet.weight !== undefined ? `${String(previousSet.weight)}kg` : ''} 
                         {previousSet.weight !== undefined && previousSet.reps !== undefined ? ' × ' : ''}
-                        {previousSet.reps !== undefined ? `${previousSet.reps} reps` : ''}
+                        {previousSet.reps !== undefined ? `${String(previousSet.reps)} reps` : ''}
                     </Typography>
                 </Box>
             )}

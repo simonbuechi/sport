@@ -30,17 +30,16 @@ import ChevronRight from '@mui/icons-material/ChevronRight';
 import Search from '@mui/icons-material/Search';
 import Add from '@mui/icons-material/Add';
 import { Link as RouterLink } from 'react-router-dom';
-import { getUserProfile } from '../services/db';
-import type { ExerciseType, UserProfile, ExerciseCategory, BodyPart } from '../types';
+import type { ExerciseType, ExerciseCategory, BodyPart } from '../types';
 import ExerciseCard from '../components/exercises/ExerciseCard';
 import MarkerIcons from '../components/exercises/MarkerIcons';
-import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
+import { useUserProfile } from '../hooks/useUserProfile';
+import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
 
 const Exercises = () => {
-    const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading, error: exercisesError } = useExercises();
-    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const { profile } = useUserProfile();
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
     const [bodypartFilter, setBodypartFilter] = useState<BodyPart | 'all'>('all');
@@ -53,7 +52,6 @@ const Exercises = () => {
 
     // Reset display count when filters change
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDisplayCount(30);
     }, [filter, bodypartFilter, categoryFilter, searchTerm]);
 
@@ -101,19 +99,7 @@ const Exercises = () => {
     }, [filteredExercises, displayCount]);
 
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            if (!currentUser) return;
-            try {
-                const userProfile = await getUserProfile(currentUser.uid);
-                setProfile(userProfile);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        void fetchProfile();
-    }, [currentUser]);
+    // Profile is now handled by useUserProfile hook
 
     const loading = exercisesLoading && exercises.length === 0;
     const currentError = exercisesError;
@@ -212,10 +198,11 @@ const Exercises = () => {
                                 sx={{ textTransform: 'capitalize' }}
                             >
                                 <MenuItem value="all">All Types</MenuItem>
-                                <MenuItem value="strength" sx={{ textTransform: 'capitalize' }}>Strength</MenuItem>
-                                <MenuItem value="cardio" sx={{ textTransform: 'capitalize' }}>Cardio</MenuItem>
-                                <MenuItem value="flexibility" sx={{ textTransform: 'capitalize' }}>Flexibility</MenuItem>
-                                <MenuItem value="other" sx={{ textTransform: 'capitalize' }}>Other</MenuItem>
+                                {EXERCISE_TYPES.map(type => (
+                                    <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
 
@@ -229,15 +216,9 @@ const Exercises = () => {
                                 onChange={(e) => { setBodypartFilter(e.target.value as BodyPart | 'all'); }}
                             >
                                 <MenuItem value="all">All Body Parts</MenuItem>
-                                <MenuItem value="Whole Body">Whole Body</MenuItem>
-                                <MenuItem value="Legs">Legs</MenuItem>
-                                <MenuItem value="Back">Back</MenuItem>
-                                <MenuItem value="Shoulders">Shoulders</MenuItem>
-                                <MenuItem value="Chest">Chest</MenuItem>
-                                <MenuItem value="Biceps">Biceps</MenuItem>
-                                <MenuItem value="Triceps">Triceps</MenuItem>
-                                <MenuItem value="Core">Core</MenuItem>
-                                <MenuItem value="Forearms">Forearms</MenuItem>
+                                {BODY_PARTS.map(bp => (
+                                    <MenuItem key={bp} value={bp}>{bp}</MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
 
@@ -251,12 +232,9 @@ const Exercises = () => {
                                 onChange={(e) => { setCategoryFilter(e.target.value as ExerciseCategory | 'all'); }}
                             >
                                 <MenuItem value="all">All Categories</MenuItem>
-                                <MenuItem value="Bodyweight">Bodyweight</MenuItem>
-                                <MenuItem value="Barbell">Barbell</MenuItem>
-                                <MenuItem value="Dumbbell">Dumbbell</MenuItem>
-                                <MenuItem value="Machine">Machine</MenuItem>
-                                <MenuItem value="Cable">Cable</MenuItem>
-                                <MenuItem value="Kettlebell">Kettlebell</MenuItem>
+                                {CATEGORIES.map(cat => (
+                                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
                     </Stack>

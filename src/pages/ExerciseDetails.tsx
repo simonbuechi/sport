@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -16,10 +17,15 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import LinkIcon from '@mui/icons-material/Link';
 import EditNote from '@mui/icons-material/EditNote';
-import { getUserProfile, updateUserProfile, getWorkouts, deleteExercise } from '../services/db';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import { getWorkouts, deleteExercise } from '../services/db';
 import type { UserProfile, MarkedStatus, Workout } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
+import { useUserProfile } from '../hooks/useUserProfile';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
@@ -52,12 +58,12 @@ const ExerciseDetails = () => {
     const navigate = useNavigate();
 
     const { exercises, loading: exercisesLoading } = useExercises();
-    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const { profile, updateProfile, loading: profileLoading } = useUserProfile();
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [notes, setNotes] = useState('');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
-    const [profileLoading, setProfileLoading] = useState(true);
     const [error, setError] = useState('');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const exercise = useMemo(() => {
         if (!id || exercisesLoading) return null;
@@ -67,29 +73,21 @@ const ExerciseDetails = () => {
     const loading = exercisesLoading || profileLoading;
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            if (!currentUser) return;
+        const fetchWorkoutData = async () => {
+            if (!currentUser || !id) return;
             try {
-                setProfileLoading(true);
-                const userProf = await getUserProfile(currentUser.uid);
-                setProfile(userProf);
-
-                if (id) {
-                    const allEntries = await getWorkouts(currentUser.uid);
-                    const exerciseWorkouts = allEntries.filter((entry: Workout) =>
-                        entry.exerciseIds.includes(id)
-                    );
-                    setWorkouts(exerciseWorkouts);
-                }
+                const allEntries = await getWorkouts(currentUser.uid);
+                const exerciseWorkouts = allEntries.filter((entry: Workout) =>
+                    entry.exerciseIds.includes(id)
+                );
+                setWorkouts(exerciseWorkouts);
             } catch (err) {
                 console.error(err);
                 setError('Failed to load user progress data');
-            } finally {
-                setProfileLoading(false);
             }
         };
 
-        void fetchUserData();
+        void fetchWorkoutData();
     }, [id, currentUser]);
 
     useEffect(() => {
@@ -105,8 +103,7 @@ const ExerciseDetails = () => {
             const currentValue = profile.markedExercises?.[id]?.favorite ?? false;
             const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
 
-            setProfile({ ...profile, markedExercises: updatedMarked });
-            await updateUserProfile(currentUser.uid, { markedExercises: updatedMarked });
+            await updateProfile({ markedExercises: updatedMarked });
         } catch (err) {
             console.error("Failed to update status", err);
         }
@@ -121,8 +118,7 @@ const ExerciseDetails = () => {
         try {
             setIsSavingNotes(true);
             const updatedMarked = updateExerciseStatus(profile, id, { notes });
-            setProfile({ ...profile, markedExercises: updatedMarked });
-            await updateUserProfile(currentUser.uid, { markedExercises: updatedMarked });
+            await updateProfile({ markedExercises: updatedMarked });
         } catch (err) {
             console.error("Failed to save notes", err);
         } finally {
@@ -130,15 +126,21 @@ const ExerciseDetails = () => {
         }
     };
 
-    const handleDelete = async () => {
-        if (!id || !window.confirm('Are you sure you want to delete this exercise?')) return;
+    const handleDelete = () => {
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!id) return;
 
         try {
             await deleteExercise(id);
-            await navigate('/exercises');
+            void navigate('/exercises');
         } catch (err) {
             console.error("Failed to delete exercise", err);
             setError('Failed to delete exercise');
+        } finally {
+            setDeleteDialogOpen(false);
         }
     };
 
@@ -259,6 +261,21 @@ const ExerciseDetails = () => {
                     </Grid>
                 </Grid>
             </Paper>
+
+            <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
+                <DialogTitle>Delete Exercise</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete <strong>{exercise.name}</strong>? This action cannot be undone and will remove it from all templates and workouts.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
+                    <Button onClick={confirmDelete} color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container >
     );
 };

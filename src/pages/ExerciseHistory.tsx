@@ -86,7 +86,7 @@ const ExerciseHistory = () => {
 
                         <TableBody>
                             {workouts.map(workout => {
-                                const exerciseData = workout.exercises?.find(ex => ex.exerciseId === id);
+                                const exerciseData = workout.exercises.find(ex => ex.exerciseId === id);
                                 if (!exerciseData) return null;
 
                                 return (

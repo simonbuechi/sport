@@ -34,6 +34,8 @@ import { deleteWorkout, createWorkout } from '../services/db';
 import type { Workout, Exercise, WorkoutType } from '../types';
 import WorkoutItem from '../components/journal/WorkoutItem';
 import PageLoader from '../components/common/PageLoader';
+import { getDefaultDateTime } from '../utils/format';
+import { sortTemplates } from '../utils/workoutUtils';
 
 const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
@@ -61,8 +63,7 @@ const Journal = () => {
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [newWorkoutData, setNewWorkoutData] = useState({
-        date: new Date().toISOString().split('T')[0],
-        time: `${new Date().getHours().toString().padStart(2, '0')}:00`,
+        ...getDefaultDateTime(),
         sessionType: 'strength' as WorkoutType,
         templateId: ''
     });
@@ -195,8 +196,7 @@ const Journal = () => {
                         startIcon={<AddIcon />}
                         onClick={() => {
                             setNewWorkoutData({
-                                date: new Date().toISOString().split('T')[0],
-                                time: `${new Date().getHours().toString().padStart(2, '0')}:00`,
+                                ...getDefaultDateTime(),
                                 sessionType: 'strength' as WorkoutType,
                                 templateId: ''
                             });
@@ -394,11 +394,7 @@ const Journal = () => {
                                     onChange={(e) => { setNewWorkoutData(prev => ({ ...prev, templateId: e.target.value })); }}
                                 >
                                     <MenuItem value=""><em>None</em></MenuItem>
-                                    {templates.sort((a, b) => {
-                                        if (a.isFavorite && !b.isFavorite) return -1;
-                                        if (!a.isFavorite && b.isFavorite) return 1;
-                                        return a.name.localeCompare(b.name);
-                                    }).map((t) => (
+                                    {sortTemplates(templates).map((t) => (
                                         <MenuItem key={t.id} value={t.id}>
                                             {t.isFavorite && '★ '}{t.name}
                                         </MenuItem>

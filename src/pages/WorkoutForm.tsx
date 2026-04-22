@@ -22,6 +22,8 @@ import { createWorkout, updateWorkout } from '../services/db';
 import type { Workout, Exercise, WorkoutType, WorkoutExercise, ExerciseSet } from '../types';
 import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
 import PageLoader from '../components/common/PageLoader';
+import { getDefaultDateTime } from '../utils/format';
+import { sortTemplates } from '../utils/workoutUtils';
 
 const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
@@ -38,8 +40,9 @@ const WorkoutForm = () => {
     const [error, setError] = useState('');
 
     // Form state
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [time, setTime] = useState(`${new Date().getHours().toString().padStart(2, '0')}:00`);
+    const { date: initialDate, time: initialTime } = getDefaultDateTime();
+    const [date, setDate] = useState(initialDate);
+    const [time, setTime] = useState(initialTime);
     const [length, setLength] = useState<number | ''>('');
     const [sessionType, setWorkoutType] = useState<WorkoutType>('strength');
     const [comment, setComment] = useState('');
@@ -47,9 +50,15 @@ const WorkoutForm = () => {
     const [maxPulse, setMaxPulse] = useState<number | ''>('');
     const [sessionExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
-    const [isAutoSaving, setIsAutoSaving] = useState(false);
-    const [lastSaved, setLastSaved] = useState<Date | null>(null);
-    const [autoSaveError, setAutoSaveError] = useState<string>('');
+    const [autoSaveState, setAutoSaveState] = useState<{
+        isSaving: boolean;
+        lastSaved: Date | null;
+        error: string;
+    }>({
+        isSaving: false,
+        lastSaved: null,
+        error: ''
+    });
     const lastSavedDataRef = useRef<string>('');
 
     useEffect(() => {
@@ -67,7 +76,7 @@ const WorkoutForm = () => {
                 setComment(entry.comment);
                 setLocalComment(entry.comment);
 
-                if (entry.exercises && entry.exercises.length > 0) {
+                if (entry.exercises.length > 0) {
                     setWorkoutExercises(entry.exercises);
                 } else if (entry.exerciseIds.length > 0) {
                     setWorkoutExercises(entry.exerciseIds.map(eId => ({
@@ -77,7 +86,7 @@ const WorkoutForm = () => {
                 }
                 
                 // Initialize last saved data to prevent immediate redundant auto-save
-                const filteredExercises = (entry.exercises ?? []).map(se => ({
+                const filteredExercises = entry.exercises.map(se => ({
                     ...se,
                     sets: se.sets.filter(s => s.weight !== undefined && s.reps !== undefined)
                 }));
@@ -111,51 +120,47 @@ const WorkoutForm = () => {
         const hasData = sessionExercises.length > 0 || comment.trim() !== '' || length !== '' || maxPulse !== '' || time !== `${new Date().getHours().toString().padStart(2, '0')}:00`;
         if (!isEditing && !hasData) return;
 
+        // Create the data object for comparison and saving
+        const filteredExercises = sessionExercises.map(se => ({
+            ...se,
+            sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || (s.notes && s.notes.trim() !== ''))
+        }));
+
+        const entryData: Omit<Workout, 'id' | 'userId'> = {
+            date,
+            time: time || undefined,
+            length: Number(length) || undefined,
+            sessionType,
+            maxPulse: Number(maxPulse) || undefined,
+            comment: comment.trim(),
+            exerciseIds: filteredExercises.map(se => se.exerciseId),
+            exercises: filteredExercises
+        };
+
+        const dataStr = JSON.stringify(entryData);
+        if (dataStr === lastSavedDataRef.current) return;
+
         const timer = setTimeout(async () => {
             try {
-                const filteredExercises = sessionExercises.map(se => ({
-                    ...se,
-                    sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || (s.notes && s.notes.trim() !== ''))
-                }));
-
-                const entryData: Omit<Workout, 'id' | 'userId'> = {
-                    date,
-                    time: time || undefined,
-                    length: Number(length) || undefined,
-                    sessionType,
-                    maxPulse: Number(maxPulse) || undefined,
-                    comment: comment.trim(),
-                    exerciseIds: filteredExercises.map(se => se.exerciseId),
-                    exercises: filteredExercises
-                };
-
-                // Avoid redundant writes if data hasn't changed
-                const dataStr = JSON.stringify(entryData);
-                if (dataStr === lastSavedDataRef.current) return;
-
-                setIsAutoSaving(true);
-                setAutoSaveError('');
+                setAutoSaveState(prev => ({ ...prev, isSaving: true, error: '' }));
 
                 if (isEditing && id) {
                     await updateWorkout(currentUser.uid, id, entryData);
                 } else {
                     const newId = await createWorkout(currentUser.uid, entryData);
-                    // Update ref before navigating to prevent the immediate re-render from triggering another save
                     lastSavedDataRef.current = dataStr;
                     void navigate(`/journal/${newId}/edit`, { replace: true });
                 }
                 
                 lastSavedDataRef.current = dataStr;
-                setLastSaved(new Date());
+                setAutoSaveState({ isSaving: false, lastSaved: new Date(), error: '' });
             } catch (err) {
                 console.error('Auto-save error:', err);
-                setAutoSaveError('Auto-save failed');
-            } finally {
-                setIsAutoSaving(false);
+                setAutoSaveState(prev => ({ ...prev, isSaving: false, error: 'Auto-save failed' }));
             }
         }, 2000);
         return () => { clearTimeout(timer); };
-    }, [currentUser, id, isEditing, loading, submitting, date, time, length, sessionType, comment, maxPulse, sessionExercises, navigate]);
+    }, [currentUser, id, isEditing, loading, submitting, date, time, length, sessionType, maxPulse, comment, sessionExercises, navigate]);
 
     // Sync local comment to main state with a debounce
     useEffect(() => {
@@ -172,7 +177,7 @@ const WorkoutForm = () => {
         if (sessionExercises.find(se => se.exerciseId === exercise.id)) return;
         setWorkoutExercises(prev => [...prev, {
             exerciseId: exercise.id,
-            sets: [{ id: Math.random().toString(36).slice(2, 11) }]
+            sets: [{ id: crypto.randomUUID() }]
         }]);
     }, [sessionExercises]);
 
@@ -183,7 +188,7 @@ const WorkoutForm = () => {
     const handleAddSet = useCallback((exerciseId: string) => {
         setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
-                ? { ...se, sets: [...se.sets, { id: Math.random().toString(36).slice(2, 11) }] }
+                ? { ...se, sets: [...se.sets, { id: crypto.randomUUID() }] }
                 : se
         ));
     }, []);
@@ -222,11 +227,11 @@ const WorkoutForm = () => {
                 exerciseId: te.exerciseId,
                 note: te.note,
                 sets: te.sets?.map(s => ({
-                    id: Math.random().toString(36).slice(2, 11),
+                    id: crypto.randomUUID(),
                     weight: s.weight,
                     reps: s.reps,
                     notes: s.notes ?? ''
-                })) ?? [{ id: Math.random().toString(36).slice(2, 11) }]
+                })) ?? [{ id: crypto.randomUUID() }]
             }));
             setWorkoutExercises(mappedExercises);
         }
@@ -248,7 +253,7 @@ const WorkoutForm = () => {
             );
                 
             if (prevWorkout) {
-                const prevEx = prevWorkout.exercises?.find(ex => ex.exerciseId === exerciseId);
+                const prevEx = prevWorkout.exercises.find(ex => ex.exerciseId === exerciseId);
                 if (prevEx) {
                     map[exerciseId] = prevEx;
                 }
@@ -314,19 +319,19 @@ const WorkoutForm = () => {
                 </Box>
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-                {autoSaveError && <Alert severity="warning" sx={{ mb: 3, py: 0 }}>{autoSaveError}</Alert>}
+                {autoSaveState.error && <Alert severity="warning" sx={{ mb: 3, py: 0 }}>{autoSaveState.error}</Alert>}
 
                 <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, position: 'relative' }}>
-                    {isAutoSaving && (
+                    {autoSaveState.isSaving && (
                         <Box sx={{ position: 'absolute', top: 8, right: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <CircularProgress size={12} />
                             <Typography variant="caption" color="text.secondary">Saving...</Typography>
                         </Box>
                     )}
-                    {!isAutoSaving && lastSaved && (
+                    {!autoSaveState.isSaving && autoSaveState.lastSaved && (
                         <Box sx={{ position: 'absolute', top: 8, right: 16 }}>
                             <Typography variant="caption" color="text.secondary">
-                                Saved at {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                Saved at {autoSaveState.lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Typography>
                         </Box>
                     )}
@@ -430,11 +435,7 @@ const WorkoutForm = () => {
                                                 sx={{ mb: 3 }}
                                             >
                                                 <MenuItem value=""><em>None</em></MenuItem>
-                                                {templates.sort((a, b) => {
-                                                    if (a.isFavorite && !b.isFavorite) return -1;
-                                                    if (!a.isFavorite && b.isFavorite) return 1;
-                                                    return a.name.localeCompare(b.name);
-                                                }).map((t) => (
+                                                {sortTemplates(templates).map((t) => (
                                                     <MenuItem key={t.id} value={t.id}>
                                                         {t.isFavorite && '★ '}{t.name}
                                                     </MenuItem>

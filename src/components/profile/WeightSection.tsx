@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -32,30 +32,34 @@ type TimeFrame = '1m' | '3m' | '6m' | '1y' | 'all';
 export default function WeightSection({ profile, onWeightsUpdated }: WeightSectionProps) {
     const theme = useTheme();
     const defaults = getChartDefaults(theme);
-    const weights = profile.weights ?? [];
+    const weights = useMemo(() => profile.weights ?? [], [profile.weights]);
     const [timeFrame, setTimeFrame] = useState<TimeFrame>('6m');
     const [metric, setMetric] = useState<'weight' | 'bmi'>('weight');
 
     // Prepare chart data based on timeframe
-    const chartData = [...weights]
-        .filter(w => {
-            if (timeFrame === 'all') return true;
-            const cutoff = new Date();
-            if (timeFrame === '1m') cutoff.setMonth(cutoff.getMonth() - 1);
-            else if (timeFrame === '3m') cutoff.setMonth(cutoff.getMonth() - 3);
-            else if (timeFrame === '6m') cutoff.setMonth(cutoff.getMonth() - 6);
-            else cutoff.setFullYear(cutoff.getFullYear() - 1);
-            return new Date(w.date) >= cutoff;
-        })
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const { chartDates, chartValues } = useMemo(() => {
+        const filtered = [...weights]
+            .filter(w => {
+                if (timeFrame === 'all') return true;
+                const cutoff = new Date();
+                if (timeFrame === '1m') cutoff.setMonth(cutoff.getMonth() - 1);
+                else if (timeFrame === '3m') cutoff.setMonth(cutoff.getMonth() - 3);
+                else if (timeFrame === '6m') cutoff.setMonth(cutoff.getMonth() - 6);
+                else cutoff.setFullYear(cutoff.getFullYear() - 1);
+                return new Date(w.date) >= cutoff;
+            })
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    const chartDates = chartData.map(w => new Date(w.date));
-    const chartValues = chartData.map(w => {
-        if (metric === 'weight') return w.weightKg;
-        if (!profile.height) return 0;
-        const heightM = profile.height / 100;
-        return parseFloat((w.weightKg / (heightM * heightM)).toFixed(1));
-    });
+        return {
+            chartDates: filtered.map(w => new Date(w.date)),
+            chartValues: filtered.map(w => {
+                if (metric === 'weight') return w.weightKg;
+                if (!profile.height) return 0;
+                const heightM = profile.height / 100;
+                return parseFloat((w.weightKg / (heightM * heightM)).toFixed(1));
+            })
+        };
+    }, [weights, timeFrame, metric, profile.height]);
 
     const [isAddEditOpen, setIsAddEditOpen] = useState(false);
     const [saving, setSaving] = useState(false);

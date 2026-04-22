@@ -49,7 +49,7 @@ const WorkoutDetails = () => {
 
     const stats = useMemo(() => {
         if (!workout) return null;
-        const workoutExercises = workout.exercises ?? [];
+        const workoutExercises = workout.exercises;
         
         const totals = workoutExercises.reduce((acc, we) => {
             const exerciseStats = we.sets.reduce((eAcc, set) => {
@@ -76,7 +76,7 @@ const WorkoutDetails = () => {
             let maxOther = 0;
             entries.forEach(entry => {
                 if (entry.id === id) return; // Skip current workout
-                entry.exercises?.forEach(ewe => {
+                entry.exercises.forEach(ewe => {
                     if (ewe.exerciseId === we.exerciseId) {
                         ewe.sets.forEach(s => {
                             const oneRM = calculate1RM(s.weight ?? 0, s.reps ?? 0);
@@ -108,7 +108,7 @@ const WorkoutDetails = () => {
         );
     }
 
-    const workoutExercises = workout.exercises ?? [];
+    const workoutExercises = workout.exercises;
 
     return (
         <Container maxWidth="lg">

@@ -101,7 +101,7 @@ const WorkoutExerciseItem = ({
                         onUpdateSet={onUpdateSet}
                         onRemoveSet={onRemoveSet}
                         onEditNotes={setNoteEditingSetId}
-                        previousSet={previousExercise?.sets?.[index]}
+                        previousSet={previousExercise?.sets[index]}
                     />
                 ))}
                 <Button 

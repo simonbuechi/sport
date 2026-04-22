@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
         // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
         earlyDeferredPrompt = e as BeforeInstallPromptEvent;
-        console.log('early beforeinstallprompt event captured');
+        if (import.meta.env.DEV) console.log('early beforeinstallprompt event captured');
     });
 }
 
@@ -39,7 +39,7 @@ export const PwaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             earlyDeferredPrompt = promptEvent;
             // Update UI notify the user they can install the PWA
             setIsInstallable(true);
-            console.log('beforeinstallprompt event fired');
+            if (import.meta.env.DEV) console.log('beforeinstallprompt event fired');
         };
 
         window.addEventListener('beforeinstallprompt', handler);
@@ -48,7 +48,7 @@ export const PwaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             // Clear the deferredPrompt so it can be garbage collected
             setDeferredPrompt(null);
             setIsInstallable(false);
-            console.log('PWA was installed');
+            if (import.meta.env.DEV) console.log('PWA was installed');
         });
 
         return () => {

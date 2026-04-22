@@ -166,8 +166,8 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
             tid,
             exerciseIdx,
             setIdx,
-            weight: existingSet?.weight ?? 0,
-            reps: existingSet?.reps ?? 0,
+            weight: existingSet?.weight,
+            reps: existingSet?.reps,
             count: 1
         });
         setIsSetDialogOpen(true);
@@ -212,7 +212,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
     };
 
     const handleRemoveSetFromTemplate = useCallback(async (tid: string, exerciseIdx: number, setIdx: number) => {
-        if (!window.confirm('Remove this set?')) return;
         const template = templatesRef.current.find(t => t.id === tid);
         if (!template) return;
 
@@ -289,9 +288,9 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                     exerciseId: found.id,
                     note: '',
                     sets: [
-                        { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 10 },
-                        { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 10 },
-                        { id: Math.random().toString(36).slice(2, 11), weight: 0, reps: 10 }
+                        { id: Math.random().toString(36).slice(2, 11), reps: 10 },
+                        { id: Math.random().toString(36).slice(2, 11), reps: 10 },
+                        { id: Math.random().toString(36).slice(2, 11), reps: 10 }
                     ]
                 };
             }).filter((e): e is NonNullable<typeof e> => e !== null);

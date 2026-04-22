@@ -11,8 +11,8 @@ export interface SetDialogData {
     tid: string;
     exerciseIdx: number;
     setIdx?: number;
-    weight: number;
-    reps: number;
+    weight: number | undefined;
+    reps: number | undefined;
     count: number;
 }
 
@@ -43,14 +43,14 @@ const TemplateSetDialog = ({
                         type="number"
                         fullWidth
                         value={data?.weight ?? ''}
-                        onChange={(e) => { setData(prev => prev ? { ...prev, weight: Number(e.target.value) } : null); }}
+                        onChange={(e) => { setData(prev => prev ? { ...prev, weight: e.target.value === '' ? undefined : Number(e.target.value) } : null); }}
                     />
                     <TextField
                         label="Reps"
                         type="number"
                         fullWidth
                         value={data?.reps ?? ''}
-                        onChange={(e) => { setData(prev => prev ? { ...prev, reps: Number(e.target.value) } : null); }}
+                        onChange={(e) => { setData(prev => prev ? { ...prev, reps: e.target.value === '' ? undefined : Number(e.target.value) } : null); }}
                     />
                     {data?.setIdx === undefined && (
                         <TextField

@@ -46,36 +46,42 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
         <Paper
             ref={ref}
             variant="outlined"
-            sx={{ mb: 2, p: { xs: 1.5, md: 3 } }}
+            sx={{ mb: { xs: 1.5, md: 2 }, p: { xs: 1, md: 3 } }}
         >
             <Stack
                 direction="row"
                 sx={{
                     justifyContent: "space-between",
+                    alignItems: "flex-start",
                     mb: 1,
-                    cursor: 'pointer',
-                    '&:hover': {
-                        opacity: 0.85
-                    }
+                    gap: 1
                 }}
-                onClick={() => { void navigate(`/journal/${entry.id}`); }}
             >
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <Typography variant="h6">
+                <Box 
+                    sx={{ 
+                        flexGrow: 1, 
+                        cursor: 'pointer',
+                        '&:hover': { opacity: 0.85 }
+                    }}
+                    onClick={() => { void navigate(`/journal/${entry.id}`); }}
+                >
+                    <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, lineHeight: 1.2 }}>
                         {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                         {entry.time && ` • ${entry.time}`}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                         {(() => {
                             const bodyParts = entry.exercises.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p);
                             const uniqueParts = Array.from(new Set(bodyParts));
                             const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== 'Whole Body') : uniqueParts;
-                            return filteredParts.length > 0 ? ` • ${filteredParts.join(', ')}` : '';
+                            return filteredParts.length > 0 ? filteredParts.join(', ') : 'Workout';
                         })()}
                     </Typography>
-                </Stack>
+                </Box>
                 <Stack
                     direction="row"
-                    spacing={0}
-                    onClick={(e) => { e.stopPropagation(); }}
+                    spacing={{ xs: 0.5, sm: 1 }}
+                    sx={{ alignItems: 'center', flexShrink: 0 }}
                 >
                     <IconButton size="small" onClick={() => { onEdit(entry); }} color="primary">
                         <EditIcon fontSize="small" />
@@ -83,7 +89,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                     <IconButton size="small" onClick={() => { onDelete(entry.id); }} color="error">
                         <DeleteIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => { setExpanded(!expanded); }} sx={{ ml: 1 }}>
+                    <IconButton size="small" onClick={() => { setExpanded(!expanded); }} sx={{ ml: { xs: 0, sm: 0.5 } }}>
                         {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
                 </Stack>
@@ -140,7 +146,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                                         >
                                             {(exercise?.name ?? 'U').charAt(0)}
                                         </Avatar>
-                                        <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                                        <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', flexWrap: 'wrap', flexGrow: 1 }}>
                                             <Typography
                                                 variant="subtitle2"
                                                 color="primary"
@@ -148,14 +154,15 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                                                     fontWeight: "bold",
                                                     textDecoration: 'none',
                                                     '&:hover': { textDecoration: exercise ? 'underline' : 'none' },
-                                                    cursor: exercise ? 'pointer' : 'default'
+                                                    cursor: exercise ? 'pointer' : 'default',
+                                                    fontSize: { xs: '0.85rem', sm: '0.875rem' }
                                                 }}
                                                 component={exercise ? RouterLink : 'div'}
                                                 to={exercise ? `/exercises/${exercise.id}` : undefined}
                                             >
                                                 {exercise?.name ?? 'Unknown Exercise'}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary">
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                                 {(() => {
                                                     const sets = se.sets.length;
                                                     const reps = se.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);

@@ -16,6 +16,7 @@ import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { alpha } from '@mui/material/styles';
 
 import Star from '@mui/icons-material/Star';
 import Close from '@mui/icons-material/Close';
@@ -175,7 +176,7 @@ const Profile = () => {
                             minHeight: 48,
                             textTransform: 'none',
                             '&.Mui-selected': {
-                                bgcolor: 'action.selected',
+                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                                 borderRadius: '8px 8px 0 0',
                             }
                         }} 
@@ -186,7 +187,7 @@ const Profile = () => {
                             minHeight: 48,
                             textTransform: 'none',
                             '&.Mui-selected': {
-                                bgcolor: 'action.selected',
+                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                                 borderRadius: '8px 8px 0 0',
                             }
                         }} 
@@ -197,7 +198,7 @@ const Profile = () => {
                             minHeight: 48,
                             textTransform: 'none',
                             '&.Mui-selected': {
-                                bgcolor: 'action.selected',
+                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                                 borderRadius: '8px 8px 0 0',
                             }
                         }} 

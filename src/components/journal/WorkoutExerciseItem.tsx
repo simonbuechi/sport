@@ -1,4 +1,5 @@
 import { useState, memo } from 'react';
+import { Link } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -47,21 +48,36 @@ const WorkoutExerciseItem = ({
     const editingSet = sessionExercise.sets.find(s => s.id === noteEditingSetId);
 
     return (
-        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'grey.50', }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: sessionExercise.note ? 0.5 : 2 }}>
+        <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 }, bgcolor: 'grey.50', }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: sessionExercise.note ? 0.5 : { xs: 1, sm: 2 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Avatar
-                        src={exercise?.icon_url ?
-                            `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
-                            : undefined}
-                        alt={exercise?.name ?? 'Unknown Exercise'}
-                        sx={{ width: 32, height: 32 }}
+                    <Box 
+                        component={Link} 
+                        to={`/exercises/${sessionExercise.exerciseId}`}
+                        sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1.5,
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            '&:hover': {
+                                opacity: 0.8
+                            }
+                        }}
                     >
-                        {(exercise?.name ?? 'U').charAt(0)}
-                    </Avatar>
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                        {exercise?.name ?? 'Unknown Exercise'}
-                    </Typography>
+                        <Avatar
+                            src={exercise?.icon_url ?
+                                `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
+                                : undefined}
+                            alt={exercise?.name ?? 'Unknown Exercise'}
+                            sx={{ width: 32, height: 32 }}
+                        >
+                            {(exercise?.name ?? 'U').charAt(0)}
+                        </Avatar>
+                        <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                            {exercise?.name ?? 'Unknown Exercise'}
+                        </Typography>
+                    </Box>
                     <Tooltip title="Add Notes" arrow>
                         <IconButton
                             size="small"

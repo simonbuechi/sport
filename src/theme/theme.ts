@@ -50,7 +50,7 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
         },
     },
     typography: {
-        fontSize: 12, // Default is 14px. Adjust this to globally change font size.
+        fontSize: 14, // Default is 14px. Adjust this to globally change font size.
         fontFamily: '"Inter", "Roboto", "Segoe UI", sans-serif',
         h1: {
             fontSize: 18,
@@ -118,6 +118,16 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                 }),
             },
         },
+        MuiIconButton: {
+            styleOverrides: {
+                root: {
+                    padding: 8,
+                    '@media (max-width: 600px)': {
+                        padding: 10,
+                    },
+                },
+            },
+        },
         MuiCard: {
             styleOverrides: {
                 root: {
@@ -132,8 +142,8 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
             },
             styleOverrides: {
                 root: {
-                    paddingLeft: '16px',
-                    paddingRight: '16px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
                     '@media (min-width: 600px)': {
                         paddingLeft: '24px',
                         paddingRight: '24px',
@@ -153,6 +163,9 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                     props: { variant: 'section' },
                     style: ({ theme }) => ({
                         padding: theme.spacing(3),
+                        '@media (max-width: 600px)': {
+                            padding: theme.spacing(2),
+                        },
                         borderRadius: theme.shape.borderRadius,
                         backgroundColor: theme.palette.background.paper,
                         marginBottom: theme.spacing(4),
@@ -162,6 +175,9 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
                     props: { variant: 'widget' },
                     style: ({ theme }) => ({
                         padding: theme.spacing(2.5),
+                        '@media (max-width: 600px)': {
+                            padding: theme.spacing(1.5),
+                        },
                         borderRadius: theme.shape.borderRadius,
                         height: '100%',
                         minHeight: 150,
@@ -281,7 +297,17 @@ export const getAppTheme = (mode: PaletteMode) => createTheme({
         },
         MuiTextField: {
             defaultProps: {
-                variant: 'filled',
+                variant: 'standard',
+            },
+        },
+        MuiFormControl: {
+            defaultProps: {
+                variant: 'standard',
+            },
+        },
+        MuiSelect: {
+            defaultProps: {
+                variant: 'standard',
             },
         },
     },

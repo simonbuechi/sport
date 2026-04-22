@@ -60,13 +60,13 @@ const WorkoutSetItem = ({
 
     return (
         <Box>
-            <Grid container spacing={1} sx={{ alignItems: "center", mb: 2, flexWrap: "nowrap" }}>
-                <Grid size="auto" sx={{ minWidth: 24 }}>
-                    <Typography variant="body2" color="text.secondary">{index + 1}</Typography>
+            <Grid container spacing={1} sx={{ alignItems: "center", mb: 1.5, flexWrap: "nowrap" }}>
+                <Grid size="auto" sx={{ minWidth: { xs: 20, sm: 24 } }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>{index + 1}</Typography>
                 </Grid>
                 <Grid size={4}>
                     <TextField
-                        variant="filled"
+                        variant="standard"
                         label={index === 0 ? "Weight" : ""}
                         placeholder="kg"
                         type="number"
@@ -74,12 +74,15 @@ const WorkoutSetItem = ({
                         fullWidth
                         value={localWeight}
                         onChange={(e) => { setLocalWeight(e.target.value); }}
-                        sx={{ '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' } }}
+                        sx={{ 
+                            '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' },
+                            '& .MuiInputBase-input': { px: { xs: 1, sm: 1.5 } }
+                        }}
                     />
                 </Grid>
                 <Grid size={4}>
                     <TextField
-                        variant="filled"
+                        variant="standard"
                         label={index === 0 ? "Reps" : ""}
                         placeholder="reps"
                         type="number"
@@ -87,23 +90,30 @@ const WorkoutSetItem = ({
                         fullWidth
                         value={localReps}
                         onChange={(e) => { setLocalReps(e.target.value); }}
-                        sx={{ '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' } }}
+                        sx={{ 
+                            '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' },
+                            '& .MuiInputBase-input': { px: { xs: 1, sm: 1.5 } }
+                        }}
                     />
                 </Grid>
-                <Grid size="auto">
+                <Grid size="auto" sx={{ display: 'flex', gap: 0.5 }}>
                     <Tooltip title="Add Notes" arrow>
                         <IconButton 
                             size="small" 
                             onClick={() => { onEditNotes(set.id); }}
                             color={set.notes ? "primary" : "default"}
+                            sx={{ p: { xs: 0.5, sm: 1 } }}
                         >
                             {set.notes ? <CommentIcon fontSize="small" /> : <CommentOutlinedIcon fontSize="small" />}
                         </IconButton>
                     </Tooltip>
-                </Grid>
-                <Grid size="auto">
                     <Tooltip title="Remove Set" arrow>
-                        <IconButton size="small" onClick={() => { onRemoveSet(exerciseId, set.id); }} color="error">
+                        <IconButton 
+                            size="small" 
+                            onClick={() => { onRemoveSet(exerciseId, set.id); }} 
+                            color="error"
+                            sx={{ p: { xs: 0.5, sm: 1 } }}
+                        >
                             <CloseIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>

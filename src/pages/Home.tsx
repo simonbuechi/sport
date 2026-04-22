@@ -147,7 +147,7 @@ const Home = () => {
             // Rollback state on failure
             setVisibleWidgets(previousWidgets);
             setOrderedAllWidgets(previousOrder);
-            
+
             // Clear error after 5 seconds
             setTimeout(() => { setError(''); }, 5000);
         }
@@ -197,16 +197,26 @@ const Home = () => {
 
     return (
         <Container maxWidth="lg">
-            <Stack sx={{ justifyContent: "space-between", mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
+            <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 1, sm: 2 }}
+                sx={{
+                    justifyContent: "space-between",
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                    mt: { xs: 0.5, md: 2 },
+                    mb: { xs: 1.5, md: 4 }
+                }}
+            >
                 <Typography variant="h4" component="h1">
                     Dashboard
                 </Typography>
-                <Stack sx={{ justifyContent: "flex-end" }}>
+                <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
                     <Button
                         variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
                         onClick={() => { void navigate('/journal/new'); }}
+                        sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
                     >
                         Workout
                     </Button>
@@ -214,7 +224,6 @@ const Home = () => {
                         <IconButton
                             onClick={() => { setIsManageDialogOpen(true); }}
                             color="primary"
-                            sx={{ border: '1px solid', borderColor: 'primary.main', borderRadius: 1 }}
                         >
                             <SettingsIcon />
                         </IconButton>

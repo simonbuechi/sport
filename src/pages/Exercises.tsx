@@ -137,7 +137,7 @@ const Exercises = () => {
 
     return (
         <Container maxWidth="lg">
-            <Stack direction="column" spacing={{ xs: 1, md: 2 }} sx={{ mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
+            <Stack direction="column" spacing={{ xs: 0.5, md: 2 }} sx={{ mt: { xs: 0.5, md: 2 }, mb: { xs: 1.5, md: 4 } }}>
                 <Stack sx={{ justifyContent: "space-between" }}>
                     <Typography variant="h4" component="h1">
                         Exercises
@@ -163,11 +163,18 @@ const Exercises = () => {
                         </ToggleButtonGroup>
                 </Stack>
 
-                <Stack sx={{ alignItems: "flex-start" }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <Box 
+                    sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', md: 'row' }, 
+                        alignItems: { xs: 'stretch', md: 'flex-start' }, 
+                        gap: 2 
+                    }}
+                >
                     <TextField
                         fullWidth
                         size="small"
-                        variant="outlined"
+                        variant="standard"
                         placeholder="Search exercises..."
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); }}
@@ -186,8 +193,16 @@ const Exercises = () => {
                         }}
                     />
 
-                    <Stack spacing={2} sx={{ flexWrap: "wrap", width: { xs: '100%', md: 'auto' }, flex: { md: '0 0 auto' } }}>
-                        <FormControl size="small" sx={{ minWidth: { xs: 'calc(50% - 8px)', sm: 150 } }}>
+                    <Box 
+                        sx={{ 
+                            display: 'flex', 
+                            flexWrap: 'wrap', 
+                            gap: 2, 
+                            width: { xs: '100%', md: 'auto' }, 
+                            flex: { md: '0 0 auto' } 
+                        }}
+                    >
+                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 150px' }, minWidth: 120 }}>
                             <InputLabel id="type-filter-label">Type</InputLabel>
                             <Select
                                 labelId="type-filter-label"
@@ -206,7 +221,7 @@ const Exercises = () => {
                             </Select>
                         </FormControl>
 
-                        <FormControl size="small" sx={{ minWidth: { xs: 'calc(50% - 8px)', sm: 150 } }}>
+                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 150px' }, minWidth: 120 }}>
                             <InputLabel id="bodypart-filter-label">Body Part</InputLabel>
                             <Select
                                 labelId="bodypart-filter-label"
@@ -222,7 +237,7 @@ const Exercises = () => {
                             </Select>
                         </FormControl>
 
-                        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }}>
+                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 150px' }, minWidth: 120 }}>
                             <InputLabel id="category-filter-label">Category</InputLabel>
                             <Select
                                 labelId="category-filter-label"
@@ -237,8 +252,8 @@ const Exercises = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                    </Stack>
-                </Stack>
+                    </Box>
+                </Box>
             </Stack>
             {currentError && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{currentError}</Alert>}
             {exercises.length === 0 && !currentError ? (

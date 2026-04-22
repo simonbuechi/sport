@@ -10,6 +10,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { auth, persistenceReady } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
+import { createUserProfile } from '../services/db';
 
 const Auth = () => {
     const location = useLocation();
@@ -40,7 +41,15 @@ const Auth = () => {
             if (isLogin) {
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                // Create Firestore profile for new user
+                await createUserProfile(user.uid, {
+                    name: user.displayName ?? email.split('@')[0] ?? 'New Athlete',
+                    weights: [],
+                    measurements: [],
+                    markedExercises: {}
+                });
             }
             
             void navigate('/');
@@ -57,6 +66,18 @@ const Auth = () => {
             setError('');
             setLoading(true);
             await googleSignIn();
+            
+            // Check/Create profile after Google Sign In
+            const user = auth.currentUser;
+            if (user) {
+                await createUserProfile(user.uid, {
+                    name: user.displayName ?? user.email?.split('@')[0] ?? 'Athlete',
+                    weights: [],
+                    measurements: [],
+                    markedExercises: {}
+                });
+            }
+            
             void navigate('/');
         } catch (err) {
             setError(isLogin ? 'Failed to log in with Google' : 'Failed to sign up with Google');
@@ -82,7 +103,7 @@ const Auth = () => {
                     Sport Amigo
                 </Typography>
             </Box>
-            <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
+            <Paper key={isLogin ? 'login' : 'register'} elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center">
                     {isLogin ? 'Login' : 'Register'}
                 </Typography>
@@ -91,8 +112,11 @@ const Auth = () => {
                 
                 <form onSubmit={handleSubmit}>
                     <TextField
+                        id="email"
+                        name="email"
                         label="Email"
                         type="email"
+                        autoComplete="username email"
                         fullWidth
                         margin="normal"
                         required
@@ -100,8 +124,11 @@ const Auth = () => {
                         onChange={(e) => { setEmail(e.target.value); }}
                     />
                     <TextField
+                        id="password"
+                        name="password"
                         label="Password"
                         type="password"
+                        autoComplete={isLogin ? "current-password" : "new-password"}
                         fullWidth
                         margin="normal"
                         required
@@ -111,8 +138,11 @@ const Auth = () => {
                     
                     {!isLogin && (
                         <TextField
+                            id="passwordConfirm"
+                            name="passwordConfirm"
                             label="Confirm Password"
                             type="password"
+                            autoComplete="new-password"
                             fullWidth
                             margin="normal"
                             required

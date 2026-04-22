@@ -1,6 +1,6 @@
-import { 
-    collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc, 
-    onSnapshot, limit, type Unsubscribe, type QueryDocumentSnapshot 
+import {
+    collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
+    onSnapshot, limit, type Unsubscribe, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types';
@@ -77,8 +77,8 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
 // Workouts
 const mapWorkout = (doc: QueryDocumentSnapshot): Workout => {
     const data = doc.data();
-    return { 
-        id: doc.id, 
+    return {
+        id: doc.id,
         ...data,
         exercises: (data.exercises as Workout['exercises'] | undefined) ?? []
     } as Workout;
@@ -92,14 +92,14 @@ export const getWorkouts = async (userId: string): Promise<Workout[]> => {
 };
 
 export const subscribeToWorkouts = (
-    userId: string, 
-    callback: (entries: Workout[]) => void, 
+    userId: string,
+    callback: (entries: Workout[]) => void,
     limitCount = 1000
 ): Unsubscribe => {
     const entriesRef = collection(db, 'users', userId, 'activities');
     const q = query(
-        entriesRef, 
-        orderBy('date', 'desc'), 
+        entriesRef,
+        orderBy('date', 'desc'),
         limit(limitCount)
     );
     return onSnapshot(q, (snapshot) => {
@@ -134,7 +134,7 @@ export const getTemplates = async (userId: string): Promise<TrainingTemplate[]> 
 };
 
 export const subscribeToTemplates = (
-    userId: string, 
+    userId: string,
     callback: (templates: TrainingTemplate[]) => void
 ): Unsubscribe => {
     const templatesRef = collection(db, 'users', userId, 'templates');

@@ -28,7 +28,7 @@ const Layout = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Navbar />
             <OfflineBanner />
-            <Box component="main" sx={{ flexGrow: 1, py: { xs: 2, md: 4 }, pb: { xs: 8, md: 4 } }}>
+            <Box component="main" sx={{ flexGrow: 1, py: { xs: 1, md: 4 }, pb: { xs: 8, md: 4 } }}>
                 <Suspense fallback={<PageLoader />}>
                     <Outlet />
                 </Suspense>

@@ -177,16 +177,26 @@ const Journal = () => {
 
     return (
         <Container maxWidth="lg">
-            <Stack sx={{ justifyContent: "space-between", mt: { xs: 1, md: 2 }, mb: { xs: 2, md: 4 } }}>
+            <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={{ xs: 1, sm: 2 }} 
+                sx={{ 
+                    justifyContent: "space-between", 
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                    mt: { xs: 0.5, md: 2 }, 
+                    mb: { xs: 1.5, md: 4 } 
+                }}
+            >
                 <Typography variant="h4" component="h1">
                     Journal
                 </Typography>
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
                     <Button
                         variant="outlined"
                         color="primary"
                         startIcon={<DescriptionIcon />}
                         onClick={() => navigate('/journal/templates')}
+                        sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
                     >
                         Templates
                     </Button>
@@ -202,6 +212,7 @@ const Journal = () => {
                             });
                             setAddDialogOpen(true);
                         }}
+                        sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
                     >
                         Workout
                     </Button>
@@ -213,7 +224,7 @@ const Journal = () => {
                 elevation={0}
                 sx={{
                     bgcolor: 'background.default',
-                    mb: 3,
+                    mb: { xs: 2, md: 3 },
                     '&:before': { display: 'none' },
                     border: '1px solid',
                     borderColor: 'divider',

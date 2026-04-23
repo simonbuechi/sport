@@ -6,7 +6,6 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -22,6 +21,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
+import { useUserProfile } from '../hooks/useUserProfile';
 import { createWorkout, updateWorkout } from '../services/db';
 import type { Workout, Exercise, WorkoutType, WorkoutExercise, ExerciseSet } from '../types';
 import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
@@ -37,6 +37,7 @@ const WorkoutForm = () => {
     const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading } = useExercises();
     const { entries, templates, loading: sessionsLoading } = useWorkouts();
+    const { profile, loading: profileLoading } = useUserProfile();
     const isEditing = Boolean(id);
 
     const [loading, setLoading] = useState(true);
@@ -70,13 +71,13 @@ const WorkoutForm = () => {
     const DRAFT_KEY = `workout_draft_${id || 'new'}`;
 
     useEffect(() => {
-        if (!currentUser || sessionsLoading || !loading) return;
-        
+        if (!currentUser || sessionsLoading || profileLoading || !loading) return;
+
         let baseData: any = null;
 
         if (isEditing && id) {
             const entry = entries.find(e => e.id === id);
-            
+
             if (entry) {
                 baseData = {
                     date: entry.date,
@@ -120,7 +121,7 @@ const WorkoutForm = () => {
             setWorkoutExercises(baseData.exercises);
             if (baseData.startTime) setStartTime(baseData.startTime);
             if (baseData.autoFillFromLast !== undefined) setAutoFillFromLast(baseData.autoFillFromLast);
-            
+
             // Initialize lastSavedDataRef to current state to avoid immediate auto-save
             lastSavedDataRef.current = JSON.stringify(baseData);
         } else if (!isEditing) {
@@ -138,20 +139,25 @@ const WorkoutForm = () => {
                 exercises: [],
                 startTime: now
             });
+
+            // Apply profile setting for new workouts if no draft
+            if (profile?.settings?.autoFillSets) {
+                setAutoFillFromLast(true);
+            }
         }
-        
+
         setLoading(false);
-    }, [currentUser, id, isEditing, entries, sessionsLoading, loading, DRAFT_KEY]);
+    }, [currentUser, id, isEditing, entries, sessionsLoading, loading, DRAFT_KEY, profileLoading, profile]);
 
     // Timer effect for new workouts
     useEffect(() => {
         if (!startTime || isEditing) return;
-        
+
         const updateTimer = () => {
             const mins = Math.floor((Date.now() - startTime) / 60000);
             setElapsedMinutes(mins);
         };
-        
+
         updateTimer();
         const interval = setInterval(updateTimer, 30000); // Update every 30s
         return () => { clearInterval(interval); };
@@ -200,19 +206,19 @@ const WorkoutForm = () => {
 
     const previousExercisesMap = useMemo<Record<string, WorkoutExercise>>(() => {
         if (sessionsLoading || !entries.length) return {};
-        
+
         const map: Record<string, WorkoutExercise> = {};
         const currentDateTime = new Date(`${date}T${time || '00:00'}`).getTime();
-        
+
         sessionExercises.forEach(se => {
             const exerciseId = se.exerciseId;
             // Since entries are already sorted by date desc, the first one we find in the past is the most recent
-            const prevWorkout = entries.find(e => 
-                e.id !== id && 
-                e.exerciseIds.includes(exerciseId) && 
+            const prevWorkout = entries.find(e =>
+                e.id !== id &&
+                e.exerciseIds.includes(exerciseId) &&
                 new Date(`${e.date}T${e.time ?? '00:00'}`).getTime() < currentDateTime
             );
-                
+
             if (prevWorkout) {
                 const prevEx = prevWorkout.exercises.find(ex => ex.exerciseId === exerciseId);
                 if (prevEx) {
@@ -220,16 +226,16 @@ const WorkoutForm = () => {
                 }
             }
         });
-        
+
         return map;
     }, [entries, sessionsLoading, date, time, id, sessionExercises]);
 
     const handleAddExercise = useCallback((exercise: Exercise | null) => {
         if (!exercise) return;
         if (sessionExercises.find(se => se.exerciseId === exercise.id)) return;
-        
+
         let initialSets: ExerciseSet[] = [{ id: crypto.randomUUID() }];
-        
+
         if (autoFillFromLast) {
             const prevEx = previousExercisesMap[exercise.id];
             if (prevEx && prevEx.sets.length > 0) {
@@ -255,12 +261,12 @@ const WorkoutForm = () => {
         setWorkoutExercises(prev => prev.map(se => {
             if (se.exerciseId === exerciseId) {
                 let newSet: Partial<ExerciseSet> = { id: crypto.randomUUID() };
-                
+
                 if (autoFillFromLast) {
                     const prevEx = previousExercisesMap[exerciseId];
                     const nextSetIdx = se.sets.length;
                     const prevSet = prevEx?.sets[nextSetIdx] || prevEx?.sets[prevEx.sets.length - 1];
-                    
+
                     if (prevSet) {
                         newSet = {
                             ...newSet,
@@ -269,7 +275,7 @@ const WorkoutForm = () => {
                         };
                     }
                 }
-                
+
                 return { ...se, sets: [...se.sets, newSet as ExerciseSet] };
             }
             return se;
@@ -291,7 +297,7 @@ const WorkoutForm = () => {
                 : se
         ));
     }, []);
-    
+
     const handleUpdateExerciseNote = useCallback((exerciseId: string, note: string) => {
         setWorkoutExercises(prev => prev.map(se =>
             se.exerciseId === exerciseId
@@ -360,7 +366,7 @@ const WorkoutForm = () => {
         }
     };
 
-    if (loading || (exercisesLoading && exercises.length === 0)) return (
+    if (loading || (exercisesLoading && exercises.length === 0) || profileLoading) return (
         <PageLoader />
     );
 
@@ -368,7 +374,11 @@ const WorkoutForm = () => {
         <Container maxWidth="lg">
             <Box sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1.5, md: 3 } }}>
-                    <IconButton onClick={() => navigate(isEditing ? `/journal/${id ?? ''}` : '/journal')} sx={{ mr: 1, p: { xs: 0.5, sm: 1 } }}>
+                    <IconButton 
+                        onClick={() => navigate(isEditing ? `/journal/${id ?? ''}` : '/journal')} 
+                        sx={{ mr: 1, p: { xs: 0.5, sm: 1 } }}
+                        aria-label="go back"
+                    >
                         <ArrowBackIcon />
                     </IconButton>
                     <Typography variant="h4" component="h1">
@@ -489,13 +499,13 @@ const WorkoutForm = () => {
                                         <Tooltip title="Automatically fill in weight and reps from your last training" arrow>
                                             <FormControlLabel
                                                 control={
-                                                    <Switch 
-                                                        checked={autoFillFromLast} 
-                                                        onChange={(e) => setAutoFillFromLast(e.target.checked)} 
+                                                    <Switch
+                                                        checked={autoFillFromLast}
+                                                        onChange={(e) => setAutoFillFromLast(e.target.checked)}
                                                         color="primary"
                                                     />
                                                 }
-                                                label="Auto-fill from last"
+                                                label="Auto-fill"
                                                 sx={{ ml: 1 }}
                                             />
                                         </Tooltip>
@@ -557,10 +567,10 @@ const WorkoutForm = () => {
                                         }}>
                                             Cancel
                                         </Button>
-                                        <Button 
-                                            type="submit" 
-                                            variant="contained" 
-                                            color="primary" 
+                                        <Button
+                                            type="submit"
+                                            variant="contained"
+                                            color="primary"
                                             disabled={submitting}
                                             sx={{ minWidth: 150 }}
                                         >

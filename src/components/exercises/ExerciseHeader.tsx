@@ -58,6 +58,7 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
                                 onClick={onToggleFavorite}
                                 color={isFavorite ? "warning" : "default"}
                                 size="large"
+                                aria-label={isFavorite ? "remove from favorites" : "mark as favorite"}
                             >
                                 {isFavorite ? <Star fontSize="large" /> : <StarBorder fontSize="large" />}
                             </IconButton>

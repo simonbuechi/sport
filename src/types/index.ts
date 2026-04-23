@@ -65,6 +65,10 @@ export interface UserProfile {
     measurements?: MeasurementEntry[];
     dashboardWidgets?: string[];
     dashboardOrder?: string[];
+    settings?: {
+        theme?: 'light' | 'dark' | 'system';
+        autoFillSets?: boolean;
+    };
 }
 
 export interface ExerciseSet {

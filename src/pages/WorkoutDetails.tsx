@@ -99,7 +99,7 @@ const WorkoutDetails = () => {
         return (
             <Container maxWidth="lg">
                 <Box sx={{ py: 3 }}>
-                    <IconButton onClick={() => navigate('/journal')} sx={{ mb: 2 }}>
+                    <IconButton onClick={() => navigate('/journal')} sx={{ mb: 2 }} aria-label="go back">
                         <ArrowBackIcon />
                     </IconButton>
                     <Alert severity="error">{error || 'Workout not found'}</Alert>
@@ -116,7 +116,7 @@ const WorkoutDetails = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                     <Grid container spacing={1} sx={{ alignItems: 'center', width: 'auto' }}>
                         <Grid>
-                            <IconButton onClick={() => navigate('/journal')}>
+                            <IconButton onClick={() => navigate('/journal')} aria-label="go back">
                                 <ArrowBackIcon />
                             </IconButton>
                         </Grid>

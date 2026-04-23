@@ -244,6 +244,7 @@ const Home = () => {
                                 size="small"
                                 sx={{ position: 'absolute', top: 8, right: 8 }}
                                 onClick={() => { setWidgetToClose(widget); }}
+                                aria-label="remove widget"
                             >
                                 <CloseIcon fontSize="small" />
                             </IconButton>

@@ -171,6 +171,7 @@ const BodyHistory = () => {
                                                     size="small" 
                                                     color="error" 
                                                     onClick={() => { handleDeleteClick(weight.id, 'weight', weight.date, `${String(weight.weightKg)}kg`); }}
+                                                    aria-label="delete weight entry"
                                                 >
                                                     <Delete fontSize="small" />
                                                 </IconButton>
@@ -214,6 +215,7 @@ const BodyHistory = () => {
                                                     size="small" 
                                                     color="error" 
                                                     onClick={() => { handleDeleteClick(entry.id, 'measurement', entry.date, 'measurements'); }}
+                                                    aria-label="delete measurement entry"
                                                 >
                                                     <Delete fontSize="small" />
                                                 </IconButton>

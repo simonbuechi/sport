@@ -5,16 +5,11 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-
-import Brightness4 from '@mui/icons-material/Brightness4';
-import Brightness7 from '@mui/icons-material/Brightness7';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
-    const { mode, toggleColorMode } = useAppTheme();
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -76,11 +71,6 @@ const Navbar = () => {
                             </IconButton>
                         </Tooltip>
                     )}
-                    <Tooltip title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-                        <IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
-                            {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-                        </IconButton>
-                    </Tooltip>
                 </Box>
             </Toolbar>
         </AppBar>

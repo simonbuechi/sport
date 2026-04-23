@@ -166,8 +166,9 @@ const Exercises = () => {
                 <Box 
                     sx={{ 
                         display: 'flex', 
-                        flexDirection: { xs: 'column', md: 'row' }, 
-                        alignItems: { xs: 'stretch', md: 'flex-start' }, 
+                        flexDirection: { xs: 'column', sm: 'row' }, 
+                        flexWrap: { xs: 'wrap', md: 'nowrap' },
+                        alignItems: { xs: 'stretch', sm: 'flex-end' }, 
                         gap: 2 
                     }}
                 >
@@ -175,12 +176,13 @@ const Exercises = () => {
                         fullWidth
                         size="small"
                         variant="standard"
+                        label="Search"
                         placeholder="Search exercises..."
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); }}
                         sx={{
-                            bgcolor: 'background.paper',
-                            flex: { md: '1 1 300px' }
+                            flex: { xs: '1 1 100%', sm: '1 1 200px', md: '1 1 300px' },
+                            maxWidth: { sm: '400px' }
                         }}
                         slotProps={{
                             input: {
@@ -193,66 +195,56 @@ const Exercises = () => {
                         }}
                     />
 
-                    <Box 
-                        sx={{ 
-                            display: 'flex', 
-                            flexWrap: 'wrap', 
-                            gap: 2, 
-                            width: { xs: '100%', md: 'auto' }, 
-                            flex: { md: '0 0 auto' } 
-                        }}
-                    >
-                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 150px' }, minWidth: 120 }}>
-                            <InputLabel id="type-filter-label">Type</InputLabel>
-                            <Select
-                                labelId="type-filter-label"
-                                id="type-filter"
-                                value={filter}
-                                label="Type"
-                                onChange={(e) => { setFilter(e.target.value as ExerciseType | 'all'); }}
-                                sx={{ textTransform: 'capitalize' }}
-                            >
-                                <MenuItem value="all">All Types</MenuItem>
-                                {EXERCISE_TYPES.map(type => (
-                                    <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
-                                        {type}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                    <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
+                        <InputLabel id="type-filter-label">Type</InputLabel>
+                        <Select
+                            labelId="type-filter-label"
+                            id="type-filter"
+                            value={filter}
+                            label="Type"
+                            onChange={(e) => { setFilter(e.target.value as ExerciseType | 'all'); }}
+                            sx={{ textTransform: 'capitalize' }}
+                        >
+                            <MenuItem value="all">All Types</MenuItem>
+                            {EXERCISE_TYPES.map(type => (
+                                <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
+                                    {type}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
-                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 150px' }, minWidth: 120 }}>
-                            <InputLabel id="bodypart-filter-label">Body Part</InputLabel>
-                            <Select
-                                labelId="bodypart-filter-label"
-                                id="bodypart-filter"
-                                value={bodypartFilter}
-                                label="Body Part"
-                                onChange={(e) => { setBodypartFilter(e.target.value as BodyPart | 'all'); }}
-                            >
-                                <MenuItem value="all">All Body Parts</MenuItem>
-                                {BODY_PARTS.map(bp => (
-                                    <MenuItem key={bp} value={bp}>{bp}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                    <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
+                        <InputLabel id="bodypart-filter-label">Body Part</InputLabel>
+                        <Select
+                            labelId="bodypart-filter-label"
+                            id="bodypart-filter"
+                            value={bodypartFilter}
+                            label="Body Part"
+                            onChange={(e) => { setBodypartFilter(e.target.value as BodyPart | 'all'); }}
+                        >
+                            <MenuItem value="all">All Body Parts</MenuItem>
+                            {BODY_PARTS.map(bp => (
+                                <MenuItem key={bp} value={bp}>{bp}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
-                        <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 150px' }, minWidth: 120 }}>
-                            <InputLabel id="category-filter-label">Category</InputLabel>
-                            <Select
-                                labelId="category-filter-label"
-                                id="category-filter"
-                                value={categoryFilter}
-                                label="Category"
-                                onChange={(e) => { setCategoryFilter(e.target.value as ExerciseCategory | 'all'); }}
-                            >
-                                <MenuItem value="all">All Categories</MenuItem>
-                                {CATEGORIES.map(cat => (
-                                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Box>
+                    <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
+                        <InputLabel id="category-filter-label">Category</InputLabel>
+                        <Select
+                            labelId="category-filter-label"
+                            id="category-filter"
+                            value={categoryFilter}
+                            label="Category"
+                            onChange={(e) => { setCategoryFilter(e.target.value as ExerciseCategory | 'all'); }}
+                        >
+                            <MenuItem value="all">All Categories</MenuItem>
+                            {CATEGORIES.map(cat => (
+                                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Box>
             </Stack>
             {currentError && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{currentError}</Alert>}
@@ -266,6 +258,7 @@ const Exercises = () => {
                             size="small"
                             component={RouterLink}
                             to="/exercises/new"
+                            aria-label="add new exercise"
                         >
                             <Add />
                         </IconButton>
@@ -283,6 +276,7 @@ const Exercises = () => {
                             size="small"
                             component={RouterLink}
                             to="/exercises/new"
+                            aria-label="add new exercise"
                         >
                             <Add />
                         </IconButton>

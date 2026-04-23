@@ -36,6 +36,8 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
     const [isSetDialogOpen, setIsSetDialogOpen] = useState(false);
     const [setDialogData, setSetDialogData] = useState<SetDialogData | null>(null);
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
     const templatesRef = useRef(templates);
     useEffect(() => {
@@ -250,14 +252,24 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this template?')) return;
+    const handleDelete = (id: string) => {
+        setTemplateToDelete(id);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDeleteTemplate = async () => {
+        if (!templateToDelete) return;
         try {
-            await deleteTemplate(userId, id);
-            setTemplates(prev => prev.filter(t => t.id !== id));
+            setSaving(true);
+            await deleteTemplate(userId, templateToDelete);
+            setTemplates(prev => prev.filter(t => t.id !== templateToDelete));
+            setIsDeleteDialogOpen(false);
+            setTemplateToDelete(null);
             if (isDialogOpen) handleCloseDialog();
         } catch (err) {
             console.error('Failed to delete template:', err);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -413,11 +425,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
             <Dialog
                 open={isInfoDialogOpen}
                 onClose={() => { setIsInfoDialogOpen(false); }}
-                slotProps={{
-                    paper: {
-                        sx: {}
-                    }
-                }}
             >
                 <DialogTitle>Training Templates</DialogTitle>
                 <DialogContent>
@@ -428,6 +435,31 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                 <DialogActions sx={{ pb: 2, px: 3 }}>
                     <Button onClick={() => { setIsInfoDialogOpen(false); }} variant="contained">
                         Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={isDeleteDialogOpen}
+                onClose={() => { if (!saving) setIsDeleteDialogOpen(false); }}
+            >
+                <DialogTitle>Delete Template?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this template? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{ pb: 2, px: 3 }}>
+                    <Button onClick={() => { setIsDeleteDialogOpen(false); }} disabled={saving}>
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={() => { void confirmDeleteTemplate(); }} 
+                        color="error" 
+                        variant="contained"
+                        disabled={saving}
+                    >
+                        {saving ? 'Deleting...' : 'Delete'}
                     </Button>
                 </DialogActions>
             </Dialog>

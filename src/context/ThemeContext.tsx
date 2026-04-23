@@ -1,14 +1,15 @@
-import { createContext, useContext, useState, useMemo, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useMemo, useCallback, useEffect, type ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { getAppTheme } from '../theme/theme';
+import { useUserProfile } from '../hooks/useUserProfile';
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark' | 'system';
 
 const THEME_STORAGE_KEY = 'sport-amigo-theme-mode';
 
 interface ThemeContextType {
     mode: ThemeMode;
-    toggleColorMode: () => void;
+    setThemeMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -25,32 +26,62 @@ export const useAppTheme = () => {
 const getStoredTheme = (): ThemeMode => {
     try {
         const stored = localStorage.getItem(THEME_STORAGE_KEY);
-        if (stored === 'dark' || stored === 'light') return stored;
+        if (stored === 'dark' || stored === 'light' || stored === 'system') return stored as ThemeMode;
     } catch {
         // localStorage may be unavailable
     }
-    return 'light';
+    return 'system';
 };
 
 export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
+    const { profile } = useUserProfile();
     const [mode, setMode] = useState<ThemeMode>(getStoredTheme);
 
-    const toggleColorMode = useCallback(() => {
-        setMode((prevMode) => {
-            const newMode = prevMode === 'light' ? 'dark' : 'light';
-            try {
-                localStorage.setItem(THEME_STORAGE_KEY, newMode);
-            } catch {
-                // localStorage may be unavailable
-            }
-            return newMode;
-        });
+    // Sync theme from profile when it loads
+    useEffect(() => {
+        if (profile?.settings?.theme && profile.settings.theme !== mode) {
+            setMode(profile.settings.theme);
+        }
+    }, [profile, mode]);
+
+    const setThemeMode = useCallback((newMode: ThemeMode) => {
+        setMode(newMode);
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, newMode);
+        } catch {
+            // localStorage may be unavailable
+        }
     }, []);
 
-    const theme = useMemo(() => getAppTheme(mode), [mode]);
+    // Helper to get the actual palette mode (light or dark)
+    const [resolvedMode, setResolvedMode] = useState<'light' | 'dark'>(() => {
+        const initialMode = getStoredTheme();
+        if (initialMode === 'system') {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        return initialMode as 'light' | 'dark';
+    });
+
+    useEffect(() => {
+        if (mode !== 'system') {
+            setResolvedMode(mode as 'light' | 'dark');
+            return;
+        }
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (e: MediaQueryListEvent) => {
+            setResolvedMode(e.matches ? 'dark' : 'light');
+        };
+
+        setResolvedMode(mediaQuery.matches ? 'dark' : 'light');
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, [mode]);
+
+    const theme = useMemo(() => getAppTheme(resolvedMode), [resolvedMode]);
 
     return (
-        <ThemeContext.Provider value={{ mode, toggleColorMode }}>
+        <ThemeContext.Provider value={{ mode, setThemeMode }}>
             <MuiThemeProvider theme={theme}>
                 <CssBaseline />
                 {children}

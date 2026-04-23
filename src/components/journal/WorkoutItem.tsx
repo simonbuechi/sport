@@ -15,6 +15,14 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import type { Workout, Exercise, BodyPart } from '../../types';
 import { formatWeight, formatCount } from '../../utils/format';
 import { useMemo } from 'react';
+import type { WorkoutExercise } from '../../types';
+
+const getExerciseSummary = (se: WorkoutExercise) => {
+    const sets = se.sets.length;
+    const reps = se.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+    const volume = se.sets.reduce((sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), 0);
+    return `${String(sets)} sets, ${String(reps)} reps, ${String(volume)} kg`;
+};
 
 interface WorkoutItemProps {
     entry: Workout;
@@ -40,6 +48,13 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
         
         return { numEx, totalSets, totalReps, totalVolume };
     }, [entry.exercises]);
+
+    const bodyPartsSummary = useMemo(() => {
+        const bodyParts = entry.exercises.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p);
+        const uniqueParts = Array.from(new Set(bodyParts));
+        const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== 'Whole Body') : uniqueParts;
+        return filteredParts.length > 0 ? filteredParts.join(', ') : 'Workout';
+    }, [entry.exercises, exerciseMap]);
 
 
     return (
@@ -70,12 +85,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                         {entry.time && ` • ${entry.time}`}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                        {(() => {
-                            const bodyParts = entry.exercises.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p);
-                            const uniqueParts = Array.from(new Set(bodyParts));
-                            const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== 'Whole Body') : uniqueParts;
-                            return filteredParts.length > 0 ? filteredParts.join(', ') : 'Workout';
-                        })()}
+                        {bodyPartsSummary}
                     </Typography>
                 </Box>
                 <Stack
@@ -83,13 +93,18 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                     spacing={{ xs: 0.5, sm: 1 }}
                     sx={{ alignItems: 'center', flexShrink: 0 }}
                 >
-                    <IconButton size="small" onClick={() => { onEdit(entry); }} color="primary">
+                    <IconButton size="small" onClick={() => { onEdit(entry); }} color="primary" aria-label="edit workout">
                         <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => { onDelete(entry.id); }} color="error">
+                    <IconButton size="small" onClick={() => { onDelete(entry.id); }} color="error" aria-label="delete workout">
                         <DeleteIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => { setExpanded(!expanded); }} sx={{ ml: { xs: 0, sm: 0.5 } }}>
+                    <IconButton 
+                        size="small" 
+                        onClick={() => { setExpanded(!expanded); }} 
+                        sx={{ ml: { xs: 0, sm: 0.5 } }}
+                        aria-label={expanded ? "show less" : "show more"}
+                    >
                         {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     </IconButton>
                 </Stack>
@@ -163,12 +178,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                                                 {exercise?.name ?? 'Unknown Exercise'}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-                                                {(() => {
-                                                    const sets = se.sets.length;
-                                                    const reps = se.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
-                                                    const volume = se.sets.reduce((sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), 0);
-                                                    return `${String(sets)} sets, ${String(reps)} reps, ${String(volume)} kg`;
-                                                })()}
+                                                {getExerciseSummary(se)}
                                             </Typography>
                                         </Stack>
                                     </Stack>

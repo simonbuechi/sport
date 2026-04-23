@@ -22,6 +22,8 @@ import Star from '@mui/icons-material/Star';
 import Close from '@mui/icons-material/Close';
 import Edit from '@mui/icons-material/Edit';
 import Logout from '@mui/icons-material/Logout';
+import { ToggleButton, ToggleButtonGroup, Switch, FormControlLabel } from '@mui/material';
+import { useAppTheme } from '../context/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -64,6 +66,7 @@ function CustomTabPanel(props: TabPanelProps) {
 const Profile = () => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
+    const { mode, setThemeMode } = useAppTheme();
     const { profile, updateProfile, setProfile, loading: profileLoading } = useUserProfile();
     const [activeTab, setActiveTab] = useState(0);
     const { pathname } = useLocation();
@@ -102,6 +105,18 @@ const Profile = () => {
         }
 
         if (profile) setProfile({ ...profile, [field]: value });
+    };
+
+    const handleSettingChange = (field: 'autoFillSets') => (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!profile) return;
+        const newSettings = { ...profile.settings, [field]: event.target.checked };
+        void updateProfile({ settings: newSettings });
+    };
+
+    const handleThemeChange = (_event: React.MouseEvent<HTMLElement>, newTheme: 'light' | 'dark' | 'system' | null) => {
+        if (newTheme !== null) {
+            setThemeMode(newTheme);
+        }
     };
 
     const handleLogout = async () => {
@@ -170,38 +185,38 @@ const Profile = () => {
                     indicatorColor="primary"
                     textColor="primary"
                 >
-                    <Tab 
-                        label="Profile" 
-                        sx={{ 
+                    <Tab
+                        label="Profile"
+                        sx={{
                             minHeight: 48,
                             textTransform: 'none',
                             '&.Mui-selected': {
                                 bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                                 borderRadius: '8px 8px 0 0',
                             }
-                        }} 
+                        }}
                     />
-                    <Tab 
-                        label="Body" 
-                        sx={{ 
+                    <Tab
+                        label="Body"
+                        sx={{
                             minHeight: 48,
                             textTransform: 'none',
                             '&.Mui-selected': {
                                 bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                                 borderRadius: '8px 8px 0 0',
                             }
-                        }} 
+                        }}
                     />
-                    <Tab 
-                        label="Stats" 
-                        sx={{ 
+                    <Tab
+                        label="Stats"
+                        sx={{
                             minHeight: 48,
                             textTransform: 'none',
                             '&.Mui-selected': {
                                 bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
                                 borderRadius: '8px 8px 0 0',
                             }
-                        }} 
+                        }}
                     />
                 </Tabs>
             </Box>
@@ -210,13 +225,13 @@ const Profile = () => {
             <CustomTabPanel value={activeTab} index={0}>
                 <Grid container spacing={4}>
                     <Grid size={12}>
-                        <Grid 
-                            container 
-                            sx={{ 
-                                alignItems: { xs: "flex-start", sm: "center" }, 
-                                justifyContent: "space-between", 
+                        <Grid
+                            container
+                            sx={{
+                                alignItems: { xs: "flex-start", sm: "center" },
+                                justifyContent: "space-between",
                                 mt: { xs: 1, md: 2 },
-                                mb: { xs: 2, md: 4 } 
+                                mb: { xs: 2, md: 4 }
                             }}
                             spacing={2}
                         >
@@ -263,7 +278,7 @@ const Profile = () => {
                                     }}>Birth Year</Typography>
                                     <Typography variant="body1">{profile.birthYear ?? 'Not specified'}</Typography>
                                 </Grid>
-                                
+
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <Typography variant="subtitle2" sx={{
                                         color: "text.secondary"
@@ -287,23 +302,74 @@ const Profile = () => {
                                     </Grid>
                                 )}
 
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Typography variant="subtitle2" sx={{
-                                            color: "text.secondary"
-                                        }}>Member Since</Typography>
-                                        <Typography variant="body1">
-                                            {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
-                                        </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Typography variant="subtitle2" sx={{
-                                            color: "text.secondary"
-                                        }}>Last Login</Typography>
-                                        <Typography variant="body1">
-                                            {currentUser?.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
-                                        </Typography>
-                                    </Grid>
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <Typography variant="subtitle2" sx={{
+                                        color: "text.secondary"
+                                    }}>Member Since</Typography>
+                                    <Typography variant="body1">
+                                        {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
+                                    </Typography>
+                                </Grid>
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <Typography variant="subtitle2" sx={{
+                                        color: "text.secondary"
+                                    }}>Last Login</Typography>
+                                    <Typography variant="body1">
+                                        {currentUser?.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
+                                    </Typography>
+                                </Grid>
 
+                            </Grid>
+                        </Paper>
+
+                        <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, mt: 3 }}>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="h6">Settings</Typography>
+                            </Box>
+
+                            <Grid container spacing={3}>
+                                <Grid size={12}>
+                                    <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>Theme</Typography>
+                                    <ToggleButtonGroup
+                                        value={mode}
+                                        exclusive
+                                        onChange={handleThemeChange}
+                                        aria-label="theme toggle"
+                                        size="small"
+                                        color="primary"
+                                        fullWidth
+                                    >
+                                        <ToggleButton value="light" aria-label="light theme">
+                                            Light
+                                        </ToggleButton>
+                                        <ToggleButton value="dark" aria-label="dark theme">
+                                            Dark
+                                        </ToggleButton>
+                                        <ToggleButton value="system" aria-label="system theme">
+                                            System
+                                        </ToggleButton>
+                                    </ToggleButtonGroup>
+                                </Grid>
+
+                                <Grid size={12}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={profile.settings?.autoFillSets ?? false}
+                                                onChange={handleSettingChange('autoFillSets')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography variant="body1">Auto-fill</Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                    when switched on, you workout data is auto-filled with data from your last workout
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                </Grid>
                             </Grid>
                         </Paper>
                     </Grid>
@@ -336,15 +402,15 @@ const Profile = () => {
                 <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>}>
                     <Grid container spacing={3}>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <WeightSection 
-                                profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
-                                onWeightsUpdated={handleWeightsUpdated} 
+                            <WeightSection
+                                profile={{ ...profile, uid: currentUser?.uid ?? '' }}
+                                onWeightsUpdated={handleWeightsUpdated}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <MeasurementsSection 
-                                profile={{ ...profile, uid: currentUser?.uid ?? '' }} 
-                                onMeasurementsUpdated={handleMeasurementsUpdated} 
+                            <MeasurementsSection
+                                profile={{ ...profile, uid: currentUser?.uid ?? '' }}
+                                onMeasurementsUpdated={handleMeasurementsUpdated}
                             />
                         </Grid>
                     </Grid>
@@ -362,7 +428,7 @@ const Profile = () => {
                 fullWidth
                 slotProps={{
                     paper: {
-                        sx: { }
+                        sx: {}
                     }
                 }}
             >
@@ -382,7 +448,7 @@ const Profile = () => {
                     </IconButton>
                 </DialogTitle>
                 <form onSubmit={handleSave}>
-                <DialogContent dividers sx={{ pt: 2 }}>
+                    <DialogContent dividers sx={{ pt: 2 }}>
                         <Grid container spacing={3}>
                             <Grid size={{ xs: 12 }}>
                                 <TextField

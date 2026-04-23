@@ -124,7 +124,7 @@ const ExerciseHistory = () => {
                                             })()}
                                         </TableCell>
                                         <TableCell align="right" sx={{ verticalAlign: 'middle' }}>
-                                            <IconButton size="small" color="primary">
+                                            <IconButton size="small" color="primary" aria-label="view workout details">
                                                 <ChevronRight />
                                             </IconButton>
                                         </TableCell>

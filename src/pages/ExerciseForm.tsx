@@ -13,8 +13,9 @@ import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Chip from '@mui/material/Chip';
 import { FormControlLabel, Checkbox } from '@mui/material';
-import { getExerciseById, createExercise, updateExercise } from '../services/db';
+import { createExercise, updateExercise } from '../services/db';
 import type { Exercise } from '../types';
+import { useExercises } from '../context/ExercisesContext';
 import { isValidSafeUrl, sanitizeUrl } from '../utils/security';
 
 import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
@@ -24,8 +25,8 @@ export default function ExerciseForm() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const isEditing = Boolean(id);
+    const { exercises, loading: exercisesLoading } = useExercises();
 
-    const [loading, setLoading] = useState(isEditing);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -46,37 +47,28 @@ export default function ExerciseForm() {
     const [linkInput, setLinkInput] = useState({ url: '', label: '' });
 
     useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                if (isEditing && id) {
-                    const tech = await getExerciseById(id);
-                    if (tech) {
-                        setFormData({
-                            name: tech.name,
-                            name_url: tech.name_url ?? '',
-                            type: tech.type,
-                            bodypart: tech.bodypart,
-                            category: tech.category,
-                            description: tech.description ?? '',
-                            icon_url: tech.icon_url ?? '',
-                            aliases: tech.aliases,
-                            links: tech.links ?? [],
-                            popular: tech.popular ?? false
-                        });
-                    } else {
-                        setError('Exercise not found');
-                    }
-                }
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load data');
-            } finally {
-                setLoading(false);
+        if (isEditing && id && !exercisesLoading) {
+            const tech = exercises.find(e => e.id === id);
+            if (tech) {
+                setFormData({
+                    name: tech.name,
+                    name_url: tech.name_url ?? '',
+                    type: tech.type,
+                    bodypart: tech.bodypart,
+                    category: tech.category,
+                    description: tech.description ?? '',
+                    icon_url: tech.icon_url ?? '',
+                    aliases: tech.aliases,
+                    links: tech.links ?? [],
+                    popular: tech.popular ?? false
+                });
+            } else {
+                setError('Exercise not found');
             }
-        };
+        }
+    }, [id, isEditing, exercises, exercisesLoading]);
 
-        void fetchInitialData();
-    }, [id, isEditing]);
+    const loading = exercisesLoading && isEditing;
 
     const handleChange = (field: keyof Omit<Exercise, 'id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;

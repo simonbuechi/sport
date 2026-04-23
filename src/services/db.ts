@@ -74,6 +74,20 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
     await updateDoc(doc(db, 'users', uid), data);
 };
 
+export const subscribeToUserProfile = (
+    uid: string,
+    callback: (profile: UserProfile | null) => void
+): Unsubscribe => {
+    const docRef = doc(db, 'users', uid);
+    return onSnapshot(docRef, (snapshot) => {
+        if (snapshot.exists()) {
+            callback({ uid: snapshot.id, ...snapshot.data() } as UserProfile);
+        } else {
+            callback(null);
+        }
+    });
+};
+
 // Workouts
 const mapWorkout = (doc: QueryDocumentSnapshot): Workout => {
     const data = doc.data();

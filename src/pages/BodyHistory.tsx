@@ -23,8 +23,8 @@ import DialogActions from '@mui/material/DialogActions';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
-import { getUserProfile, updateUserProfile } from '../services/db';
 import { useAuth } from '../context/AuthContext';
+import { useUserProfile } from '../hooks/useUserProfile';
 import { formatWeight } from '../utils/format';
 import type { UserProfile, MeasurementEntry } from '../types';
 
@@ -32,8 +32,7 @@ const BodyHistory = () => {
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState(0);
 
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { profile, updateProfile, loading, error: profileError } = useUserProfile();
     const [error, setError] = useState('');
     
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -41,22 +40,8 @@ const BodyHistory = () => {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            if (!currentUser) return;
-            try {
-                setLoading(true);
-                const userData = await getUserProfile(currentUser.uid);
-                setProfile(userData);
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load body history');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void fetchProfile();
-    }, [currentUser]);
+        if (profileError) setError(profileError);
+    }, [profileError]);
 
     const handleDeleteClick = (id: string, type: 'weight' | 'measurement', date: string, value: string) => {
         setItemToDelete({ id, type, date, value });
@@ -78,8 +63,7 @@ const BodyHistory = () => {
                 updatedData = { measurements: newMeasurements };
             }
             
-            await updateUserProfile(currentUser.uid, updatedData);
-            setProfile({ ...profile, ...updatedData });
+            await updateProfile(updatedData);
             setIsDeleteOpen(false);
             setItemToDelete(null);
         } catch (err) {

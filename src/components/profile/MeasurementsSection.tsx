@@ -16,8 +16,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Add from '@mui/icons-material/Add';
 import HelpOutlined from '@mui/icons-material/HelpOutlined';
 import { Link as RouterLink } from 'react-router-dom';
-import type { UserProfile, MeasurementEntry } from '../../types';
-import { updateUserProfile } from '../../services/db';
+import type { MeasurementEntry } from '../../types';
+import { useUserProfile } from '../../hooks/useUserProfile';
 
 const MEASUREMENT_INFO: Record<string, { how: string }> = {
     waist: {
@@ -61,10 +61,6 @@ const MEASUREMENT_INFO: Record<string, { how: string }> = {
     }
 };
 
-interface MeasurementsSectionProps {
-    profile: Partial<UserProfile>;
-    onMeasurementsUpdated: (newMeasurements: MeasurementEntry[]) => void;
-}
 
 const MeasurementField = ({ 
     label, 
@@ -108,10 +104,8 @@ const MeasurementField = ({
     );
 };
 
-export default function MeasurementsSection({ profile, onMeasurementsUpdated }: MeasurementsSectionProps) {
-    const measurements = profile.measurements ?? [];
-
-    const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export default function MeasurementsSection() {
+    const { profile, updateProfile } = useUserProfile();
 
     const [isAddEditOpen, setIsAddEditOpen] = useState(false);
     const [isExplainOpen, setIsExplainOpen] = useState(false);
@@ -120,6 +114,11 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
     // Form fields
     const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
     const [formData, setFormData] = useState<Omit<MeasurementEntry, 'id' | 'date'>>({});
+
+    if (!profile) return null;
+
+    const measurements = profile.measurements ?? [];
+    const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleOpenAdd = () => {
         setFormDate(new Date().toISOString().split('T')[0]);
@@ -154,8 +153,7 @@ export default function MeasurementsSection({ profile, onMeasurementsUpdated }: 
             ) as MeasurementEntry;
             newMeasurements.push(cleaned);
 
-            await updateUserProfile(profile.uid, { measurements: newMeasurements });
-            onMeasurementsUpdated(newMeasurements);
+            await updateProfile({ measurements: newMeasurements });
             setIsAddEditOpen(false);
         } catch (error) {
             console.error("Failed to save measurement", error);

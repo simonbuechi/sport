@@ -21,10 +21,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import { getWorkouts, deleteExercise } from '../services/db';
-import type { UserProfile, MarkedStatus, Workout } from '../types';
+import { deleteExercise } from '../services/db';
+import type { UserProfile, MarkedStatus } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
+import { useWorkouts } from '../context/WorkoutsContext';
 import { useUserProfile } from '../hooks/useUserProfile';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
@@ -59,7 +60,7 @@ const ExerciseDetails = () => {
 
     const { exercises, loading: exercisesLoading } = useExercises();
     const { profile, updateProfile, loading: profileLoading } = useUserProfile();
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const { entries: allEntries, loading: workoutsLoading } = useWorkouts();
     const [notes, setNotes] = useState('');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [error, setError] = useState('');
@@ -70,25 +71,12 @@ const ExerciseDetails = () => {
         return exercises.find(e => e.id === id) ?? null;
     }, [id, exercises, exercisesLoading]);
 
-    const loading = exercisesLoading || profileLoading;
+    const workouts = useMemo(() => {
+        if (!id || workoutsLoading) return [];
+        return allEntries.filter(entry => entry.exerciseIds.includes(id));
+    }, [id, allEntries, workoutsLoading]);
 
-    useEffect(() => {
-        const fetchWorkoutData = async () => {
-            if (!currentUser || !id) return;
-            try {
-                const allEntries = await getWorkouts(currentUser.uid);
-                const exerciseWorkouts = allEntries.filter((entry: Workout) =>
-                    entry.exerciseIds.includes(id)
-                );
-                setWorkouts(exerciseWorkouts);
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load user progress data');
-            }
-        };
-
-        void fetchWorkoutData();
-    }, [id, currentUser]);
+    const loading = exercisesLoading || profileLoading || workoutsLoading;
 
     useEffect(() => {
         if (profile && id) {

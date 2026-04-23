@@ -28,9 +28,10 @@ import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import { getUserProfile, updateUserProfile } from '../services/db';
+import { updateUserProfile } from '../services/db';
 import { useAuth } from '../context/AuthContext';
 import { useWorkouts } from '../context/WorkoutsContext';
+import { useUserProfile } from '../hooks/useUserProfile';
 import { useNavigate } from 'react-router-dom';
 import type { Workout, UserProfile, TrainingTemplate } from '../types';
 import CalendarWidget from '../components/dashboard/CalendarWidget';
@@ -66,56 +67,46 @@ const Home = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { entries: allEntries, templates, loading: sessionsLoading } = useWorkouts();
+    const { profile, loading: profileLoading, error: profileError } = useUserProfile();
+    
     const [visibleWidgets, setVisibleWidgets] = useState<string[]>([]);
     const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
     const [widgetToClose, setWidgetToClose] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [aspirationalMessage, setAspirationalMessage] = useState('');
     const [orderedAllWidgets, setOrderedAllWidgets] = useState<string[]>(ALL_DASHBOARD_ELEMENTS);
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            if (!currentUser) {
-                setLoading(false);
-                return;
+        if (profile) {
+            if (profile.dashboardWidgets) {
+                setVisibleWidgets(profile.dashboardWidgets);
+                const savedOrder = profile.dashboardOrder ?? [];
+                const activeSet = new Set(profile.dashboardWidgets);
+                const baseOrder = savedOrder.length > 0 ? savedOrder : ALL_DASHBOARD_ELEMENTS;
+                const sorted = [...baseOrder].sort((a, b) => {
+                    const aActive = activeSet.has(a);
+                    const bActive = activeSet.has(b);
+                    if (aActive && !bActive) return -1;
+                    if (!aActive && bActive) return 1;
+                    return 0;
+                });
+                setOrderedAllWidgets(sorted);
+            } else {
+                setVisibleWidgets(DEFAULT_WIDGETS);
+                setOrderedAllWidgets(ALL_DASHBOARD_ELEMENTS);
             }
 
-            try {
-                setLoading(true);
-                const profileData = await getUserProfile(currentUser.uid);
-
-                if (profileData?.dashboardWidgets) {
-                    setVisibleWidgets(profileData.dashboardWidgets);
-                    const savedOrder = profileData.dashboardOrder ?? [];
-                    const activeSet = new Set(profileData.dashboardWidgets);
-                    const baseOrder = savedOrder.length > 0 ? savedOrder : ALL_DASHBOARD_ELEMENTS;
-                    const sorted = [...baseOrder].sort((a, b) => {
-                        const aActive = activeSet.has(a);
-                        const bActive = activeSet.has(b);
-                        if (aActive && !bActive) return -1;
-                        if (!aActive && bActive) return 1;
-                        return 0;
-                    });
-                    setOrderedAllWidgets(sorted);
-                } else {
-                    setVisibleWidgets(DEFAULT_WIDGETS);
-                    setOrderedAllWidgets(ALL_DASHBOARD_ELEMENTS);
-                }
-
-                // Set a random message
+            // Set a random message if not already set
+            if (!aspirationalMessage) {
                 const randomMsg = ASPIRATIONAL_MESSAGES[Math.floor(Math.random() * ASPIRATIONAL_MESSAGES.length)];
                 setAspirationalMessage(randomMsg);
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load profile settings.');
-            } finally {
-                setLoading(false);
             }
-        };
+        }
+    }, [profile, aspirationalMessage]);
 
-        void fetchProfile();
-    }, [currentUser]);
+    useEffect(() => {
+        if (profileError) setError(profileError);
+    }, [profileError]);
 
     const sessionsInLast7Days = useMemo(() => {
         const sevenDaysAgo = new Date();
@@ -187,7 +178,7 @@ const Home = () => {
     };
 
 
-    const isInitialLoading = (loading && visibleWidgets.length === 0) || (sessionsLoading && allEntries.length === 0);
+    const isInitialLoading = (profileLoading && visibleWidgets.length === 0) || (sessionsLoading && allEntries.length === 0);
 
     if (isInitialLoading) {
         return (

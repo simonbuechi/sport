@@ -30,7 +30,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { lazy, Suspense } from 'react';
-import type { UserProfile, Exercise, WeightEntry, MeasurementEntry } from '../types';
+import type { UserProfile, Exercise } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
 import HistoryIcon from '@mui/icons-material/History';
 
@@ -67,9 +67,12 @@ const Profile = () => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const { mode, setThemeMode } = useAppTheme();
-    const { profile, updateProfile, setProfile, loading: profileLoading } = useUserProfile();
+    const { profile, updateProfile, loading: profileLoading } = useUserProfile();
     const [activeTab, setActiveTab] = useState(0);
     const { pathname } = useLocation();
+
+    // Form state for editing
+    const [formState, setFormState] = useState<UserProfile | null>(null);
 
     // Sync tab with URL path
     useEffect(() => {
@@ -95,16 +98,21 @@ const Profile = () => {
     const [favoritesExpanded, setFavoritesExpanded] = useState(true);
     const [usedExpanded, setUsedExpanded] = useState(false);
 
-    // Profile is now handled by useUserProfile hook
+    // Initialize form state when profile is loaded or dialog is opened
+    useEffect(() => {
+        if (isEditDialogOpen && profile) {
+            setFormState(profile);
+        }
+    }, [isEditDialogOpen, profile]);
 
-    const handleChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFormChange = (field: keyof UserProfile) => (event: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number | boolean | undefined = event.target.value;
 
         if (field === 'birthYear' || field === 'height') {
             value = event.target.value === '' ? undefined : Number(event.target.value);
         }
 
-        if (profile) setProfile({ ...profile, [field]: value });
+        if (formState) setFormState({ ...formState, [field]: value });
     };
 
     const handleSettingChange = (field: 'autoFillSets') => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,14 +138,14 @@ const Profile = () => {
 
     const handleSave = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        if (!currentUser || !profile) return;
+        if (!currentUser || !formState) return;
 
         try {
             setSaving(true);
             setError('');
             setMessage('');
 
-            await updateProfile(profile);
+            await updateProfile(formState);
 
             setMessage('Profile updated successfully');
             setIsEditDialogOpen(false);
@@ -147,14 +155,6 @@ const Profile = () => {
         } finally {
             setSaving(false);
         }
-    };
-
-    const handleWeightsUpdated = (newWeights: WeightEntry[]) => {
-        if (profile) setProfile((prev) => prev ? ({ ...prev, weights: newWeights }) : null);
-    };
-
-    const handleMeasurementsUpdated = (newMeasurements: MeasurementEntry[]) => {
-        if (profile) setProfile((prev) => prev ? ({ ...prev, measurements: newMeasurements }) : null);
     };
 
     if (profileLoading || (exercises.length === 0) || !profile) return (
@@ -402,16 +402,10 @@ const Profile = () => {
                 <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>}>
                     <Grid container spacing={3}>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <WeightSection
-                                profile={{ ...profile, uid: currentUser?.uid ?? '' }}
-                                onWeightsUpdated={handleWeightsUpdated}
-                            />
+                            <WeightSection />
                         </Grid>
                         <Grid size={{ xs: 12, md: 6 }}>
-                            <MeasurementsSection
-                                profile={{ ...profile, uid: currentUser?.uid ?? '' }}
-                                onMeasurementsUpdated={handleMeasurementsUpdated}
-                            />
+                            <MeasurementsSection />
                         </Grid>
                     </Grid>
                 </Suspense>
@@ -454,8 +448,8 @@ const Profile = () => {
                                 <TextField
                                     label="Name"
                                     fullWidth
-                                    value={profile.name}
-                                    onChange={handleChange('name')}
+                                    value={formState?.name ?? ''}
+                                    onChange={handleFormChange('name')}
                                     required
                                 />
                             </Grid>
@@ -464,8 +458,8 @@ const Profile = () => {
                                     label="Birth Year"
                                     type="number"
                                     fullWidth
-                                    value={profile.birthYear ?? ''}
-                                    onChange={handleChange('birthYear')}
+                                    value={formState?.birthYear ?? ''}
+                                    onChange={handleFormChange('birthYear')}
                                     slotProps={{
                                         htmlInput: { min: 1900, max: new Date().getFullYear() }
                                     }}
@@ -476,8 +470,8 @@ const Profile = () => {
                                     label="Height (cm)"
                                     type="number"
                                     fullWidth
-                                    value={profile.height ?? ''}
-                                    onChange={handleChange('height')}
+                                    value={formState?.height ?? ''}
+                                    onChange={handleFormChange('height')}
                                     slotProps={{
                                         htmlInput: { min: 50, max: 250 }
                                     }}
@@ -489,8 +483,8 @@ const Profile = () => {
                                     multiline
                                     rows={4}
                                     fullWidth
-                                    value={profile.notes}
-                                    onChange={handleChange('notes')}
+                                    value={formState?.notes ?? ''}
+                                    onChange={handleFormChange('notes')}
                                     placeholder="Keep track of your overall fitness goals, notes, or general thoughts..."
                                 />
                             </Grid>

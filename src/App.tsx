@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CustomThemeProvider } from './context/ThemeContext';
 import { ExercisesProvider } from './context/ExercisesContext';
 import { WorkoutsProvider } from './context/WorkoutsContext';
+import { UserProfileProvider } from './context/UserProfileContext';
 import { PwaProvider } from './context/PwaContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -29,12 +30,13 @@ function App() {
     <PwaProvider>
       <ErrorBoundary>
         <AuthProvider>
-          <CustomThemeProvider>
-            <ExercisesProvider>
-              <WorkoutsProvider>
-                <Router basename="/">
-                  <Routes>
-                    <Route path="/" element={<Layout />}>
+          <UserProfileProvider>
+            <CustomThemeProvider>
+              <ExercisesProvider>
+                <WorkoutsProvider>
+                  <Router basename="/">
+                    <Routes>
+                      <Route path="/" element={<Layout />}>
                       <Route path="login" element={<Auth />} />
                       <Route path="register" element={<Auth />} />
                       
@@ -63,7 +65,8 @@ function App() {
               </WorkoutsProvider>
             </ExercisesProvider>
           </CustomThemeProvider>
-        </AuthProvider>
+        </UserProfileProvider>
+      </AuthProvider>
       </ErrorBoundary>
     </PwaProvider>
   );

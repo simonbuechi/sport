@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -14,51 +14,34 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
-import { getWorkouts } from '../services/db';
-import type { Workout } from '../types';
-import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
+import { useWorkouts } from '../context/WorkoutsContext';
 import { calculate1RM } from '../utils/fitness';
 import { formatWeight, formatCount } from '../utils/format';
 
 const ExerciseHistory = () => {
     const { id } = useParams<{ id: string }>();
-    const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
+    const { entries: allEntries, loading: workoutsLoading } = useWorkouts();
 
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error] = useState('');
 
     const exercise = useMemo(() => {
         if (!id || exercisesLoading) return null;
         return exercises.find(e => e.id === id) ?? null;
     }, [id, exercises, exercisesLoading]);
 
-    useEffect(() => {
-        const fetchWorkouts = async () => {
-            if (!currentUser || !id) return;
-            try {
-                setLoading(true);
-                const allEntries = await getWorkouts(currentUser.uid);
-                // Filter and sort by date descending
-                const exerciseWorkouts = allEntries
-                    .filter((entry: Workout) => entry.exerciseIds.includes(id))
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                setWorkouts(exerciseWorkouts);
-            } catch (err) {
-                console.error(err);
-                setError('Failed to load history');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const workouts = useMemo(() => {
+        if (!id || workoutsLoading) return [];
+        return allEntries
+            .filter(entry => entry.exerciseIds.includes(id))
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [id, allEntries, workoutsLoading]);
 
-        void fetchWorkouts();
-    }, [id, currentUser]);
+    const loading = exercisesLoading || workoutsLoading;
 
-    if (loading || exercisesLoading) return <Container sx={{ mt: 8, textAlign: 'center' }}><CircularProgress /></Container>;
+    if (loading) return <Container sx={{ mt: 8, textAlign: 'center' }}><CircularProgress /></Container>;
     if (error || !exercise) return <Container sx={{ mt: 4 }}><Typography color="error">{error || 'Exercise not found'}</Typography></Container>;
 
     return (

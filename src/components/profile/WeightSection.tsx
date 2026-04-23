@@ -17,22 +17,19 @@ import { Link as RouterLink } from 'react-router-dom';
 
 import Add from '@mui/icons-material/Add';
 import { LineChart } from '@mui/x-charts/LineChart';
-import type { UserProfile, WeightEntry } from '../../types';
-import { updateUserProfile } from '../../services/db';
+import type { WeightEntry } from '../../types';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import { getChartDefaults, xAxisDateFormatter } from '../../theme/charts';
 import { useTheme } from '@mui/material/styles';
 
-interface WeightSectionProps {
-    profile: Partial<UserProfile>;
-    onWeightsUpdated: (newWeights: WeightEntry[]) => void;
-}
-
 type TimeFrame = '1m' | '3m' | '6m' | '1y' | 'all';
 
-export default function WeightSection({ profile, onWeightsUpdated }: WeightSectionProps) {
+export default function WeightSection() {
+    const { profile, updateProfile } = useUserProfile();
     const theme = useTheme();
     const defaults = getChartDefaults(theme);
-    const weights = useMemo(() => profile.weights ?? [], [profile.weights]);
+
+    const weights = useMemo(() => profile?.weights ?? [], [profile?.weights]);
     const [timeFrame, setTimeFrame] = useState<TimeFrame>('6m');
     const [metric, setMetric] = useState<'weight' | 'bmi'>('weight');
 
@@ -54,12 +51,12 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
             chartDates: filtered.map(w => new Date(w.date)),
             chartValues: filtered.map(w => {
                 if (metric === 'weight') return w.weightKg;
-                if (!profile.height) return 0;
+                if (!profile?.height) return 0;
                 const heightM = profile.height / 100;
                 return parseFloat((w.weightKg / (heightM * heightM)).toFixed(1));
             })
         };
-    }, [weights, timeFrame, metric, profile.height]);
+    }, [weights, timeFrame, metric, profile?.height]);
 
     const [isAddEditOpen, setIsAddEditOpen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -68,6 +65,8 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
     const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
     const [formWeight, setFormWeight] = useState('');
     const [formBodyFat, setFormBodyFat] = useState('');
+
+    if (!profile) return null;
 
     const handleOpenAdd = () => {
         setFormDate(new Date().toISOString().split('T')[0]);
@@ -111,10 +110,8 @@ export default function WeightSection({ profile, onWeightsUpdated }: WeightSecti
             newWeights.push(cleanedEntry);
 
             // Save to database
-            await updateUserProfile(profile.uid, { weights: newWeights });
+            await updateProfile({ weights: newWeights });
 
-            // Notify parent
-            onWeightsUpdated(newWeights);
             setIsAddEditOpen(false);
         } catch (error) {
             console.error("Failed to save weight", error);

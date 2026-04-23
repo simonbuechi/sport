@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -87,4 +88,4 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
     );
 };
 
-export default ExerciseHistoryCard;
+export default memo(ExerciseHistoryCard);

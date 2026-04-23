@@ -31,27 +31,10 @@ import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
 import { sanitizeUrl } from '../utils/security';
+import { updateExerciseStatus } from '../utils/exerciseUtils';
+import ExerciseNotes from '../components/exercises/ExerciseNotes';
 
-const updateExerciseStatus = (
-    profile: UserProfile,
-    exerciseId: string,
-    statusUpdate: Partial<MarkedStatus>
-): Record<string, MarkedStatus> => {
-    const markedExercises = profile.markedExercises ?? {};
-    const currentStatus = markedExercises[exerciseId] ?? {};
-    const updatedStatus = { ...currentStatus, ...statusUpdate };
 
-    const isEmpty = !updatedStatus.favorite && !updatedStatus.notes;
-
-    const updatedMarked = { ...markedExercises };
-    if (isEmpty) {
-        const { [exerciseId]: _, ...rest } = updatedMarked;
-        return rest;
-    } else {
-        updatedMarked[exerciseId] = updatedStatus;
-    }
-    return updatedMarked;
-};
 
 const ExerciseDetails = () => {
     const { id } = useParams<{ id: string }>();
@@ -61,8 +44,6 @@ const ExerciseDetails = () => {
     const { exercises, loading: exercisesLoading } = useExercises();
     const { profile, updateProfile, loading: profileLoading } = useUserProfile();
     const { entries: allEntries, loading: workoutsLoading } = useWorkouts();
-    const [notes, setNotes] = useState('');
-    const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [error, setError] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -78,11 +59,7 @@ const ExerciseDetails = () => {
 
     const loading = exercisesLoading || profileLoading || workoutsLoading;
 
-    useEffect(() => {
-        if (profile && id) {
-            setNotes(profile.markedExercises?.[id]?.notes ?? '');
-        }
-    }, [id, profile]);
+
 
     const handleFavoriteToggle = async () => {
         if (!currentUser || !id || !profile) return;
@@ -98,21 +75,7 @@ const ExerciseDetails = () => {
     };
 
 
-    const handleSaveNotes = async () => {
-        if (!currentUser || !id || !profile) return;
-        const currentNotes = profile.markedExercises?.[id]?.notes ?? '';
-        if (notes === currentNotes) return;
 
-        try {
-            setIsSavingNotes(true);
-            const updatedMarked = updateExerciseStatus(profile, id, { notes });
-            await updateProfile({ markedExercises: updatedMarked });
-        } catch (err) {
-            console.error("Failed to save notes", err);
-        } finally {
-            setIsSavingNotes(false);
-        }
-    };
 
     const handleDelete = () => {
         setDeleteDialogOpen(true);
@@ -154,10 +117,15 @@ const ExerciseDetails = () => {
                             onToggleFavorite={handleFavoriteToggle}
                         />
 
-                        <Typography variant="h5" gutterBottom sx={{ mt: { xs: 2, md: 3 } }}>Description</Typography>
+
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
                             {exercise.description ?? 'No description available.'}
                         </Typography>
+                        {exercise.aliases.length > 0 && (
+                            <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8, mt: 1 }}>
+                                Also known as: {exercise.aliases.join(', ')}
+                            </Typography>
+                        )}
 
                         <Box sx={{ mt: { xs: 3, md: 4 } }}>
                             <ExerciseProgressChart workouts={workouts} exerciseId={exercise.id} />
@@ -202,47 +170,7 @@ const ExerciseDetails = () => {
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Stack direction="column" spacing={3} sx={{ position: "sticky", top: 24 }}>
 
-                                <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            mb: 1
-                                        }}>
-                                        <Stack spacing={1}>
-                                            <EditNote color="primary" />
-                                            <Typography variant="h6">My Notes</Typography>
-                                        </Stack>
-                                        {isSavingNotes && <CircularProgress size={16} />}
-                                    </Box>
-                                    <Divider sx={{ mb: 2 }} />
-                                    <TextField
-                                        multiline
-                                        rows={6}
-                                        fullWidth
-                                        placeholder="Add your personal notes and details about this exercise..."
-                                        value={notes}
-                                        onChange={(e) => { setNotes(e.target.value); }}
-                                        onBlur={handleSaveNotes}
-                                        variant="outlined"
-                                        size="small"
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                bgcolor: 'background.default',
-                                            }
-                                        }}
-                                    />
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: "text.secondary",
-                                            mt: 1,
-                                            display: 'block'
-                                        }}>
-                                        Notes are private to you and save automatically.
-                                    </Typography>
-                                </Paper>
+                                <ExerciseNotes exerciseId={exercise.id} />
 
                             <ExerciseHistoryCard workouts={workouts} exerciseId={exercise.id} />
                         </Stack>

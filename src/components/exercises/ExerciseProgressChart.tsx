@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -115,4 +115,4 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
     );
 };
 
-export default ExerciseProgressChart;
+export default memo(ExerciseProgressChart);

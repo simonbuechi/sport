@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -9,20 +9,18 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
-import TextField from '@mui/material/TextField';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import LinkIcon from '@mui/icons-material/Link';
-import EditNote from '@mui/icons-material/EditNote';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import { deleteExercise } from '../services/db';
-import type { UserProfile, MarkedStatus } from '../types';
+
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';

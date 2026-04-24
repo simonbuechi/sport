@@ -31,6 +31,18 @@ import { sortTemplates } from '../utils/workoutUtils';
 
 const SESSION_TYPES: WorkoutType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
+interface WorkoutFormDraft {
+    date: string;
+    time: string;
+    length: number | '';
+    sessionType: WorkoutType;
+    maxPulse: number | '';
+    comment: string;
+    exercises: WorkoutExercise[];
+    startTime?: number | null;
+    autoFillFromLast?: boolean;
+}
+
 const WorkoutForm = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -39,6 +51,7 @@ const WorkoutForm = () => {
     const { entries, templates, loading: sessionsLoading } = useWorkouts();
     const { profile, loading: profileLoading } = useUserProfile();
     const isEditing = Boolean(id);
+    const showTimer = profile?.settings?.showTimer ?? true;
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -68,12 +81,12 @@ const WorkoutForm = () => {
     const [elapsedMinutes, setElapsedMinutes] = useState<number>(0);
     const [autoFillFromLast, setAutoFillFromLast] = useState(false);
     const lastSavedDataRef = useRef<string>('');
-    const DRAFT_KEY = `workout_draft_${id || 'new'}`;
+    const DRAFT_KEY = `workout_draft_${id ?? 'new'}`;
 
     useEffect(() => {
         if (!currentUser || sessionsLoading || profileLoading || !loading) return;
 
-        let baseData: any = null;
+        let baseData: WorkoutFormDraft | null = null;
 
         if (isEditing && id) {
             const entry = entries.find(e => e.id === id);
@@ -99,7 +112,7 @@ const WorkoutForm = () => {
         const savedDraft = localStorage.getItem(DRAFT_KEY);
         if (savedDraft) {
             try {
-                const draft = JSON.parse(savedDraft);
+                const draft = JSON.parse(savedDraft) as WorkoutFormDraft;
                 if (baseData) {
                     baseData = { ...baseData, ...draft };
                 } else {
@@ -129,7 +142,7 @@ const WorkoutForm = () => {
             const now = Date.now();
             setStartTime(now);
             const { date: d, time: t } = getDefaultDateTime();
-            lastSavedDataRef.current = JSON.stringify({
+            const initialNewData: WorkoutFormDraft = {
                 date: d,
                 time: t,
                 length: '',
@@ -138,7 +151,8 @@ const WorkoutForm = () => {
                 comment: '',
                 exercises: [],
                 startTime: now
-            });
+            };
+            lastSavedDataRef.current = JSON.stringify(initialNewData);
 
             // Apply profile setting for new workouts if no draft
             if (profile?.settings?.autoFillSets) {
@@ -151,7 +165,7 @@ const WorkoutForm = () => {
 
     // Timer effect for new workouts
     useEffect(() => {
-        if (!startTime || isEditing) return;
+        if (!startTime || isEditing || !showTimer) return;
 
         const updateTimer = () => {
             const mins = Math.floor((Date.now() - startTime) / 60000);
@@ -161,7 +175,7 @@ const WorkoutForm = () => {
         updateTimer();
         const interval = setInterval(updateTimer, 30000); // Update every 30s
         return () => { clearInterval(interval); };
-    }, [startTime, isEditing]);
+    }, [startTime, isEditing, showTimer]);
 
     // Debounced local persistence
     useEffect(() => {
@@ -193,7 +207,7 @@ const WorkoutForm = () => {
             }
         }, 1000);
         return () => { clearTimeout(timer); };
-    }, [currentUser, loading, submitting, date, time, length, sessionType, maxPulse, comment, sessionExercises, DRAFT_KEY]);
+    }, [currentUser, loading, submitting, date, time, length, sessionType, maxPulse, comment, sessionExercises, DRAFT_KEY, startTime, autoFillFromLast]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -204,7 +218,7 @@ const WorkoutForm = () => {
         return () => { clearTimeout(timer); };
     }, [localComment, comment]);
 
-    const previousExercisesMap = useMemo<Record<string, WorkoutExercise>>(() => {
+    const previousExercisesMap = useMemo<Record<string, WorkoutExercise | undefined>>(() => {
         if (sessionsLoading || !entries.length) return {};
 
         const map: Record<string, WorkoutExercise> = {};
@@ -264,10 +278,10 @@ const WorkoutForm = () => {
 
                 if (autoFillFromLast) {
                     const prevEx = previousExercisesMap[exerciseId];
-                    const nextSetIdx = se.sets.length;
-                    const prevSet = prevEx?.sets[nextSetIdx] || prevEx?.sets[prevEx.sets.length - 1];
+                    if (prevEx && prevEx.sets.length > 0) {
+                        const nextSetIdx = se.sets.length;
+                        const prevSet = prevEx.sets[nextSetIdx] ?? prevEx.sets[prevEx.sets.length - 1];
 
-                    if (prevSet) {
                         newSet = {
                             ...newSet,
                             weight: prevSet.weight,
@@ -317,8 +331,8 @@ const WorkoutForm = () => {
                 note: te.note,
                 sets: te.sets?.map(s => ({
                     id: crypto.randomUUID(),
-                    weight: s.weight || undefined,
-                    reps: s.reps || undefined,
+                    weight: s.weight ?? undefined,
+                    reps: s.reps ?? undefined,
                     notes: s.notes ?? ''
                 })) ?? []
             }));
@@ -342,7 +356,7 @@ const WorkoutForm = () => {
             const entryData: Omit<Workout, 'id' | 'userId'> = {
                 date,
                 time: time || undefined,
-                length: Number(length) || (isEditing ? undefined : elapsedMinutes),
+                length: Number(length) || (isEditing || !showTimer ? undefined : elapsedMinutes),
                 sessionType,
                 maxPulse: Number(maxPulse) || undefined,
                 comment: comment.trim(),
@@ -501,7 +515,7 @@ const WorkoutForm = () => {
                                                 control={
                                                     <Switch
                                                         checked={autoFillFromLast}
-                                                        onChange={(e) => setAutoFillFromLast(e.target.checked)}
+                                                        onChange={(e) => { setAutoFillFromLast(e.target.checked); }}
                                                         color="primary"
                                                     />
                                                 }
@@ -552,7 +566,7 @@ const WorkoutForm = () => {
 
                             <Grid size={{ xs: 12 }}>
                                 <Box sx={{ mt: 3, display: 'flex', justifyContent: "flex-end", alignItems: 'center', gap: 3 }}>
-                                    {!isEditing && (
+                                    {!isEditing && showTimer && (
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <AccessTimeIcon fontSize="small" color="action" />
                                             <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
@@ -563,7 +577,7 @@ const WorkoutForm = () => {
                                     <Box sx={{ display: 'flex', gap: 2 }}>
                                         <Button variant="outlined" onClick={() => {
                                             localStorage.removeItem(DRAFT_KEY);
-                                            navigate(isEditing ? `/journal/${id ?? ''}` : '/journal');
+                                            void navigate(isEditing ? `/journal/${id ?? ''}` : '/journal');
                                         }}>
                                             Cancel
                                         </Button>

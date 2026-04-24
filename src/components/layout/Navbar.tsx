@@ -29,7 +29,7 @@ const Navbar = () => {
     ];
 
     return (
-        <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', display: { xs: 'none', md: 'block' } }}>
+        <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', display: { md: 'block' } }}>
             <Toolbar>
                 <Box
                     component={RouterLink}

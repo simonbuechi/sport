@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import MobileNavigation from './MobileNavigation';
+import WorkoutDraftFab from '../journal/WorkoutDraftFab';
 import OfflineBanner from '../common/OfflineBanner';
 import PageLoader from '../common/PageLoader';
 
@@ -34,6 +35,7 @@ const Layout = () => {
                 </Suspense>
             </Box>
             <Footer />
+            <WorkoutDraftFab />
             <MobileNavigation />
         </Box>
     );

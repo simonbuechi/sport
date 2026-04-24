@@ -30,8 +30,9 @@ const MobileNavigation = () => {
                 right: 0,
                 display: { xs: 'block', md: 'none' }, // Only show on mobile
                 zIndex: 1000,
+                background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
             }}
-            elevation={3}
+            elevation={8}
         >
             <BottomNavigation
                 showLabels
@@ -41,6 +42,24 @@ const MobileNavigation = () => {
                     else if (newValue === 1) void navigate('/exercises');
                     else if (newValue === 2) void navigate('/journal');
                     else if (newValue === 3) void navigate('/profile');
+                }}
+                sx={{
+                    bgcolor: 'transparent',
+                    height: 64,
+                    '& .MuiBottomNavigationAction-root': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        transition: 'all 0.2s ease-in-out',
+                    },
+                    '& .Mui-selected': {
+                        color: '#fff !important',
+                        '& .MuiBottomNavigationAction-label': {
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                        },
+                        '& .MuiSvgIcon-root': {
+                            transform: 'scale(1.1)',
+                        }
+                    },
                 }}
             >
                 <BottomNavigationAction label="Home" icon={<Home />} />

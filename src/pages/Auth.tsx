@@ -45,7 +45,7 @@ const Auth = () => {
                 const user = userCredential.user;
                 // Create Firestore profile for new user
                 await createUserProfile(user.uid, {
-                    name: user.displayName ?? email.split('@')[0] ?? 'New Athlete',
+                    name: user.displayName ?? email.split('@')[0],
                     weights: [],
                     measurements: [],
                     markedExercises: {}

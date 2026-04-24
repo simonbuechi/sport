@@ -12,6 +12,7 @@ interface UserProfileContextType {
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUserProfile = () => {
     const context = useContext(UserProfileContext);
     if (context === undefined) {
@@ -47,7 +48,10 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
                     notes: '',
                     markedExercises: {},
                     weights: [],
-                    measurements: []
+                    measurements: [],
+                    settings: {
+                        showTimer: true
+                    }
                 } as UserProfile);
             }
             setLoading(false);

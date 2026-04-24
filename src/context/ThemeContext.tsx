@@ -59,12 +59,12 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
         if (initialMode === 'system') {
             return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
-        return initialMode as 'light' | 'dark';
+        return initialMode;
     });
 
     useEffect(() => {
         if (mode !== 'system') {
-            setResolvedMode(mode as 'light' | 'dark');
+            setResolvedMode(mode);
             return;
         }
 
@@ -75,7 +75,9 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
 
         setResolvedMode(mediaQuery.matches ? 'dark' : 'light');
         mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
+        return () => {
+            mediaQuery.removeEventListener('change', handleChange);
+        };
     }, [mode]);
 
     const theme = useMemo(() => getAppTheme(resolvedMode), [resolvedMode]);

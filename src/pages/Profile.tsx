@@ -115,7 +115,7 @@ const Profile = () => {
         if (formState) setFormState({ ...formState, [field]: value });
     };
 
-    const handleSettingChange = (field: 'autoFillSets') => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSettingChange = (field: keyof NonNullable<UserProfile['settings']>) => (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!profile) return;
         const newSettings = { ...profile.settings, [field]: event.target.checked };
         void updateProfile({ settings: newSettings });
@@ -365,6 +365,26 @@ const Profile = () => {
                                                 <Typography variant="body1">Auto-fill</Typography>
                                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                                     when switched on, you workout data is auto-filled with data from your last workout
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                </Grid>
+
+                                <Grid size={12}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={profile.settings?.showTimer ?? true}
+                                                onChange={handleSettingChange('showTimer')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography variant="body1">Timer</Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                    When you start a new workout, a timer starts running
                                                 </Typography>
                                             </Box>
                                         }

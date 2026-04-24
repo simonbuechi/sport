@@ -68,6 +68,7 @@ export interface UserProfile {
     settings?: {
         theme?: 'light' | 'dark' | 'system';
         autoFillSets?: boolean;
+        showTimer?: boolean;
     };
 }
 

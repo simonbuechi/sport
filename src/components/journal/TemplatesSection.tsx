@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useWorkouts } from '../../context/WorkoutsContext';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -13,7 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import type { DropResult } from '@hello-pangea/dnd';
-import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
+import { createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
 import type { TrainingTemplate, Exercise } from '../../types';
 import TemplateDialog, { type TemplateFormData } from './TemplateDialog';
 import TemplateSetDialog, { type SetDialogData } from './TemplateSetDialog';
@@ -26,8 +27,7 @@ interface TemplatesSectionProps {
 }
 
 const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) => {
-    const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { templates: contextTemplates, loading: contextLoading } = useWorkouts();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<TrainingTemplate | null>(null);
     const [saving, setSaving] = useState(false);
@@ -39,25 +39,15 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
-    const templatesRef = useRef(templates);
+    // We use a ref to the templates for use in callbacks that need the latest state without being recreated
+    const templatesRef = useRef(contextTemplates);
     useEffect(() => {
-        templatesRef.current = templates;
-    }, [templates]);
+        templatesRef.current = contextTemplates;
+    }, [contextTemplates]);
 
-    useEffect(() => {
-        const fetchTemplates = async () => {
-            try {
-                const data = await getTemplates(userId);
-                setTemplates(data);
-            } catch (err) {
-                console.error('Failed to fetch templates:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void fetchTemplates();
-    }, [userId]);
+    // Use context templates directly
+    const templates = contextTemplates;
+    const loading = contextLoading;
 
     const exerciseMap = useMemo(() => {
         return exercises.reduce<Record<string, Exercise>>((acc, ex) => {
@@ -97,7 +87,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         const newExercises = [...template.exercises, { exerciseId: exercise.id, note: '' }];
         const updatedTemplate = { ...template, exercises: newExercises };
 
-        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
         setActiveSearchId(null);
 
         try {
@@ -114,7 +103,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         const newExercises = template.exercises.filter((_, i) => i !== index);
         const updatedTemplate = { ...template, exercises: newExercises };
 
-        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
+
 
         try {
             await updateTemplate(userId, templateId, updatedTemplate);
@@ -130,7 +119,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         const newExercises = template.exercises.map((ex, i) => i === index ? { ...ex, note } : ex);
         const updatedTemplate = { ...template, exercises: newExercises };
 
-        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
         setEditingNotePath(null);
 
         try {
@@ -150,7 +138,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         newExercises.splice(result.destination.index, 0, reorderedItem);
         const updatedTemplate = { ...template, exercises: newExercises };
 
-        setTemplates(prev => prev.map(t => t.id === templateId ? updatedTemplate : t));
+
 
         try {
             await updateTemplate(userId, templateId, updatedTemplate);
@@ -202,7 +190,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         newExercises[exerciseIdx] = exercise;
         const updatedTemplate = { ...template, exercises: newExercises };
 
-        setTemplates(prev => prev.map(t => t.id === tid ? updatedTemplate : t));
         setIsSetDialogOpen(false);
         setSetDialogData(null);
 
@@ -223,7 +210,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         newExercises[exerciseIdx] = exercise;
 
         const updatedTemplate = { ...template, exercises: newExercises };
-        setTemplates(prev => prev.map(t => t.id === tid ? updatedTemplate : t));
         setIsSetDialogOpen(false);
 
         try {
@@ -239,10 +225,8 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
             if (editingTemplate) {
                 const updatedTemplate = { ...editingTemplate, ...formData };
                 await updateTemplate(userId, editingTemplate.id, updatedTemplate);
-                setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? updatedTemplate : t));
             } else {
-                const id = await createTemplate(userId, { ...formData, exercises: [] });
-                setTemplates(prev => [...prev, { id, userId, exercises: [], ...formData }]);
+                await createTemplate(userId, { ...formData, exercises: [] });
             }
             handleCloseDialog();
         } catch (err) {
@@ -262,7 +246,6 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         try {
             setSaving(true);
             await deleteTemplate(userId, templateToDelete);
-            setTemplates(prev => prev.filter(t => t.id !== templateToDelete));
             setIsDeleteDialogOpen(false);
             setTemplateToDelete(null);
             if (isDialogOpen) handleCloseDialog();
@@ -321,8 +304,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                 exercises: templateExercises
             };
 
-            const id = await createTemplate(userId, templateData);
-            setTemplates(prev => [...prev, { id, userId, ...templateData }]);
+            await createTemplate(userId, templateData);
             handleCloseDialog();
         } catch (err) {
             console.error('Failed to create sample template:', err);

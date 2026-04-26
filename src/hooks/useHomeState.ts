@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { DropResult } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '../context/AuthContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { useUserProfile } from '../hooks/useUserProfile';

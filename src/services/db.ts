@@ -1,5 +1,5 @@
 import {
-    collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
+    collection, doc, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
     onSnapshot, limit, type Unsubscribe, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -8,15 +8,6 @@ import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types'
 
 // Exercises
 
-export const getAllExercises = async (): Promise<Exercise[]> => {
-    const q = query(
-        collection(db, 'exercises'),
-        orderBy('popular', 'desc'),
-        orderBy('name')
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
-};
 
 export const subscribeToExercises = (callback: (exercises: Exercise[]) => void): Unsubscribe => {
     const q = query(
@@ -33,14 +24,6 @@ export const subscribeToExercises = (callback: (exercises: Exercise[]) => void):
 
 
 
-export const getExerciseById = async (id: string): Promise<Exercise | null> => {
-    const docRef = doc(db, 'exercises', id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Exercise;
-    }
-    return null;
-};
 
 export const createExercise = async (exercise: Omit<Exercise, 'id'>): Promise<string> => {
     const docRef = await addDoc(collection(db, 'exercises'), exercise);
@@ -58,14 +41,6 @@ export const deleteExercise = async (id: string): Promise<void> => {
 };
 
 // User Profiles
-export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
-    const docRef = doc(db, 'users', uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { uid: docSnap.id, ...docSnap.data() } as UserProfile;
-    }
-    return null;
-};
 
 export const createUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
     await setDoc(doc(db, 'users', uid), data, { merge: true });
@@ -99,12 +74,6 @@ const mapWorkout = (doc: QueryDocumentSnapshot): Workout => {
     } as Workout;
 };
 
-export const getWorkouts = async (userId: string): Promise<Workout[]> => {
-    const entriesRef = collection(db, 'users', userId, 'activities');
-    const q = query(entriesRef, orderBy('date', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(mapWorkout);
-};
 
 export const subscribeToWorkouts = (
     userId: string,
@@ -142,11 +111,6 @@ export const deleteWorkout = async (userId: string, entryId: string): Promise<vo
 
 
 // Training Templates
-export const getTemplates = async (userId: string): Promise<TrainingTemplate[]> => {
-    const templatesRef = collection(db, 'users', userId, 'templates');
-    const querySnapshot = await getDocs(templatesRef);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TrainingTemplate));
-};
 
 export const subscribeToTemplates = (
     userId: string,

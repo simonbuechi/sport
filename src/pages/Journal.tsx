@@ -40,7 +40,7 @@ const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, loading: sessionsLoading } = useWorkouts();
+    const { entries, loading: sessionsLoading, loadMore, hasMore } = useWorkouts();
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
@@ -53,7 +53,6 @@ const Journal = () => {
 
     // Infinite Scroll State
     const observer = useRef<IntersectionObserver | null>(null);
-    const [displayCount, setDisplayCount] = useState(5);
 
 
     const handleEditClick = useCallback((entry: Workout) => {
@@ -102,19 +101,17 @@ const Journal = () => {
     const lastElementRef = useCallback((node: HTMLElement | null) => {
         if (sessionsLoading) return;
         if (observer.current) observer.current.disconnect();
-
+ 
         observer.current = new IntersectionObserver(obsEntries => {
-            if (obsEntries[obsEntries.length - 1].isIntersecting && displayCount < filteredAndSortedEntries.length) {
-                setDisplayCount(prev => prev + 5);
+            if (obsEntries[obsEntries.length - 1].isIntersecting && hasMore) {
+                loadMore();
             }
         });
-
+ 
         if (node) observer.current.observe(node);
-    }, [sessionsLoading, displayCount, filteredAndSortedEntries.length]);
+    }, [sessionsLoading, hasMore, loadMore]);
 
-    const displayedEntries = useMemo(() => {
-        return filteredAndSortedEntries.slice(0, displayCount);
-    }, [filteredAndSortedEntries, displayCount]);
+    const displayedEntries = filteredAndSortedEntries;
 
     const exerciseMap = useMemo(() => {
         return exercises.reduce<Record<string, Exercise | undefined>>((acc, ex) => {
@@ -267,12 +264,12 @@ const Journal = () => {
                         ))}
                     </List>
                 )}
-                {displayCount < filteredAndSortedEntries.length && (
-                    <Stack sx={{ my: 4 }}>
+                {hasMore && (
+                    <Stack sx={{ my: 4, alignItems: 'center' }}>
                         <CircularProgress size={32} />
                     </Stack>
                 )}
-                {displayCount >= filteredAndSortedEntries.length && filteredAndSortedEntries.length > 0 && (
+                {!hasMore && filteredAndSortedEntries.length > 0 && (
                     <Typography
                         variant="body2"
                         align="center"

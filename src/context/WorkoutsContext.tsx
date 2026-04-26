@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { subscribeToWorkouts, subscribeToTemplates } from '../services/db';
 import { useAuth } from './AuthContext';
 import type { Workout, TrainingTemplate } from '../types';
@@ -7,6 +7,9 @@ interface WorkoutsContextType {
     entries: Workout[];
     templates: TrainingTemplate[];
     loading: boolean;
+    loadMore: () => void;
+    hasMore: boolean;
+    currentLimit: number;
 }
 
 const WorkoutsContext = createContext<WorkoutsContextType | undefined>(undefined);
@@ -25,6 +28,8 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const [entries, setEntries] = useState<Workout[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentLimit, setCurrentLimit] = useState(50);
+    const [hasMore, setHasMore] = useState(true);
 
     // Reset state during render if user logs out (React recommended pattern)
     const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
@@ -33,6 +38,8 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             setEntries([]);
             setTemplates([]);
             setLoading(false);
+            setCurrentLimit(50);
+            setHasMore(true);
         } else {
             setLoading(true);
         }
@@ -42,14 +49,16 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!currentUser) return;
 
-        // Subscribe to workouts (limit to 1000 for global state, pages can fetch more if needed)
+        // Subscribe to workouts with dynamic limit
         const unsubscribeEntries = subscribeToWorkouts(
             currentUser.uid, 
             (data) => {
                 setEntries(data);
                 setLoading(false);
+                // If we got fewer items than requested, we reached the end
+                setHasMore(data.length === currentLimit);
             }, 
-            1000
+            currentLimit
         );
 
         // Subscribe to templates
@@ -64,9 +73,22 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             unsubscribeEntries();
             unsubscribeTemplates();
         };
-    }, [currentUser]);
+    }, [currentUser, currentLimit]);
 
-    const value = useMemo(() => ({ entries, templates, loading }), [entries, templates, loading]);
+    const loadMore = useCallback(() => {
+        if (!loading && hasMore) {
+            setCurrentLimit(prev => prev + 50);
+        }
+    }, [loading, hasMore]);
+
+    const value = useMemo(() => ({ 
+        entries, 
+        templates, 
+        loading, 
+        loadMore, 
+        hasMore,
+        currentLimit
+    }), [entries, templates, loading, loadMore, hasMore, currentLimit]);
 
     return (
         <WorkoutsContext.Provider value={value}>

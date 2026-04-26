@@ -63,7 +63,7 @@ export default defineConfig([
       // Professional rules
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'error',
-      'react-hooks/set-state-in-effect': 'off'
+      'react-hooks/set-state-in-effect': 'warn'
     },
   },
 ])

@@ -24,14 +24,9 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
     const theme = useTheme();
     const [timeFrame, setTimeFrame] = useState<TimeFrame>('6m');
 
-    const chartData = useMemo(() => {
-        // 1. Filter workouts for this exercise and those that have structured exercise data
-        const relevantWorkouts = workouts.filter(w =>
-            w.exerciseIds.includes(exerciseId)
-        );
-
-        // 2. Extract max 1RM for each workout
-        const dataPoints = relevantWorkouts.map(w => {
+    const allRelevantData = useMemo(() => {
+        // 1. Extract max 1RM for each workout
+        const dataPoints = workouts.map(w => {
             const exerciseData = w.exercises.find(ex => ex.exerciseId === exerciseId);
             const max1RM = exerciseData?.sets.reduce((max, set) => {
                 const current1RM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
@@ -44,11 +39,12 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
             };
         });
 
-        // 3. Sort by date ascending
-        const sortedData = dataPoints.sort((a, b) => a.date.getTime() - b.date.getTime());
+        // 2. Sort by date ascending
+        return dataPoints.sort((a, b) => a.date.getTime() - b.date.getTime());
+    }, [workouts, exerciseId]);
 
-        // 4. Filter by timeframe
-        if (timeFrame === 'all') return sortedData;
+    const chartData = useMemo(() => {
+        if (timeFrame === 'all') return allRelevantData;
 
         const cutoff = new Date();
         if (timeFrame === '1m') cutoff.setMonth(cutoff.getMonth() - 1);
@@ -56,8 +52,8 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
         else if (timeFrame === '6m') cutoff.setMonth(cutoff.getMonth() - 6);
         else cutoff.setFullYear(cutoff.getFullYear() - 1);
 
-        return sortedData.filter(d => d.date >= cutoff);
-    }, [workouts, exerciseId, timeFrame]);
+        return allRelevantData.filter(d => d.date >= cutoff);
+    }, [allRelevantData, timeFrame]);
 
     const chartDates = chartData.map(d => d.date);
     const chartWeights = chartData.map(d => d.weight);

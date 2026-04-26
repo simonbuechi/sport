@@ -101,7 +101,7 @@ export interface TrainingTemplate {
     exercises: TemplateExercise[];
 }
 
-export type WorkoutType = ExerciseType;
+export type SessionType = ExerciseType;
 
 export interface Workout {
     id: string;
@@ -109,7 +109,7 @@ export interface Workout {
     date: string; // ISO string
     time?: string;
     length?: number; // in minutes
-    sessionType?: WorkoutType;
+    sessionType?: SessionType;
     intensity?: number; // 1-5
     maxPulse?: number; // Optional max pulse
     comment: string;

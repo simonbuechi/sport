@@ -191,7 +191,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         } else {
             for (let i = 0; i < count; i++) {
                 newSets.push({
-                    id: Math.random().toString(36).slice(2, 11),
+                    id: crypto.randomUUID(),
                     weight,
                     reps
                 });
@@ -300,9 +300,9 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                     exerciseId: found.id,
                     note: '',
                     sets: [
-                        { id: Math.random().toString(36).slice(2, 11), reps: 10 },
-                        { id: Math.random().toString(36).slice(2, 11), reps: 10 },
-                        { id: Math.random().toString(36).slice(2, 11), reps: 10 }
+                        { id: crypto.randomUUID(), reps: 10 },
+                        { id: crypto.randomUUID(), reps: 10 },
+                        { id: crypto.randomUUID(), reps: 10 }
                     ]
                 };
             }).filter((e): e is NonNullable<typeof e> => e !== null);

@@ -8,6 +8,11 @@ export const sanitizeUrl = (url: string | undefined): string => {
     const trimmedUrl = url.trim();
     
     try {
+        const lowerUrl = trimmedUrl.toLowerCase();
+        if (lowerUrl.startsWith('javascript:') || lowerUrl.startsWith('data:') || lowerUrl.startsWith('vbscript:')) {
+            return '#';
+        }
+
         // Attempt to parse the URL
         const parsed = new URL(trimmedUrl);
         
@@ -19,6 +24,11 @@ export const sanitizeUrl = (url: string | undefined): string => {
         // If it's a relative URL or not a full URL, we should decide if we want to allow it.
         // For external links in this app, we generally expect full URLs.
         // If the URL doesn't have a protocol, try adding https://
+        const lowerUrl = trimmedUrl.toLowerCase();
+        if (lowerUrl.startsWith('javascript:') || lowerUrl.startsWith('data:') || lowerUrl.startsWith('vbscript:')) {
+            return '#';
+        }
+
         if (!trimmedUrl.includes(':') && trimmedUrl.length > 0) {
             return `https://${trimmedUrl}`;
         }

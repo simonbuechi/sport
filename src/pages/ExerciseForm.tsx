@@ -138,9 +138,8 @@ export default function ExerciseForm() {
                 const newId = await createExercise(finalData);
                 await navigate(`/exercises/${newId}`);
             }
-        } catch (err) {
-            console.error(err);
-            setError(`Failed to ${isEditing ? 'update' : 'create'} exercise`);
+        } catch (_err) {
+            setError(`Failed to save exercise: ${isEditing ? 'update' : 'create'} error`);
         } finally {
             setSubmitting(false);
         }
@@ -163,11 +162,13 @@ export default function ExerciseForm() {
                     <Grid container spacing={3}>
                         <Grid size={{ xs: 12, sm: 8 }}>
                             <TextField
+                                variant="standard"
                                 label="Exercise Name"
                                 fullWidth
                                 required
                                 value={formData.name}
                                 onChange={handleChange('name')}
+                                slotProps={{ htmlInput: { maxLength: 100 } }}
                             />
                         </Grid>
 
@@ -186,27 +187,32 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
+                                variant="standard"
                                 label="Name URL"
                                 fullWidth
                                 value={formData.name_url}
                                 onChange={handleChange('name_url')}
                                 placeholder="bench-press"
+                                slotProps={{ htmlInput: { maxLength: 100 } }}
                             />
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
+                                variant="standard"
                                 label="Icon URL"
                                 fullWidth
                                 value={formData.icon_url}
                                 onChange={handleChange('icon_url')}
                                 placeholder="bench-press.png"
+                                slotProps={{ htmlInput: { maxLength: 255 } }}
                             />
                         </Grid>
 
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 select
+                                variant="standard"
                                 label="Type"
                                 fullWidth
                                 required
@@ -225,6 +231,7 @@ export default function ExerciseForm() {
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 select
+                                variant="standard"
                                 label="Body Part"
                                 fullWidth
                                 required
@@ -242,6 +249,7 @@ export default function ExerciseForm() {
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 select
+                                variant="standard"
                                 label="Category"
                                 fullWidth
                                 required
@@ -258,12 +266,14 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12 }}>
                             <TextField
+                                variant="standard"
                                 label="Description"
                                 multiline
                                 rows={4}
                                 fullWidth
                                 value={formData.description}
                                 onChange={handleChange('description')}
+                                slotProps={{ htmlInput: { maxLength: 2000 } }}
                             />
                         </Grid>
 
@@ -276,6 +286,7 @@ export default function ExerciseForm() {
                                     mb: 1
                                 }}>
                                 <TextField
+                                    variant="standard"
                                     label="Add Alias"
                                     fullWidth
                                     size="small"
@@ -287,6 +298,7 @@ export default function ExerciseForm() {
                                             handleAddAlias();
                                         }
                                     }}
+                                    slotProps={{ htmlInput: { maxLength: 50 } }}
                                 />
                                 <Button variant="outlined" onClick={handleAddAlias}>Add</Button>
                             </Box>
@@ -317,20 +329,24 @@ export default function ExerciseForm() {
                                     mb: 1
                                 }}>
                                 <TextField
+                                    variant="standard"
                                     label="Link URL"
                                     fullWidth
                                     size="small"
                                     value={linkInput.url}
                                     onChange={(e) => { setLinkInput({ ...linkInput, url: e.target.value }); }}
                                     placeholder="https://..."
+                                    slotProps={{ htmlInput: { maxLength: 500 } }}
                                 />
                                 <TextField
+                                    variant="standard"
                                     label="Label (Optional)"
                                     fullWidth
                                     size="small"
                                     value={linkInput.label}
                                     onChange={(e) => { setLinkInput({ ...linkInput, label: e.target.value }); }}
                                     placeholder="Tutorial Video"
+                                    slotProps={{ htmlInput: { maxLength: 100 } }}
                                 />
                                 <Button 
                                     variant="outlined" 

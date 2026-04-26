@@ -7,7 +7,6 @@ interface WorkoutsContextType {
     entries: Workout[];
     templates: TrainingTemplate[];
     loading: boolean;
-    error: string;
 }
 
 const WorkoutsContext = createContext<WorkoutsContextType | undefined>(undefined);
@@ -26,18 +25,22 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const [entries, setEntries] = useState<Workout[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+
+    // Reset state during render if user logs out (React recommended pattern)
+    const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
+    if (currentUser?.uid !== prevUserUid) {
+        if (!currentUser) {
+            setEntries([]);
+            setTemplates([]);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+        setPrevUserUid(currentUser?.uid ?? null);
+    }
 
     useEffect(() => {
-        if (!currentUser) {
-            setEntries(prev => prev.length > 0 ? [] : prev);
-            setTemplates(prev => prev.length > 0 ? [] : prev);
-            setLoading(prev => prev ? false : prev);
-            return;
-        }
-
-        setLoading(true);
-        setError('');
+        if (!currentUser) return;
 
         // Subscribe to workouts (limit to 1000 for global state, pages can fetch more if needed)
         const unsubscribeEntries = subscribeToWorkouts(
@@ -63,7 +66,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         };
     }, [currentUser]);
 
-    const value = useMemo(() => ({ entries, templates, loading, error }), [entries, templates, loading, error]);
+    const value = useMemo(() => ({ entries, templates, loading }), [entries, templates, loading]);
 
     return (
         <WorkoutsContext.Provider value={value}>

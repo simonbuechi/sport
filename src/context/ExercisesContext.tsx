@@ -5,7 +5,6 @@ import type { Exercise } from '../types';
 interface ExercisesContextType {
     exercises: Exercise[];
     loading: boolean;
-    error: string;
 }
 
 const ExercisesContext = createContext<ExercisesContextType | undefined>(undefined);
@@ -22,7 +21,6 @@ export const useExercises = () => {
 export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error] = useState('');
 
     useEffect(() => {
         // loading is true by default
@@ -37,8 +35,7 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     return (
         <ExercisesContext.Provider value={{ 
             exercises, 
-            loading, 
-            error
+            loading
         }}>
             {children}
         </ExercisesContext.Provider>

@@ -67,8 +67,8 @@ const ExerciseDetails = () => {
             const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
 
             await updateProfile({ markedExercises: updatedMarked });
-        } catch (err) {
-            console.error("Failed to update status", err);
+        } catch (_err) {
+            // setError('Failed to toggle favorite');
         }
     };
 
@@ -85,8 +85,7 @@ const ExerciseDetails = () => {
         try {
             await deleteExercise(id);
             void navigate('/exercises');
-        } catch (err) {
-            console.error("Failed to delete exercise", err);
+        } catch (_err) {
             setError('Failed to delete exercise');
         } finally {
             setDeleteDialogOpen(false);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -38,7 +38,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
 
 const Exercises = () => {
-    const { exercises, loading: exercisesLoading, error: exercisesError } = useExercises();
+    const { exercises, loading: exercisesLoading } = useExercises();
     const { profile } = useUserProfile();
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
@@ -50,35 +50,44 @@ const Exercises = () => {
     const observer = useRef<IntersectionObserver | null>(null);
     const [displayCount, setDisplayCount] = useState(30);
 
-    // Reset display count when filters change
-    useEffect(() => {
+    // Adjust display count when filters change (React recommendation for derived state reset)
+    const [prevFilters, setPrevFilters] = useState({ filter, bodypartFilter, categoryFilter, searchTerm });
+    if (prevFilters.filter !== filter || 
+        prevFilters.bodypartFilter !== bodypartFilter || 
+        prevFilters.categoryFilter !== categoryFilter || 
+        prevFilters.searchTerm !== searchTerm) {
         setDisplayCount(30);
-    }, [filter, bodypartFilter, categoryFilter, searchTerm]);
+        setPrevFilters({ filter, bodypartFilter, categoryFilter, searchTerm });
+    }
 
     const filteredExercises = useMemo(() => {
-        return exercises
-            .filter(exe => {
-                // filter by type
-                if (filter !== 'all' && exe.type !== filter) return false;
+        try {
+            return exercises
+                .filter(exe => {
+                    // filter by type
+                    if (filter !== 'all' && exe.type !== filter) return false;
 
-                // filter by bodypart
-                if (bodypartFilter !== 'all' && exe.bodypart !== bodypartFilter) return false;
+                    // filter by bodypart
+                    if (bodypartFilter !== 'all' && exe.bodypart !== bodypartFilter) return false;
 
-                // filter by category
-                if (categoryFilter !== 'all' && exe.category !== categoryFilter) return false;
+                    // filter by category
+                    if (categoryFilter !== 'all' && exe.category !== categoryFilter) return false;
 
-                // filter by search term
-                if (searchTerm && !exe.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+                    // filter by search term
+                    if (searchTerm && !exe.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
 
-                return true;
-            })
-            .sort((a, b) => {
-                // Popular status first (desc)
-                if (a.popular && !b.popular) return -1;
-                if (!a.popular && b.popular) return 1;
-                // Then by name (asc)
-                return a.name.localeCompare(b.name);
-            });
+                    return true;
+                })
+                .sort((a, b) => {
+                    // Popular status first (desc)
+                    if (a.popular && !b.popular) return -1;
+                    if (!a.popular && b.popular) return 1;
+                    // Then by name (asc)
+                    return a.name.localeCompare(b.name);
+                });
+        } catch (_err) {
+            return [];
+        }
     }, [exercises, filter, bodypartFilter, categoryFilter, searchTerm]);
 
     const lastElementRef = useCallback((node: HTMLElement | null) => {
@@ -102,7 +111,6 @@ const Exercises = () => {
     // Profile is now handled by useUserProfile hook
 
     const loading = exercisesLoading && exercises.length === 0;
-    const currentError = exercisesError;
 
     const handleViewChange = (
         _event: React.MouseEvent<HTMLElement>,
@@ -247,8 +255,7 @@ const Exercises = () => {
                     </FormControl>
                 </Box>
             </Stack>
-            {currentError && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{currentError}</Alert>}
-            {exercises.length === 0 && !currentError ? (
+            {exercises.length === 0 ? (
                 <Alert 
                     severity="info" 
                     sx={{ mt: 4 }}

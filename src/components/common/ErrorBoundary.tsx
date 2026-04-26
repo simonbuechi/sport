@@ -21,6 +21,21 @@ class ErrorBoundary extends Component<Props, State> {
         return { hasError: true, error };
     }
 
+    componentDidMount() {
+        window.addEventListener('unhandledrejection', this.handlePromiseRejection);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('unhandledrejection', this.handlePromiseRejection);
+    }
+
+    handlePromiseRejection = (event: PromiseRejectionEvent) => {
+        this.setState({
+            hasError: true,
+            error: event.reason instanceof Error ? event.reason : new Error(String(event.reason))
+        });
+    };
+
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error('Uncaught error:', error, errorInfo);
     }

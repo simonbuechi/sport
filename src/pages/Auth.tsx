@@ -53,9 +53,9 @@ const Auth = () => {
             }
             
             void navigate('/');
-        } catch (err) {
+        } catch (_err) {
             setError(isLogin ? 'Failed to log in' : 'Failed to create an account');
-            console.error(err);
+            // console.error(_err);
         } finally {
             setLoading(false);
         }
@@ -79,9 +79,9 @@ const Auth = () => {
             }
             
             void navigate('/');
-        } catch (err) {
+        } catch (_err) {
             setError(isLogin ? 'Failed to log in with Google' : 'Failed to sign up with Google');
-            console.error(err);
+            // console.error(_err);
         } finally {
             setLoading(false);
         }

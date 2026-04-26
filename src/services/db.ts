@@ -22,7 +22,8 @@ export const subscribeToExercises = (callback: (exercises: Exercise[]) => void):
     const q = query(
         collection(db, 'exercises'),
         orderBy('popular', 'desc'),
-        orderBy('name')
+        orderBy('name'),
+        limit(2000)
     );
     return onSnapshot(q, (snapshot) => {
         const exercises = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));

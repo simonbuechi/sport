@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -27,158 +26,122 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import { updateUserProfile } from '../services/db';
-import { useAuth } from '../context/AuthContext';
-import { useWorkouts } from '../context/WorkoutsContext';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
-import type { Workout, UserProfile, TrainingTemplate } from '../types';
+import type { TrainingTemplate } from '../types';
 import CalendarWidget from '../components/dashboard/CalendarWidget';
 import WorkoutCounterWidget from '../components/dashboard/WorkoutCounterWidget';
-
-
-const ALL_DASHBOARD_ELEMENTS = [
-    'Project Updates',
-    'Weight Tracking',
-    'Workout Counter',
-    'Calendar',
-    'Profile',
-    'Templates',
-    'PRs',
-    'Favorite Exercises',
-    'Measurements',
-    'Feedback'
-];
-
-const DEFAULT_WIDGETS = ['Project Updates', 'Calendar', 'Workout Counter', 'Templates'];
-
-const ASPIRATIONAL_MESSAGES = [
-    "Consistency is key! Keep it up.",
-    "The only bad workout is the one that didn't happen.",
-    "Small steps lead to big results. Stay focused!",
-    "You're doing amazing! Your future self will thank you.",
-    "Every workout brings you closer to your goals.",
-    "Discipline is doing what needs to be done, even if you don't feel like it.",
-    "Success is the sum of small efforts repeated day in and day out."
-];
+import { useHomeState, WIDGET_TYPES, type WidgetType } from '../hooks/useHomeState';
 
 const Home = () => {
-    const { currentUser } = useAuth();
     const navigate = useNavigate();
-    const { entries: allEntries, templates, loading: sessionsLoading } = useWorkouts();
-    const { profile, loading: profileLoading, error: profileError } = useUserProfile();
-    
-    const [visibleWidgets, setVisibleWidgets] = useState<string[]>([]);
-    const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
-    const [widgetToClose, setWidgetToClose] = useState<string | null>(null);
-    const [aspirationalMessage, setAspirationalMessage] = useState('');
-    const [orderedAllWidgets, setOrderedAllWidgets] = useState<string[]>(ALL_DASHBOARD_ELEMENTS);
-    const [error, setError] = useState('');
+    const {
+        visibleWidgets,
+        orderedAllWidgets,
+        isManageDialogOpen,
+        setIsManageDialogOpen,
+        widgetToClose,
+        setWidgetToClose,
+        aspirationalMessage,
+        error,
+        sessionsInLast7Days,
+        allEntries,
+        templates,
+        isInitialLoading,
+        handleOnDragEnd,
+        removeWidget,
+        toggleWidget
+    } = useHomeState();
 
-    useEffect(() => {
-        if (profile) {
-            if (profile.dashboardWidgets) {
-                setVisibleWidgets(profile.dashboardWidgets);
-                const savedOrder = profile.dashboardOrder ?? [];
-                const activeSet = new Set(profile.dashboardWidgets);
-                const baseOrder = savedOrder.length > 0 ? savedOrder : ALL_DASHBOARD_ELEMENTS;
-                const sorted = [...baseOrder].sort((a, b) => {
-                    const aActive = activeSet.has(a);
-                    const bActive = activeSet.has(b);
-                    if (aActive && !bActive) return -1;
-                    if (!aActive && bActive) return 1;
-                    return 0;
-                });
-                setOrderedAllWidgets(sorted);
-            } else {
-                setVisibleWidgets(DEFAULT_WIDGETS);
-                setOrderedAllWidgets(ALL_DASHBOARD_ELEMENTS);
-            }
-
-            // Set a random message if not already set
-            if (!aspirationalMessage) {
-                const randomMsg = ASPIRATIONAL_MESSAGES[Math.floor(Math.random() * ASPIRATIONAL_MESSAGES.length)];
-                setAspirationalMessage(randomMsg);
-            }
+    const renderWidgetContent = (widget: WidgetType) => {
+        switch (widget) {
+            case WIDGET_TYPES.WORKOUT_COUNTER:
+                return (
+                    <WorkoutCounterWidget
+                        sessionsInLast7Days={sessionsInLast7Days}
+                        aspirationalMessage={aspirationalMessage}
+                    />
+                );
+            case WIDGET_TYPES.CALENDAR:
+                return <CalendarWidget entries={allEntries} />;
+            case WIDGET_TYPES.PROJECT_UPDATES:
+                return (
+                    <Box>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                            v0.2 April 2026: Alpha Version, use with caution
+                        </Typography>
+                        <Link
+                            href="https://github.com/simonbuechi/sport"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="body2"
+                        >
+                            View project repo
+                        </Link>
+                    </Box>
+                );
+            case WIDGET_TYPES.TEMPLATES:
+                return (
+                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        {templates.length === 0 ? (
+                            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', py: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    start creating workout templates for faster journaling
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    size="small"
+                                    onClick={() => { void navigate('/profile?tab=templates'); }}
+                                >
+                                    Create Template
+                                </Button>
+                            </Box>
+                        ) : (
+                            <List disablePadding sx={{ width: '100%' }}>
+                                {templates.slice(0, 5).map((template: TrainingTemplate) => (
+                                    <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
+                                        <ListItemButton
+                                            sx={{ py: 0.75, px: 1, }}
+                                            onClick={() => { void navigate('/profile?tab=templates'); }}
+                                        >
+                                            <ListItemIcon sx={{ minWidth: 32 }}>
+                                                <DescriptionIcon fontSize="small" color="primary" />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography variant="body2">
+                                                        {template.name}
+                                                    </Typography>
+                                                }
+                                            />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ))}
+                                {templates.length > 5 && (
+                                    <ListItem disablePadding>
+                                        <ListItemButton
+                                            sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
+                                            onClick={() => { void navigate('/profile?tab=templates'); }}
+                                        >
+                                            <Typography variant="caption" color="primary">
+                                                View all {templates.length} templates
+                                            </Typography>
+                                        </ListItemButton>
+                                    </ListItem>
+                                )}
+                            </List>
+                        )}
+                    </Box>
+                );
+            default:
+                return (
+                    <Typography variant="body2" color="text.secondary">
+                        Content for {widget} coming soon...
+                    </Typography>
+                );
         }
-    }, [profile, aspirationalMessage]);
-
-    useEffect(() => {
-        if (profileError) setError(profileError);
-    }, [profileError]);
-
-    const sessionsInLast7Days = useMemo(() => {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-        return allEntries.filter((entry: Workout) => {
-            const entryDate = new Date(entry.date);
-            return entryDate >= sevenDaysAgo;
-        }).length;
-    }, [allEntries]);
-
-    const handleUpdateWidgets = async (newWidgets: string[], newOrder?: string[]) => {
-        if (!currentUser) return;
-
-        const previousWidgets = [...visibleWidgets];
-        const previousOrder = [...orderedAllWidgets];
-
-        try {
-            setVisibleWidgets(newWidgets);
-            const updates: Partial<UserProfile> = { dashboardWidgets: newWidgets };
-            if (newOrder) {
-                updates.dashboardOrder = newOrder;
-                setOrderedAllWidgets(newOrder);
-            }
-            await updateUserProfile(currentUser.uid, updates);
-        } catch (err) {
-            console.error('Failed to update dashboard settings:', err);
-            setError('Failed to save dashboard settings. Your changes were rolled back.');
-            // Rollback state on failure
-            setVisibleWidgets(previousWidgets);
-            setOrderedAllWidgets(previousOrder);
-
-            // Clear error after 5 seconds
-            setTimeout(() => { setError(''); }, 5000);
-        }
     };
-
-    const handleOnDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
-
-        const items = Array.from(orderedAllWidgets);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
-
-        setOrderedAllWidgets(items);
-
-        // When reordering, we also need to update visibleWidgets to maintain the current set of items
-        // but the actual order in visibleWidgets should reflect the new order
-        const newVisibleWithNewOrder = items.filter(w => visibleWidgets.includes(w));
-        void handleUpdateWidgets(newVisibleWithNewOrder, items);
-    };
-
-    const removeWidget = () => {
-        if (!widgetToClose) return;
-        const newWidgets = visibleWidgets.filter((w: string) => w !== widgetToClose);
-        void handleUpdateWidgets(newWidgets);
-        setWidgetToClose(null);
-    };
-
-    const toggleWidget = (widget: string) => {
-        const isCurrentlyVisible = visibleWidgets.includes(widget);
-        const newVisible = isCurrentlyVisible
-            ? visibleWidgets.filter((w: string) => w !== widget)
-            : [...visibleWidgets, widget];
-
-        // Re-sort newVisible based on current orderedAllWidgets to maintain sequence
-        const sortedVisible = orderedAllWidgets.filter(w => newVisible.includes(w));
-        void handleUpdateWidgets(sortedVisible);
-    };
-
-
-    const isInitialLoading = (profileLoading && visibleWidgets.length === 0) || (sessionsLoading && allEntries.length === 0);
 
     if (isInitialLoading) {
         return (
@@ -215,6 +178,7 @@ const Home = () => {
                         <IconButton
                             onClick={() => { setIsManageDialogOpen(true); }}
                             color="primary"
+                            aria-label="manage widgets"
                         >
                             <SettingsIcon />
                         </IconButton>
@@ -235,7 +199,7 @@ const Home = () => {
                                 size="small"
                                 sx={{ position: 'absolute', top: 8, right: 8 }}
                                 onClick={() => { setWidgetToClose(widget); }}
-                                aria-label="remove widget"
+                                aria-label={`remove ${widget} widget`}
                             >
                                 <CloseIcon fontSize="small" />
                             </IconButton>
@@ -243,84 +207,7 @@ const Home = () => {
                                 {widget}
                             </Typography>
                             <Box sx={{ flexGrow: 1 }}>
-                                {widget === 'Workout Counter' ? (
-                                    <WorkoutCounterWidget
-                                        sessionsInLast7Days={sessionsInLast7Days}
-                                        aspirationalMessage={aspirationalMessage}
-                                    />
-                                ) : widget === 'Calendar' ? (
-                                    <CalendarWidget entries={allEntries} />
-                                ) : widget === 'Project Updates' ? (
-                                    <Box>
-                                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                                            v0.2 April 2026: Alpha Version, use with caution
-                                        </Typography>
-                                        <Link
-                                            href="https://github.com/simonbuechi/sport"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            variant="body2"
-                                        >
-                                            View project repo
-                                        </Link>
-                                    </Box>
-                                ) : widget === 'Templates' ? (
-                                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                        {templates.length === 0 ? (
-                                            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', py: 2 }}>
-                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                    start creating workout templates for faster journaling
-                                                </Typography>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    size="small"
-                                                    onClick={() => { void navigate('/profile?tab=templates'); }}
-                                                >
-                                                    Create Template
-                                                </Button>
-                                            </Box>
-                                        ) : (
-                                            <List disablePadding sx={{ width: '100%' }}>
-                                                {templates.slice(0, 5).map((template: TrainingTemplate) => (
-                                                    <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
-                                                        <ListItemButton
-                                                            sx={{ py: 0.75, px: 1, }}
-                                                            onClick={() => { void navigate('/profile?tab=templates'); }}
-                                                        >
-                                                            <ListItemIcon sx={{ minWidth: 32 }}>
-                                                                <DescriptionIcon fontSize="small" color="primary" />
-                                                            </ListItemIcon>
-                                                            <ListItemText
-                                                                primary={
-                                                                    <Typography variant="body2">
-                                                                        {template.name}
-                                                                    </Typography>
-                                                                }
-                                                            />
-                                                        </ListItemButton>
-                                                    </ListItem>
-                                                ))}
-                                                {templates.length > 5 && (
-                                                    <ListItem disablePadding>
-                                                        <ListItemButton
-                                                            sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
-                                                            onClick={() => { void navigate('/profile?tab=templates'); }}
-                                                        >
-                                                            <Typography variant="caption" color="primary">
-                                                                View all {templates.length} templates
-                                                            </Typography>
-                                                        </ListItemButton>
-                                                    </ListItem>
-                                                )}
-                                            </List>
-                                        )}
-                                    </Box>
-                                ) : (
-                                    <Typography variant="body2" color="text.secondary">
-                                        Content for {widget} coming soon...
-                                    </Typography>
-                                )}
+                                {renderWidgetContent(widget)}
                             </Box>
                         </Paper>
                     </Grid>
@@ -411,6 +298,5 @@ const Home = () => {
         </Container>
     );
 };
-
 
 export default Home;

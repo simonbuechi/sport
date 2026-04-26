@@ -30,7 +30,7 @@ import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { deleteWorkout } from '../services/db';
-import type { Workout, Exercise, WorkoutType } from '../types';
+import type { Workout, Exercise, SessionType } from '../types';
 import WorkoutItem from '../components/journal/WorkoutItem';
 import PageLoader from '../components/common/PageLoader';
 
@@ -46,7 +46,7 @@ const Journal = () => {
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
 
     // Filter and Sort State
-    const [typeFilter, setTypeFilter] = useState<WorkoutType | 'all'>('all');
+    const [typeFilter, setTypeFilter] = useState<SessionType | 'all'>('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
@@ -196,7 +196,7 @@ const Journal = () => {
                                 id="type-filter"
                                 value={typeFilter}
                                 label="Workout Type"
-                                onChange={(e) => { setTypeFilter(e.target.value as WorkoutType | 'all'); }}
+                                onChange={(e) => { setTypeFilter(e.target.value as SessionType | 'all'); }}
                                 sx={{ textTransform: 'capitalize' }}
                             >
                                 <MenuItem value="all">All Types</MenuItem>

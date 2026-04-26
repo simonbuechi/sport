@@ -37,12 +37,12 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
     const { profile } = useUserProfile();
     const [mode, setMode] = useState<ThemeMode>(getStoredTheme);
 
-    // Sync theme from profile when it loads
-    useEffect(() => {
-        if (profile?.settings?.theme && profile.settings.theme !== mode) {
-            setMode(profile.settings.theme);
-        }
-    }, [profile, mode]);
+    // Sync theme from profile when it loads (React recommendation for mirroring state)
+    const [prevProfileTheme, setPrevProfileTheme] = useState<ThemeMode | undefined>(undefined);
+    if (profile?.settings?.theme && profile.settings.theme !== prevProfileTheme) {
+        setMode(profile.settings.theme);
+        setPrevProfileTheme(profile.settings.theme);
+    }
 
     const setThemeMode = useCallback((newMode: ThemeMode) => {
         setMode(newMode);
@@ -62,11 +62,17 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
         return initialMode;
     });
 
-    useEffect(() => {
+    // Sync resolvedMode during render if not system
+    const [prevMode, setPrevMode] = useState<ThemeMode>(mode);
+    if (mode !== prevMode) {
         if (mode !== 'system') {
             setResolvedMode(mode);
-            return;
         }
+        setPrevMode(mode);
+    }
+
+    useEffect(() => {
+        if (mode !== 'system') return;
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = (e: MediaQueryListEvent) => {

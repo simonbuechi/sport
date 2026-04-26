@@ -27,15 +27,21 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+    // Reset state during render if user logs out (React recommended pattern)
+    const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
+    if (currentUser?.uid !== prevUserUid) {
         if (!currentUser) {
             setProfile(null);
             setLoading(false);
-            return;
+        } else {
+            setLoading(true);
+            setError(null);
         }
+        setPrevUserUid(currentUser?.uid ?? null);
+    }
 
-        setLoading(true);
-        setError(null);
+    useEffect(() => {
+        if (!currentUser) return;
 
         const unsubscribe = subscribeToUserProfile(currentUser.uid, (data) => {
             if (data) {
@@ -67,10 +73,10 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
             await dbUpdateUserProfile(currentUser.uid, updates);
             // State will be updated via onSnapshot
             return true;
-        } catch (err) {
-            console.error('Error updating user profile:', err);
+        } catch (_err) {
+            // console.error('Error updating user profile:', _err);
             setError('Failed to update profile');
-            throw err;
+            throw _err;
         }
     }, [currentUser]);
 

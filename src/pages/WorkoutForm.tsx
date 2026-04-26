@@ -52,6 +52,7 @@ const WorkoutForm = () => {
         handleRemoveSet,
         handleUpdateSet,
         handleUpdateExerciseNote,
+        handleMoveExercise,
         handleTemplateChange,
         handleSubmit,
         previousExercisesMap,
@@ -205,7 +206,7 @@ const WorkoutForm = () => {
                                     </Grid>
                                 </Grid>
 
-                                {sessionExercises.map((se) => {
+                                {sessionExercises.map((se, index) => {
                                     const exercise = exercises.find(ex => ex.id === se.exerciseId);
                                     return (
                                         <WorkoutExerciseItem
@@ -217,6 +218,10 @@ const WorkoutForm = () => {
                                             onUpdateSet={handleUpdateSet}
                                             onRemoveSet={handleRemoveSet}
                                             onUpdateExerciseNote={handleUpdateExerciseNote}
+                                            onMoveUp={() => { handleMoveExercise(index, 'up'); }}
+                                            onMoveDown={() => { handleMoveExercise(index, 'down'); }}
+                                            isFirst={index === 0}
+                                            isLast={index === sessionExercises.length - 1}
                                             previousExercise={previousExercisesMap[se.exerciseId]}
                                         />
                                     );

@@ -17,6 +17,8 @@ import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
 import CommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import WorkoutSetItem from './WorkoutSetItem';
 
 import type { WorkoutExercise, Exercise, ExerciseSet } from '../../types';
@@ -29,6 +31,10 @@ interface WorkoutExerciseItemProps {
     onUpdateSet: (exerciseId: string, setId: string, updates: Partial<ExerciseSet>) => void;
     onRemoveSet: (exerciseId: string, setId: string) => void;
     onUpdateExerciseNote: (exerciseId: string, note: string) => void;
+    onMoveUp?: () => void;
+    onMoveDown?: () => void;
+    isFirst?: boolean;
+    isLast?: boolean;
     previousExercise?: WorkoutExercise;
 }
 
@@ -40,6 +46,10 @@ const WorkoutExerciseItem = ({
     onUpdateSet,
     onRemoveSet,
     onUpdateExerciseNote,
+    onMoveUp,
+    onMoveDown,
+    isFirst,
+    isLast,
     previousExercise
 }: WorkoutExerciseItemProps) => {
     const [noteEditingSetId, setNoteEditingSetId] = useState<string | null>(null);
@@ -89,11 +99,42 @@ const WorkoutExerciseItem = ({
                         </IconButton>
                     </Tooltip>
                 </Box>
-                <Tooltip title="Remove Exercise" arrow>
-                    <IconButton size="small" onClick={() => { onRemoveExercise(sessionExercise.exerciseId); }} color="error">
-                        <CloseIcon fontSize="small" />
-                    </IconButton>
-                </Tooltip>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Tooltip title="Move Up" arrow>
+                        <span>
+                            <IconButton 
+                                size="small" 
+                                onClick={onMoveUp} 
+                                disabled={isFirst}
+                                sx={{ color: isFirst ? 'action.disabled' : 'action.active' }}
+                            >
+                                <KeyboardArrowUpIcon fontSize="small" />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                    <Tooltip title="Move Down" arrow>
+                        <span>
+                            <IconButton 
+                                size="small" 
+                                onClick={onMoveDown} 
+                                disabled={isLast}
+                                sx={{ color: isLast ? 'action.disabled' : 'action.active' }}
+                            >
+                                <KeyboardArrowDownIcon fontSize="small" />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                    <Tooltip title="Remove Exercise" arrow>
+                        <IconButton 
+                            size="small" 
+                            onClick={() => { onRemoveExercise(sessionExercise.exerciseId); }} 
+                            color="error"
+                            sx={{ ml: 1 }}
+                        >
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
             </Box>
             
             {sessionExercise.note && (

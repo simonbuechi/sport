@@ -294,6 +294,19 @@ export const useWorkoutForm = (id?: string) => {
         ));
     }, []);
 
+    const handleMoveExercise = useCallback((index: number, direction: 'up' | 'down') => {
+        setWorkoutExercises(prev => {
+            const newIndex = direction === 'up' ? index - 1 : index + 1;
+            if (newIndex < 0 || newIndex >= prev.length) return prev;
+
+            const result = [...prev];
+            const temp = result[index];
+            result[index] = result[newIndex];
+            result[newIndex] = temp;
+            return result;
+        });
+    }, []);
+
     const handleTemplateChange = (templateId: string) => {
         setSelectedTemplateId(templateId);
         if (!templateId) return;
@@ -338,10 +351,11 @@ export const useWorkoutForm = (id?: string) => {
                 exercises: filteredExercises
             };
 
+            let finalId = id;
             if (isEditing && id) {
                 await updateWorkout(currentUser.uid, id, entryData);
             } else {
-                await createWorkout(currentUser.uid, entryData);
+                finalId = await createWorkout(currentUser.uid, entryData);
             }
 
             try {
@@ -349,7 +363,7 @@ export const useWorkoutForm = (id?: string) => {
             } catch (_err) {
                 // Silently fail
             }
-            void navigate(isEditing ? `/journal/${id ?? ''}` : '/journal');
+            void navigate(`/journal/${finalId ?? ''}`);
         } catch (_err) {
             setError(`Failed to save workout: ${_err instanceof Error ? _err.message : String(_err)}`);
         } finally {
@@ -380,6 +394,7 @@ export const useWorkoutForm = (id?: string) => {
         handleRemoveSet,
         handleUpdateSet,
         handleUpdateExerciseNote,
+        handleMoveExercise,
         handleTemplateChange,
         handleSubmit,
         previousExercisesMap,

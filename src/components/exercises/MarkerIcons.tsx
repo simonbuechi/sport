@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Star from '@mui/icons-material/Star';
@@ -24,4 +25,4 @@ const MarkerIcons = ({ status, size = 'small', withShadow = false }: MarkerIcons
     );
 };
 
-export default MarkerIcons;
+export default memo(MarkerIcons);

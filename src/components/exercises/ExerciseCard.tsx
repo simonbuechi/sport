@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
@@ -6,18 +7,17 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import { useNavigate } from 'react-router-dom';
-import type { Exercise, UserProfile } from '../../types';
+import type { Exercise, MarkedStatus } from '../../types';
 import MarkerIcons from './MarkerIcons';
 import LinkIcon from '@mui/icons-material/Link';
 
 interface ExerciseCardProps {
     exercise: Exercise;
-    userProfile?: UserProfile | null;
+    markerStatus?: MarkedStatus;
 }
 
-const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
+const ExerciseCard = ({ exercise, markerStatus }: ExerciseCardProps) => {
     const navigate = useNavigate();
-    const markerStatus = userProfile?.markedExercises?.[exercise.id];
 
     return (
         <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -99,4 +99,4 @@ const ExerciseCard = ({ exercise, userProfile }: ExerciseCardProps) => {
     );
 };
 
-export default ExerciseCard;
+export default memo(ExerciseCard);

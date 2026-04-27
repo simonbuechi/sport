@@ -299,7 +299,7 @@ const Exercises = () => {
                             key={exercise.id}
                             ref={index === displayedExercises.length - 1 ? lastElementRef : null}
                         >
-                            <ExerciseCard exercise={exercise} userProfile={profile} />
+                            <ExerciseCard exercise={exercise} markerStatus={profile?.markedExercises?.[exercise.id]} />
                         </Grid>
                     ))}
                 </Grid>

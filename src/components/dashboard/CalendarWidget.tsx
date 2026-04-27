@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -26,10 +26,10 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
     // Normalize to Monday start: 0=Mon, 1=Tue, ..., 6=Sun
     const firstDayAdjusted = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
-    const activeDates = new Set(entries.map(e => {
+    const activeDates = useMemo(() => new Set(entries.map(e => {
         // e.date is YYYY-MM-DD
         return e.date.split('T')[0];
-    }));
+    })), [entries]);
 
     const days = [];
     // Padding for first day
@@ -104,4 +104,4 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
     );
 };
 
-export default CalendarWidget;
+export default memo(CalendarWidget);

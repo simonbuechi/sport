@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
@@ -19,4 +20,4 @@ const WorkoutCounterWidget = ({ sessionsInLast7Days, aspirationalMessage }: Work
     );
 };
 
-export default WorkoutCounterWidget;
+export default memo(WorkoutCounterWidget);

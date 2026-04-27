@@ -54,16 +54,19 @@ export const useHomeState = () => {
     const [error, setError] = useState('');
 
     // Sync state with profile (React recommendation for mirroring state from props/other state)
-    const [prevProfileWidgets, setPrevProfileWidgets] = useState<string | null>(null);
+    const [prevProfileData, setPrevProfileData] = useState<{ widgets: string | null, order: string | null }>({
+        widgets: null,
+        order: null
+    });
     const widgetsJson = JSON.stringify(profile?.dashboardWidgets);
     const orderJson = JSON.stringify(profile?.dashboardOrder);
     
-    if (profile && (widgetsJson !== prevProfileWidgets || orderJson !== prevProfileWidgets)) {
+    if (profile && (widgetsJson !== prevProfileData.widgets || orderJson !== prevProfileData.order)) {
         if (profile.dashboardWidgets) {
             setVisibleWidgets(profile.dashboardWidgets as WidgetType[]);
             const savedOrder = profile.dashboardOrder as WidgetType[];
             const activeSet = new Set(profile.dashboardWidgets);
-            const baseOrder = savedOrder.length > 0 ? savedOrder : ALL_DASHBOARD_ELEMENTS;
+            const baseOrder = (savedOrder.length > 0) ? savedOrder : ALL_DASHBOARD_ELEMENTS;
             const sorted = [...baseOrder].sort((a, b) => {
                 const aActive = activeSet.has(a);
                 const bActive = activeSet.has(b);
@@ -76,7 +79,7 @@ export const useHomeState = () => {
             setVisibleWidgets(DEFAULT_WIDGETS);
             setOrderedAllWidgets(ALL_DASHBOARD_ELEMENTS);
         }
-        setPrevProfileWidgets(widgetsJson);
+        setPrevProfileData({ widgets: widgetsJson, order: orderJson });
     }
 
 

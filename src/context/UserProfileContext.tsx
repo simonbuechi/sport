@@ -29,7 +29,8 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
 
     // Reset state during render if user logs out (React recommended pattern)
     const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
-    if (currentUser?.uid !== prevUserUid) {
+    const currentUid = currentUser?.uid ?? null;
+    if (currentUid !== prevUserUid) {
         if (!currentUser) {
             setProfile(null);
             setLoading(false);
@@ -37,7 +38,7 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
             setLoading(true);
             setError(null);
         }
-        setPrevUserUid(currentUser?.uid ?? null);
+        setPrevUserUid(currentUid);
     }
 
     useEffect(() => {

@@ -33,7 +33,8 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
 
     // Reset state during render if user logs out (React recommended pattern)
     const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
-    if (currentUser?.uid !== prevUserUid) {
+    const currentUid = currentUser?.uid ?? null;
+    if (currentUid !== prevUserUid) {
         if (!currentUser) {
             setEntries([]);
             setTemplates([]);
@@ -43,7 +44,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         } else {
             setLoading(true);
         }
-        setPrevUserUid(currentUser?.uid ?? null);
+        setPrevUserUid(currentUid);
     }
 
     useEffect(() => {

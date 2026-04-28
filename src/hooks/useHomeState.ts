@@ -7,14 +7,10 @@ import type { Workout, UserProfile } from '../types';
 
 export const WIDGET_TYPES = {
     PROJECT_UPDATES: 'Project Updates',
-    WEIGHT_TRACKING: 'Weight Tracking',
+    WEIGHT: 'Weight',
     WORKOUT_COUNTER: 'Workout Counter',
     CALENDAR: 'Calendar',
-    PROFILE: 'Profile',
     TEMPLATES: 'Templates',
-    PRS: 'PRs',
-    FAVORITE_EXERCISES: 'Favorite Exercises',
-    MEASUREMENTS: 'Measurements',
     FEEDBACK: 'Feedback'
 } as const;
 
@@ -25,17 +21,9 @@ export const DEFAULT_WIDGETS: WidgetType[] = [
     WIDGET_TYPES.PROJECT_UPDATES,
     WIDGET_TYPES.CALENDAR,
     WIDGET_TYPES.WORKOUT_COUNTER,
-    WIDGET_TYPES.TEMPLATES
-];
-
-const ASPIRATIONAL_MESSAGES = [
-    "Consistency is key! Keep it up.",
-    "The only bad workout is the one that didn't happen.",
-    "Small steps lead to big results. Stay focused!",
-    "You're doing amazing! Your future self will thank you.",
-    "Every workout brings you closer to your goals.",
-    "Discipline is doing what needs to be done, even if you don't feel like it.",
-    "Success is the sum of small efforts repeated day in and day out."
+    WIDGET_TYPES.TEMPLATES,
+    WIDGET_TYPES.WEIGHT,
+    WIDGET_TYPES.FEEDBACK
 ];
 
 export const useHomeState = () => {
@@ -46,9 +34,6 @@ export const useHomeState = () => {
     const [visibleWidgets, setVisibleWidgets] = useState<WidgetType[]>([]);
     const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
     const [widgetToClose, setWidgetToClose] = useState<WidgetType | null>(null);
-    const [aspirationalMessage] = useState(() => 
-        ASPIRATIONAL_MESSAGES[Math.floor(Math.random() * ASPIRATIONAL_MESSAGES.length)]
-    );
     const [orderedAllWidgets, setOrderedAllWidgets] = useState<WidgetType[]>(ALL_DASHBOARD_ELEMENTS);
     const [error, setError] = useState('');
 
@@ -59,14 +44,24 @@ export const useHomeState = () => {
     });
     const widgetsJson = JSON.stringify(profile?.dashboardWidgets);
     const orderJson = JSON.stringify(profile?.dashboardOrder);
-    
+
     if (profile && (widgetsJson !== prevProfileData.widgets || orderJson !== prevProfileData.order)) {
         if (profile.dashboardWidgets) {
-            setVisibleWidgets(profile.dashboardWidgets as WidgetType[]);
-            const savedOrder = profile.dashboardOrder as WidgetType[];
-            const activeSet = new Set(profile.dashboardWidgets);
-            const baseOrder = (savedOrder.length > 0) ? savedOrder : ALL_DASHBOARD_ELEMENTS;
-            const sorted = [...baseOrder].sort((a, b) => {
+            const validWidgets = (profile.dashboardWidgets as WidgetType[]).filter(w => ALL_DASHBOARD_ELEMENTS.includes(w));
+            setVisibleWidgets(validWidgets);
+            
+            const savedOrder = profile.dashboardOrder as WidgetType[] | undefined;
+            const activeSet = new Set(validWidgets);
+            
+            const filteredSavedOrder = savedOrder ? savedOrder.filter(w => ALL_DASHBOARD_ELEMENTS.includes(w)) : [];
+            const baseOrder = (filteredSavedOrder.length > 0) ? filteredSavedOrder : ALL_DASHBOARD_ELEMENTS;
+            
+            const finalOrder = [...baseOrder];
+            ALL_DASHBOARD_ELEMENTS.forEach(w => {
+                if (!finalOrder.includes(w)) finalOrder.push(w);
+            });
+
+            const sorted = [...new Set(finalOrder)].sort((a, b) => {
                 const aActive = activeSet.has(a);
                 const bActive = activeSet.has(b);
                 if (aActive && !bActive) return -1;
@@ -161,7 +156,6 @@ export const useHomeState = () => {
         setIsManageDialogOpen,
         widgetToClose,
         setWidgetToClose,
-        aspirationalMessage,
         error,
         setError,
         sessionsInLast7Days,

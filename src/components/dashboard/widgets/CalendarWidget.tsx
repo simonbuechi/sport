@@ -6,13 +6,11 @@ import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import type { Workout } from '../../types';
+import { alpha } from '@mui/material/styles';
+import { useWorkouts } from '../../../context/WorkoutsContext';
 
-interface CalendarWidgetProps {
-    entries: Workout[];
-}
-
-const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
+const CalendarWidget = () => {
+    const { entries } = useWorkouts();
     const today = new Date();
     const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
@@ -54,15 +52,15 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
                     height: '28px',
                     lineHeight: '28px',
                     margin: 'auto',
-                    bgcolor: hasWorkout ? 'primary.main' : 'transparent',
-                    color: hasWorkout ? 'white' : 'text.primary',
-                    border: isToday ? '2px solid' : 'none',
-                    borderColor: 'primary.light',
+                    bgcolor: hasWorkout ? (theme) => alpha(theme.palette.primary.main, 0.15) : 'transparent',
+                    color: hasWorkout ? 'primary.main' : 'text.primary',
+                    border: isToday ? '1px solid' : 'none',
+                    borderColor: 'primary.main',
                     fontWeight: isToday || hasWorkout ? 600 : 400,
                     fontSize: '0.75rem',
                     transition: 'all 0.2s',
                     '&:hover': {
-                        bgcolor: hasWorkout ? 'primary.dark' : 'action.hover'
+                        bgcolor: hasWorkout ? (theme) => alpha(theme.palette.primary.main, 0.25) : 'action.hover',
                     }
                 }}
             >
@@ -75,11 +73,11 @@ const CalendarWidget = ({ entries }: CalendarWidgetProps) => {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Stack sx={{ mb: 0.5 }}>
+            <Stack direction="row" sx={{ mb: 0.5, justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle2" sx={{ color: 'text.primary', fontSize: '0.8rem' }}>
                     {monthName} {year}
                 </Typography>
-                <Stack>
+                <Stack direction="row">
                      <IconButton size="small" onClick={() => { setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)); }}>
                         <KeyboardArrowLeft fontSize="small" sx={{ fontSize: '0.9rem' }} />
                      </IconButton>

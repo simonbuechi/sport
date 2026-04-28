@@ -7,7 +7,6 @@ import Alert from '@mui/material/Alert';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
-import Link from '@mui/material/Link';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Dialog from '@mui/material/Dialog';
@@ -16,10 +15,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import DescriptionIcon from '@mui/icons-material/Description';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import CloseIcon from '@mui/icons-material/Close';
@@ -28,9 +23,12 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useNavigate } from 'react-router-dom';
-import type { TrainingTemplate } from '../types';
-import CalendarWidget from '../components/dashboard/CalendarWidget';
-import WorkoutCounterWidget from '../components/dashboard/WorkoutCounterWidget';
+import CalendarWidget from '../components/dashboard/widgets/CalendarWidget';
+import WorkoutCounterWidget from '../components/dashboard/widgets/WorkoutCounterWidget';
+import WeightWidget from '../components/dashboard/widgets/WeightWidget';
+import TemplatesWidget from '../components/dashboard/widgets/TemplatesWidget';
+import ProjectUpdatesWidget from '../components/dashboard/widgets/ProjectUpdatesWidget';
+import FeedbackWidget from '../components/dashboard/widgets/FeedbackWidget';
 import { useHomeState, WIDGET_TYPES, type WidgetType } from '../hooks/useHomeState';
 
 const Home = () => {
@@ -42,10 +40,8 @@ const Home = () => {
         setIsManageDialogOpen,
         widgetToClose,
         setWidgetToClose,
-        aspirationalMessage,
         error,
         sessionsInLast7Days,
-        allEntries,
         templates,
         isInitialLoading,
         moveWidget,
@@ -59,81 +55,18 @@ const Home = () => {
                 return (
                     <WorkoutCounterWidget
                         sessionsInLast7Days={sessionsInLast7Days}
-                        aspirationalMessage={aspirationalMessage}
                     />
                 );
             case WIDGET_TYPES.CALENDAR:
-                return <CalendarWidget entries={allEntries} />;
+                return <CalendarWidget />;
             case WIDGET_TYPES.PROJECT_UPDATES:
-                return (
-                    <Box>
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            v0.2 April 2026: Alpha Version, use with caution
-                        </Typography>
-                        <Link
-                            href="https://github.com/simonbuechi/sport"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            variant="body2"
-                        >
-                            View project repo
-                        </Link>
-                    </Box>
-                );
+                return <ProjectUpdatesWidget />;
             case WIDGET_TYPES.TEMPLATES:
-                return (
-                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                        {templates.length === 0 ? (
-                            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', py: 2 }}>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    start creating workout templates for faster journaling
-                                </Typography>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    onClick={() => { void navigate('/profile?tab=templates'); }}
-                                >
-                                    Create Template
-                                </Button>
-                            </Box>
-                        ) : (
-                            <List disablePadding sx={{ width: '100%' }}>
-                                {templates.slice(0, 5).map((template: TrainingTemplate) => (
-                                    <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
-                                        <ListItemButton
-                                            sx={{ py: 0.75, px: 1, }}
-                                            onClick={() => { void navigate('/profile?tab=templates'); }}
-                                        >
-                                            <ListItemIcon sx={{ minWidth: 32 }}>
-                                                <DescriptionIcon fontSize="small" color="primary" />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary={
-                                                    <Typography variant="body2">
-                                                        {template.name}
-                                                    </Typography>
-                                                }
-                                            />
-                                        </ListItemButton>
-                                    </ListItem>
-                                ))}
-                                {templates.length > 5 && (
-                                    <ListItem disablePadding>
-                                        <ListItemButton
-                                            sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
-                                            onClick={() => { void navigate('/profile?tab=templates'); }}
-                                        >
-                                            <Typography variant="caption" color="primary">
-                                                View all {templates.length} templates
-                                            </Typography>
-                                        </ListItemButton>
-                                    </ListItem>
-                                )}
-                            </List>
-                        )}
-                    </Box>
-                );
+                return <TemplatesWidget templates={templates} />;
+            case WIDGET_TYPES.WEIGHT:
+                return <WeightWidget />;
+            case WIDGET_TYPES.FEEDBACK:
+                return <FeedbackWidget />;
             default:
                 return (
                     <Typography variant="body2" color="text.secondary">

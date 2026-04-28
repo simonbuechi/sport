@@ -1,6 +1,6 @@
 import {
     collection, doc, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
-    onSnapshot, limit, type Unsubscribe, type QueryDocumentSnapshot
+    onSnapshot, limit, getDocsFromCache, getDocsFromServer, type Unsubscribe, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types';
@@ -9,17 +9,28 @@ import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types'
 // Exercises
 
 
-export const subscribeToExercises = (callback: (exercises: Exercise[]) => void): Unsubscribe => {
+export const getExercisesCacheFirst = async (): Promise<Exercise[]> => {
     const q = query(
         collection(db, 'exercises'),
         orderBy('popular', 'desc'),
         orderBy('name'),
         limit(2000)
     );
-    return onSnapshot(q, (snapshot) => {
-        const exercises = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
-        callback(exercises);
-    });
+    
+    try {
+        // Attempt to read from the local persistent cache first
+        const snapshot = await getDocsFromCache(q);
+        if (!snapshot.empty) {
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
+        }
+    } catch (_e) {
+        // Cache is likely empty or uninitialized, proceed to fetch from server
+        console.log('Exercises cache missed or failed, fetching from server...');
+    }
+
+    // Fallback: Fetch from server and update cache
+    const snapshot = await getDocsFromServer(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exercise));
 };
 
 

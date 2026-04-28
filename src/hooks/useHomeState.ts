@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import type { DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '../context/AuthContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -123,12 +122,12 @@ export const useHomeState = () => {
         }
     };
 
-    const handleOnDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
+    const moveWidget = (fromIndex: number, toIndex: number) => {
+        if (toIndex < 0 || toIndex >= orderedAllWidgets.length) return;
 
         const items = Array.from(orderedAllWidgets);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
+        const [movedItem] = items.splice(fromIndex, 1);
+        items.splice(toIndex, 0, movedItem);
 
         setOrderedAllWidgets(items);
 
@@ -169,7 +168,7 @@ export const useHomeState = () => {
         allEntries,
         templates,
         isInitialLoading,
-        handleOnDragEnd,
+        moveWidget,
         removeWidget,
         toggleWidget
     };

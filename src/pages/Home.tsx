@@ -25,8 +25,8 @@ import Checkbox from '@mui/material/Checkbox';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
-import DragHandleIcon from '@mui/icons-material/DragHandle';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useNavigate } from 'react-router-dom';
 import type { TrainingTemplate } from '../types';
 import CalendarWidget from '../components/dashboard/CalendarWidget';
@@ -48,7 +48,7 @@ const Home = () => {
         allEntries,
         templates,
         isInitialLoading,
-        handleOnDragEnd,
+        moveWidget,
         removeWidget,
         toggleWidget
     } = useHomeState();
@@ -226,50 +226,59 @@ const Home = () => {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Select the elements you want to show on your dashboard.
                     </Typography>
-                    <DragDropContext onDragEnd={handleOnDragEnd}>
-                        <Droppable droppableId="widgets-list">
-                            {(provided) => (
-                                <List {...provided.droppableProps} ref={provided.innerRef} dense sx={{ py: 0 }}>
-                                    {orderedAllWidgets.map((element, index) => (
-                                        <Draggable key={element} draggableId={element} index={index}>
-                                            {(provided, snapshot) => (
-                                                <ListItem
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    dense
-                                                    sx={{
-                                                        px: 0.5,
-                                                        py: 0,
-                                                        mb: 0,
-                                                        bgcolor: snapshot.isDragging ? 'action.selected' : 'transparent',
-                                                        boxShadow: snapshot.isDragging ? 2 : 0,
-                                                        '&:hover': { bgcolor: 'action.hover' }
-                                                    }}
-                                                >
-                                                    <Box {...provided.dragHandleProps} sx={{ display: 'flex', alignItems: 'center', mr: 1, color: 'text.secondary', opacity: 0.6 }}>
-                                                        <DragHandleIcon sx={{ fontSize: '1.2rem' }} />
-                                                    </Box>
-                                                    <FormControlLabel
-                                                        sx={{ flexGrow: 1, m: 0 }}
-                                                        control={
-                                                            <Checkbox
-                                                                size="small"
-                                                                checked={visibleWidgets.includes(element)}
-                                                                onChange={() => { toggleWidget(element); }}
-                                                                sx={{ py: 0.5 }}
-                                                            />
-                                                        }
-                                                        label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{element}</Typography>}
-                                                    />
-                                                </ListItem>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </List>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
+                    <List dense sx={{ py: 0 }}>
+                        {orderedAllWidgets.map((element, index) => (
+                            <ListItem
+                                key={element}
+                                dense
+                                sx={{
+                                    px: 0.5,
+                                    py: 0,
+                                    mb: 0,
+                                    '&:hover': { bgcolor: 'action.hover' }
+                                }}
+                            >
+                                <FormControlLabel
+                                    sx={{ flexGrow: 1, m: 0 }}
+                                    control={
+                                        <Checkbox
+                                            size="small"
+                                            checked={visibleWidgets.includes(element)}
+                                            onChange={() => { toggleWidget(element); }}
+                                            sx={{ py: 0.5 }}
+                                        />
+                                    }
+                                    label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{element}</Typography>}
+                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Tooltip title="Move Up" arrow>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => { moveWidget(index, index - 1); }}
+                                                disabled={index === 0}
+                                                sx={{ color: index === 0 ? 'action.disabled' : 'action.active' }}
+                                            >
+                                                <KeyboardArrowUpIcon fontSize="small" />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title="Move Down" arrow>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => { moveWidget(index, index + 1); }}
+                                                disabled={index === orderedAllWidgets.length - 1}
+                                                sx={{ color: index === orderedAllWidgets.length - 1 ? 'action.disabled' : 'action.active' }}
+                                            >
+                                                <KeyboardArrowDownIcon fontSize="small" />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Box>
+                            </ListItem>
+                        ))}
+                    </List>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => { setIsManageDialogOpen(false); }} color="primary">

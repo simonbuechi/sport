@@ -13,7 +13,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
-import type { DropResult } from '@hello-pangea/dnd';
 import { createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
 import type { TrainingTemplate, Exercise } from '../../types';
 import TemplateDialog, { type TemplateFormData } from './TemplateDialog';
@@ -128,22 +127,19 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         }
     }, [userId]);
 
-    const handleOnDragEnd = useCallback(async (result: DropResult, templateId: string) => {
-        if (!result.destination) return;
+    const handleMoveExercise = useCallback(async (templateId: string, fromIndex: number, toIndex: number) => {
         const template = templatesRef.current.find(t => t.id === templateId);
-        if (!template) return;
+        if (!template || toIndex < 0 || toIndex >= template.exercises.length) return;
 
         const newExercises = Array.from(template.exercises);
-        const [reorderedItem] = newExercises.splice(result.source.index, 1);
-        newExercises.splice(result.destination.index, 0, reorderedItem);
+        const [movedItem] = newExercises.splice(fromIndex, 1);
+        newExercises.splice(toIndex, 0, movedItem);
         const updatedTemplate = { ...template, exercises: newExercises };
-
-
 
         try {
             await updateTemplate(userId, templateId, updatedTemplate);
         } catch (err) {
-            console.error('Failed to reorder exercises:', err);
+            console.error('Failed to move exercise:', err);
         }
     }, [userId]);
 
@@ -376,7 +372,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                                 onInlineAdd={handleInlineAdd}
                                 onInlineRemove={handleInlineRemove}
                                 onInlineUpdateNote={handleInlineUpdateNote}
-                                onDragEnd={handleOnDragEnd}
+                                onMoveExercise={handleMoveExercise}
                                 onOpenSetDialog={handleOpenSetDialog}
                             />
                         </Grid>

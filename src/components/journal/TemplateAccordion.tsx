@@ -19,11 +19,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import DragIcon from '@mui/icons-material/DragIndicator';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import StarIcon from '@mui/icons-material/Star';
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 import type { TrainingTemplate, Exercise } from '../../types';
 
@@ -39,7 +39,7 @@ interface TemplateAccordionProps {
     onInlineAdd: (templateId: string, exercise: Exercise | null) => void;
     onInlineRemove: (templateId: string, index: number) => void;
     onInlineUpdateNote: (templateId: string, index: number, note: string) => void;
-    onDragEnd: (result: DropResult, templateId: string) => void;
+    onMoveExercise: (templateId: string, fromIndex: number, toIndex: number) => void;
     onOpenSetDialog: (tid: string, exerciseIdx: number, setIdx?: number) => void;
 }
 
@@ -55,7 +55,7 @@ const TemplateAccordion = ({
     onInlineAdd,
     onInlineRemove,
     onInlineUpdateNote,
-    onDragEnd,
+    onMoveExercise,
     onOpenSetDialog
 }: TemplateAccordionProps) => {
 
@@ -132,133 +132,137 @@ const TemplateAccordion = ({
             <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
                 <Box sx={{ mt: 1 }}>
                     {template.exercises.length > 0 ? (
-                        <DragDropContext onDragEnd={(result) => { onDragEnd(result, template.id); }}>
-                            <Droppable droppableId={template.id}>
-                                {(provided) => (
-                                    <List {...provided.droppableProps} ref={provided.innerRef} sx={{ p: 0 }}>
-                                        {template.exercises.map((ex, idx) => (
-                                            <Draggable key={`${template.id}-${String(idx)}`} draggableId={`${template.id}-${String(idx)}`} index={idx}>
-                                                {(provided, snapshot) => (
-                                                    <Box
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            alignItems: 'flex-start',
-                                                            gap: 1.5,
-                                                            py: 1.5,
-                                                            px: 1,
-                                                            bgcolor: snapshot.isDragging ? 'action.selected' : 'transparent',
-                                                            '&:hover': { bgcolor: snapshot.isDragging ? 'action.selected' : 'action.hover' },
-                                                            borderBottom: idx < template.exercises.length - 1 ? '1px dashed' : 'none',
-                                                            borderColor: 'divider',
-                                                            position: 'relative'
-                                                        }}
-                                                    >
-                                                        <Box
-                                                            {...provided.dragHandleProps}
-                                                            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24, cursor: 'grab', color: 'text.secondary' }}
-                                                        >
-                                                            <DragIcon sx={{ fontSize: 20 }} />
-                                                        </Box>
+                        <List sx={{ p: 0 }}>
+                            {template.exercises.map((ex, idx) => (
+                                <Box
+                                    key={`${template.id}-${String(idx)}`}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: 1.5,
+                                        py: 1.5,
+                                        px: 1,
+                                        '&:hover': { bgcolor: 'action.hover' },
+                                        borderBottom: idx < template.exercises.length - 1 ? '1px dashed' : 'none',
+                                        borderColor: 'divider',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    <Box sx={{
+                                        flexGrow: 1
+                                    }}>
+                                        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                                            <Avatar
+                                                src={getExercise(ex.exerciseId)?.icon_url ?
+                                                    `${import.meta.env.BASE_URL}exercises/${getExercise(ex.exerciseId)?.icon_url ?? ''}`
+                                                    : undefined}
+                                                alt={getExerciseName(ex.exerciseId)}
+                                                sx={{
+                                                    width: 32,
+                                                    height: 32,
+                                                    fontSize: '0.875rem'
+                                                }}
+                                            >
+                                                {getExerciseName(ex.exerciseId).charAt(0)}
+                                            </Avatar>
+                                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                                {getExerciseName(ex.exerciseId)}
+                                            </Typography>
+                                        </Stack>
 
-                                                        <Box sx={{
-                                                            flexGrow: 1
-                                                        }}>
-                                                            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                                                                <Avatar
-                                                                    src={getExercise(ex.exerciseId)?.icon_url ?
-                                                                        `${import.meta.env.BASE_URL}exercises/${getExercise(ex.exerciseId)?.icon_url ?? ''}`
-                                                                        : undefined}
-                                                                    alt={getExerciseName(ex.exerciseId)}
-                                                                    sx={{
-                                                                        width: 32,
-                                                                        height: 32,
-                                                                        fontSize: '0.875rem'
-                                                                    }}
-                                                                >
-                                                                    {getExerciseName(ex.exerciseId).charAt(0)}
-                                                                </Avatar>
-                                                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                                                    {getExerciseName(ex.exerciseId)}
-                                                                </Typography>
-                                                            </Stack>
+                                        {/* Sets List */}
+                                        {ex.sets && ex.sets.length > 0 && (
+                                            <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                {ex.sets.map((set, sIdx) => (
+                                                    <Chip
+                                                        key={set.id}
+                                                        variant="outlined"
+                                                        size="small"
+                                                        label={`${String(set.weight)}kg x ${String(set.reps)}`}
+                                                        onClick={() => { onOpenSetDialog(template.id, idx, sIdx); }}
+                                                        sx={{ borderRadius: '4px' }}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        )}
 
-                                                            {/* Sets List */}
-                                                            {ex.sets && ex.sets.length > 0 && (
-                                                                <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                                    {ex.sets.map((set, sIdx) => (
-                                                                        <Chip
-                                                                            key={set.id}
-                                                                            variant="outlined"
-                                                                            size="small"
-                                                                            label={`${String(set.weight)}kg x ${String(set.reps)}`}
-                                                                            onClick={() => { onOpenSetDialog(template.id, idx, sIdx); }}
-                                                                            sx={{ borderRadius: '4px' }}
-                                                                        />
-                                                                    ))}
-                                                                </Box>
-                                                            )}
+                                        {editingNotePath?.tid === template.id && editingNotePath.idx === idx ? (
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={2}
+                                                defaultValue={ex.note}
+                                                onBlur={(e) => { onInlineUpdateNote(template.id, idx, e.target.value); }}
+                                                sx={{ mt: 1 }}
+                                                placeholder="Add sets/reps notes..."
+                                            />
+                                        ) : ex.note ? (
+                                            <Typography
+                                                variant="body2"
+                                                onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}
+                                                sx={{
+                                                    color: "text.secondary",
+                                                    display: "block",
+                                                    cursor: 'pointer',
+                                                    mt: 0.5
+                                                }}>
+                                                {ex.note}
+                                            </Typography>
+                                        ) : null}
+                                    </Box>
 
-                                                            {editingNotePath?.tid === template.id && editingNotePath.idx === idx ? (
-                                                                <TextField
-                                                                    fullWidth
-                                                                    multiline
-                                                                    rows={2}
-                                                                    defaultValue={ex.note}
-                                                                    onBlur={(e) => { onInlineUpdateNote(template.id, idx, e.target.value); }}
-                                                                    sx={{ mt: 1 }}
-                                                                    placeholder="Add sets/reps notes..."
-                                                                />
-                                                            ) : ex.note ? (
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}
-                                                                    sx={{
-                                                                        color: "text.secondary",
-                                                                        display: "block",
-                                                                        cursor: 'pointer',
-                                                                        mt: 0.5
-                                                                    }}>
-                                                                    {ex.note}
-                                                                </Typography>
-                                                            ) : null}
-                                                        </Box>
-
-                                                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                                                            <Button
-                                                                size="small"
-                                                                startIcon={<AddIcon />}
-                                                                onClick={() => { onOpenSetDialog(template.id, idx); }}
-                                                                sx={{ whiteSpace: 'nowrap' }}
-                                                            >
-                                                                Set
-                                                            </Button>
-                                                            {!ex.note && (
-                                                                <Tooltip title="Add notes">
-                                                                    <IconButton size="small" onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}>
-                                                                        <NoteAddIcon fontSize="small" />
-                                                                    </IconButton>
-                                                                </Tooltip>
-                                                            )}
-                                                            <Tooltip title="Remove Exercise">
-                                                                <IconButton
-                                                                    size="small"
-                                                                    onClick={() => { onInlineRemove(template.id, idx); }}
-                                                                >
-                                                                    <DeleteIcon fontSize="inherit" />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        </Box>
-                                                    </Box>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
-                                    </List>
-                                )}
-                            </Droppable>
-                        </DragDropContext>
+                                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                                        <Tooltip title="Move Up" arrow>
+                                            <span>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => { onMoveExercise(template.id, idx, idx - 1); }}
+                                                    disabled={idx === 0}
+                                                    sx={{ color: idx === 0 ? 'action.disabled' : 'action.active' }}
+                                                >
+                                                    <KeyboardArrowUpIcon fontSize="small" />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                        <Tooltip title="Move Down" arrow>
+                                            <span>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => { onMoveExercise(template.id, idx, idx + 1); }}
+                                                    disabled={idx === template.exercises.length - 1}
+                                                    sx={{ color: idx === template.exercises.length - 1 ? 'action.disabled' : 'action.active' }}
+                                                >
+                                                    <KeyboardArrowDownIcon fontSize="small" />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                        <Button
+                                            size="small"
+                                            startIcon={<AddIcon />}
+                                            onClick={() => { onOpenSetDialog(template.id, idx); }}
+                                            sx={{ whiteSpace: 'nowrap', ml: 1 }}
+                                        >
+                                            Set
+                                        </Button>
+                                        {!ex.note && (
+                                            <Tooltip title="Add notes">
+                                                <IconButton size="small" onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}>
+                                                    <NoteAddIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        )}
+                                        <Tooltip title="Remove Exercise">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => { onInlineRemove(template.id, idx); }}
+                                            >
+                                                <DeleteIcon fontSize="inherit" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </List>
                     ) : (
                         <Typography
                             variant="body1"

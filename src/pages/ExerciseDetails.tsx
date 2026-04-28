@@ -1,9 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
@@ -15,12 +14,6 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import LinkIcon from '@mui/icons-material/Link';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import { deleteExercise } from '../services/db';
-
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
@@ -37,13 +30,11 @@ import ExerciseNotes from '../components/exercises/ExerciseNotes';
 const ExerciseDetails = () => {
     const { id } = useParams<{ id: string }>();
     const { currentUser } = useAuth();
-    const navigate = useNavigate();
 
     const { exercises, loading: exercisesLoading } = useExercises();
     const { profile, updateProfile, loading: profileLoading } = useUserProfile();
     const { entries: allEntries, loading: workoutsLoading } = useWorkouts();
-    const [error, setError] = useState('');
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [error] = useState('');
 
     const exercise = useMemo(() => {
         if (!id || exercisesLoading) return null;
@@ -75,22 +66,7 @@ const ExerciseDetails = () => {
 
 
 
-    const handleDelete = () => {
-        setDeleteDialogOpen(true);
-    };
 
-    const confirmDelete = async () => {
-        if (!id) return;
-
-        try {
-            await deleteExercise(id);
-            void navigate('/exercises');
-        } catch (_err) {
-            setError('Failed to delete exercise');
-        } finally {
-            setDeleteDialogOpen(false);
-        }
-    };
 
 
     if (loading) return <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>;
@@ -109,7 +85,6 @@ const ExerciseDetails = () => {
                     <Grid size={{ xs: 12, md: 8 }}>
                         <ExerciseHeader 
                             exercise={exercise} 
-                            onDelete={handleDelete}
                             isFavorite={currentStatus.favorite ?? false}
                             onToggleFavorite={handleFavoriteToggle}
                         />
@@ -175,20 +150,7 @@ const ExerciseDetails = () => {
                 </Grid>
             </Paper>
 
-            <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
-                <DialogTitle>Delete Exercise</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Are you sure you want to delete <strong>{exercise.name}</strong>? This action cannot be undone and will remove it from all templates and workouts.
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
-                    <Button onClick={confirmDelete} color="error" variant="contained">
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
+
         </Container >
     );
 };

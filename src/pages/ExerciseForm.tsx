@@ -13,12 +13,16 @@ import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Chip from '@mui/material/Chip';
 import { FormControlLabel, Checkbox } from '@mui/material';
-import { createExercise, updateExercise } from '../services/db';
+import { createExercise, updateExercise, deleteExercise } from '../services/db';
 import type { Exercise } from '../types';
 import { useExercises } from '../context/ExercisesContext';
 import { isValidSafeUrl, sanitizeUrl } from '../utils/security';
 
 import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 
 
 export default function ExerciseForm() {
@@ -29,6 +33,7 @@ export default function ExerciseForm() {
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const [formData, setFormData] = useState<Omit<Exercise, 'id'>>({
         name: '',
@@ -117,6 +122,25 @@ export default function ExerciseForm() {
             ...formData,
             links: formData.links?.filter((_, index) => index !== indexToRemove)
         });
+    };
+
+    const handleDelete = () => {
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!id) return;
+
+        try {
+            setSubmitting(true);
+            await deleteExercise(id);
+            void navigate('/exercises');
+        } catch (_err) {
+            setError('Failed to delete exercise');
+            setSubmitting(false);
+        } finally {
+            setDeleteDialogOpen(false);
+        }
     };
 
     const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -408,6 +432,16 @@ export default function ExerciseForm() {
                                 >
                                     Cancel
                                 </Button>
+                                {isEditing && (
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={handleDelete}
+                                        disabled={submitting}
+                                    >
+                                        Delete Exercise
+                                    </Button>
+                                )}
                                 <Button
                                     type="submit"
                                     variant="contained"
@@ -421,6 +455,21 @@ export default function ExerciseForm() {
                     </Grid>
                 </form>
             </Paper>
+
+            <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
+                <DialogTitle>Delete Exercise</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete <strong>{formData.name}</strong>? This action cannot be undone and will remove it from all templates and workouts.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ pb: 2, px: 3 }}>
+                    <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
+                    <Button onClick={() => { void confirmDelete(); }} color="error" variant="contained" disabled={submitting}>
+                        {submitting ? 'Deleting...' : 'Delete'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 }

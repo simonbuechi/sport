@@ -8,8 +8,6 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 
 import ArrowBack from '@mui/icons-material/ArrowBack';
-import EditNote from '@mui/icons-material/EditNote';
-import Delete from '@mui/icons-material/Delete';
 import Star from '@mui/icons-material/Star';
 import StarBorder from '@mui/icons-material/StarBorder';
 import IconButton from '@mui/material/IconButton';
@@ -19,12 +17,11 @@ import type { Exercise } from '../../types';
 
 interface ExerciseHeaderProps {
     exercise: Exercise;
-    onDelete: () => void;
     isFavorite: boolean;
     onToggleFavorite: () => void;
 }
 
-const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: ExerciseHeaderProps) => {
+const ExerciseHeader = ({ exercise, isFavorite, onToggleFavorite }: ExerciseHeaderProps) => {
     return (
         <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
             <Box sx={{ flex: 1 }}>
@@ -88,29 +85,6 @@ const ExerciseHeader = ({ exercise, onDelete, isFavorite, onToggleFavorite }: Ex
 
 
             </Box>
-            <Stack spacing={1}>
-                <Button
-                    component={RouterLink}
-                    to={`/exercises/${exercise.id}/edit`}
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    startIcon={<EditNote />}
-                    disabled
-                >
-                    Edit
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    startIcon={<Delete />}
-                    onClick={onDelete}
-                    disabled
-                >
-                    Delete
-                </Button>
-            </Stack>
         </Stack>
     );
 };

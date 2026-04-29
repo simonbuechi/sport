@@ -1,11 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import PageLoader from '../common/PageLoader';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { currentUser, loading } = useAuth();
 
     if (loading) {
-        return null; // Or a loading spinner
+        return <PageLoader />;
     }
 
     if (!currentUser) {

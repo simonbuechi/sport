@@ -28,7 +28,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const [entries, setEntries] = useState<Workout[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
-    const [currentLimit, setCurrentLimit] = useState(50);
+    const [currentLimit, setCurrentLimit] = useState(5000);
     const [hasMore, setHasMore] = useState(true);
 
     // Reset state during render if user logs out (React recommended pattern)
@@ -39,7 +39,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             setEntries([]);
             setTemplates([]);
             setLoading(false);
-            setCurrentLimit(50);
+            setCurrentLimit(5000);
             setHasMore(true);
         } else {
             setLoading(true);

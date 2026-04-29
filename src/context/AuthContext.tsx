@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { type User, onAuthStateChanged, signOut as firebaseSignOut, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, persistenceReady } from '../firebase/config';
+import PageLoader from '../components/common/PageLoader';
 
 interface AuthContextType {
     currentUser: User | null;
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {loading ? <PageLoader /> : children}
         </AuthContext.Provider>
     );
 };

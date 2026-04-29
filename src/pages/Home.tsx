@@ -2,7 +2,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
-import CircularProgress from '@mui/material/CircularProgress';
+import Skeleton from '@mui/material/Skeleton';
 import Alert from '@mui/material/Alert';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
@@ -78,7 +78,28 @@ const Home = () => {
 
     if (isInitialLoading) {
         return (
-            <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
+            <Container maxWidth="lg">
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1, sm: 2 }}
+                    sx={{
+                        justifyContent: "space-between",
+                        alignItems: { xs: 'stretch', sm: 'center' },
+                        mt: { xs: 0.5, md: 2 },
+                        mb: { xs: 1.5, md: 4 }
+                    }}
+                >
+                    <Skeleton variant="text" width={200} height={60} />
+                    <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
+                </Stack>
+                <Grid container spacing={{ xs: 2, md: 3 }}>
+                    {[1, 2, 3].map((i) => (
+                        <Grid key={i} size={{ xs: 12, md: 4 }}>
+                            <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2 }} />
+                        </Grid>
+                    ))}
+                </Grid>
+            </Container>
         );
     }
 

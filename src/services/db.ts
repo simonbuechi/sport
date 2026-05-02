@@ -1,6 +1,6 @@
 import {
     collection, doc, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
-    onSnapshot, limit, getDocsFromCache, getDocsFromServer, type Unsubscribe, type QueryDocumentSnapshot
+    onSnapshot, limit, getDocsFromCache, getDocsFromServer, getDoc, type Unsubscribe, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types';
@@ -55,6 +55,15 @@ export const deleteExercise = async (id: string): Promise<void> => {
 
 export const createUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
     await setDoc(doc(db, 'users', uid), data, { merge: true });
+};
+
+export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
+    const docRef = doc(db, 'users', uid);
+    const snapshot = await getDoc(docRef);
+    if (snapshot.exists()) {
+        return { uid: snapshot.id, ...snapshot.data() } as UserProfile;
+    }
+    return null;
 };
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {

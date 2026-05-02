@@ -10,7 +10,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { auth, persistenceReady } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
-import { createUserProfile } from '../services/db';
+import { createUserProfile, getUserProfile } from '../services/db';
 
 const Auth = () => {
     const location = useLocation();
@@ -70,12 +70,15 @@ const Auth = () => {
             // Check/Create profile after Google Sign In
             const user = auth.currentUser;
             if (user) {
-                await createUserProfile(user.uid, {
-                    name: user.displayName ?? user.email?.split('@')[0] ?? 'Athlete',
-                    weights: [],
-                    measurements: [],
-                    markedExercises: {}
-                });
+                const existingProfile = await getUserProfile(user.uid);
+                if (!existingProfile) {
+                    await createUserProfile(user.uid, {
+                        name: user.displayName ?? user.email?.split('@')[0] ?? 'Athlete',
+                        weights: [],
+                        measurements: [],
+                        markedExercises: {}
+                    });
+                }
             }
             
             void navigate('/');

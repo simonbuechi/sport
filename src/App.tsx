@@ -11,14 +11,15 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import ReloadPrompt from './components/common/ReloadPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
-// Lazy load pages
-const Home = lazy(() => import('./pages/Home'));
-const Exercises = lazy(() => import('./pages/Exercises'));
+import Home from './pages/Home';
+import Exercises from './pages/Exercises';
+import Profile from './pages/Profile';
+import Journal from './pages/Journal';
+
+// Lazy load sub-pages
 const Auth = lazy(() => import('./pages/Auth'));
-const Profile = lazy(() => import('./pages/Profile'));
 const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
 const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
-const Journal = lazy(() => import('./pages/Journal'));
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
 const WorkoutForm = lazy(() => import('./pages/WorkoutForm'));
 const WorkoutDetails = lazy(() => import('./pages/WorkoutDetails'));

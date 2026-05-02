@@ -32,7 +32,7 @@ import { useWorkouts } from '../context/WorkoutsContext';
 import { deleteWorkout } from '../services/db';
 import type { Workout, Exercise, SessionType } from '../types';
 import WorkoutItem from '../components/journal/WorkoutItem';
-import PageLoader from '../components/common/PageLoader';
+import Skeleton from '@mui/material/Skeleton';
 
 
 
@@ -123,7 +123,30 @@ const Journal = () => {
     const isLoading = (sessionsLoading && entries.length === 0) || (exercisesLoading && exercises.length === 0);
 
     if (isLoading) return (
-        <PageLoader />
+        <Container maxWidth="lg">
+            <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={{ xs: 1, sm: 2 }} 
+                sx={{ 
+                    justifyContent: "space-between", 
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                    mt: { xs: 0.5, md: 2 }, 
+                    mb: { xs: 1.5, md: 4 } 
+                }}
+            >
+                <Skeleton variant="text" width={150} height={60} />
+                <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
+                    <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
+                    <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
+                </Stack>
+            </Stack>
+            <Skeleton variant="rectangular" height={56} sx={{ mb: { xs: 2, md: 3 }, borderRadius: 2 }} />
+            <Stack spacing={2}>
+                {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+                ))}
+            </Stack>
+        </Container>
     );
 
     return (
@@ -187,10 +210,11 @@ const Journal = () => {
                 <AccordionDetails sx={{ pt: 0, pb: 2, px: 2 }}>
                     <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
                         <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
-                            <InputLabel id="type-filter-label">Workout Type</InputLabel>
+                            <InputLabel id="type-filter-label" htmlFor="type-filter-input">Workout Type</InputLabel>
                             <Select
                                 labelId="type-filter-label"
                                 id="type-filter"
+                                inputProps={{ id: 'type-filter-input' }}
                                 value={typeFilter}
                                 label="Workout Type"
                                 onChange={(e) => { setTypeFilter(e.target.value as SessionType | 'all'); }}
@@ -205,6 +229,7 @@ const Journal = () => {
                         </FormControl>
 
                         <TextField
+                            id="journal-date-from"
                             label="From"
                             type="date"
                             size="small"
@@ -215,6 +240,7 @@ const Journal = () => {
                         />
 
                         <TextField
+                            id="journal-date-to"
                             label="To"
                             type="date"
                             size="small"
@@ -225,10 +251,11 @@ const Journal = () => {
                         />
 
                         <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 }, ml: { md: 'auto' } }}>
-                            <InputLabel id="sort-by-label">Sort By</InputLabel>
+                            <InputLabel id="sort-by-label" htmlFor="sort-by-input">Sort By</InputLabel>
                             <Select
                                 labelId="sort-by-label"
                                 id="sort-by"
+                                inputProps={{ id: 'sort-by-input' }}
                                 value={sortBy}
                                 label="Sort By"
                                 onChange={(e) => { setSortBy(e.target.value); }}

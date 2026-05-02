@@ -130,9 +130,11 @@ export default function WeightSection() {
                 </Stack>
                 <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                     <FormControl size="small" sx={{ minWidth: 100 }}>
-                        <InputLabel id="weight-metric-label">Metric</InputLabel>
+                        <InputLabel id="weight-metric-label" htmlFor="weight-metric-input">Metric</InputLabel>
                         <Select
                             labelId="weight-metric-label"
+                            id="weight-metric-select"
+                            inputProps={{ id: 'weight-metric-input' }}
                             value={metric}
                             label="Metric"
                             onChange={(e) => { setMetric(e.target.value); }}
@@ -142,9 +144,11 @@ export default function WeightSection() {
                         </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <InputLabel id="weight-timeframe-label">Timeframe</InputLabel>
+                        <InputLabel id="weight-timeframe-label" htmlFor="weight-timeframe-input">Timeframe</InputLabel>
                         <Select
                             labelId="weight-timeframe-label"
+                            id="weight-timeframe-select"
+                            inputProps={{ id: 'weight-timeframe-input' }}
                             value={timeFrame}
                             label="Timeframe"
                             onChange={(e) => { setTimeFrame(e.target.value as TimeFrame); }}
@@ -219,6 +223,7 @@ export default function WeightSection() {
                             py: 1
                         }}>
                         <TextField
+                            id="weight-date"
                             label="Date"
                             type="date"
                             fullWidth
@@ -230,6 +235,7 @@ export default function WeightSection() {
                             }}
                         />
                         <TextField
+                            id="weight-value"
                             label="Weight (kg)"
                             type="number"
                             fullWidth
@@ -241,6 +247,7 @@ export default function WeightSection() {
                             }}
                         />
                         <TextField
+                            id="weight-bodyfat"
                             label="Body Fat %"
                             type="number"
                             fullWidth

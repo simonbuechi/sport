@@ -76,6 +76,7 @@ const MeasurementField = ({
     const info = MEASUREMENT_INFO[field];
     return (
         <TextField
+            id={`measurement-${field}`}
             label={label}
             type="number"
             fullWidth
@@ -236,6 +237,7 @@ export default function MeasurementsSection() {
                     <Grid container spacing={2} sx={{ pt: 1 }}>
                         <Grid size={{ xs: 12 }}>
                             <TextField
+                                id="measurement-date"
                                 label="Date"
                                 type="date"
                                 fullWidth

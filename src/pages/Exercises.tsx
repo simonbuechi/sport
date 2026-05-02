@@ -2,12 +2,10 @@ import { useState, useMemo, useRef, useCallback } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Container from '@mui/material/Container';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import ToggleButton from '@mui/material/ToggleButton';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -22,16 +20,11 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Skeleton from '@mui/material/Skeleton';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import ViewModule from '@mui/icons-material/ViewModule';
-import ViewList from '@mui/icons-material/ViewList';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import Search from '@mui/icons-material/Search';
 import Add from '@mui/icons-material/Add';
 import { Link as RouterLink } from 'react-router-dom';
 import type { ExerciseType, ExerciseCategory, BodyPart } from '../types';
-import ExerciseCard from '../components/exercises/ExerciseCard';
 import MarkerIcons from '../components/exercises/MarkerIcons';
 import { useExercises } from '../context/ExercisesContext';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -40,7 +33,6 @@ import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
 const Exercises = () => {
     const { exercises, loading: exercisesLoading } = useExercises();
     const { profile } = useUserProfile();
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
     const [bodypartFilter, setBodypartFilter] = useState<BodyPart | 'all'>('all');
     const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | 'all'>('all');
@@ -112,23 +104,13 @@ const Exercises = () => {
 
     const loading = exercisesLoading && exercises.length === 0;
 
-    const handleViewChange = (
-        _event: React.MouseEvent<HTMLElement>,
-        newView: 'grid' | 'list' | null,
-    ) => {
-        if (newView !== null) {
-            setViewMode(newView);
-        }
-    };
 
     const renderSkeletons = () => (
-        <Grid container spacing={{ xs: 2, md: 3 }}>
+        <Stack spacing={1.5}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
-                    <Skeleton variant="rectangular" height={200} />
-                </Grid>
+                <Skeleton key={i} variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
             ))}
-        </Grid>
+        </Stack>
     );
 
     if (loading) {
@@ -150,25 +132,6 @@ const Exercises = () => {
                     <Typography variant="h4" component="h1">
                         Exercises
                     </Typography>
-
-                        <ToggleButtonGroup
-                            value={viewMode}
-                            exclusive
-                            onChange={handleViewChange}
-                            aria-label="view mode"
-                            size="small"
-                        >
-                            <Tooltip title="Grid View">
-                                <ToggleButton value="grid" aria-label="grid view">
-                                    <ViewModule />
-                                </ToggleButton>
-                            </Tooltip>
-                            <Tooltip title="List View">
-                                <ToggleButton value="list" aria-label="list view">
-                                    <ViewList />
-                                </ToggleButton>
-                            </Tooltip>
-                        </ToggleButtonGroup>
                 </Stack>
 
                 <Box 
@@ -181,6 +144,7 @@ const Exercises = () => {
                     }}
                 >
                     <TextField
+                        id="search-exercises"
                         fullWidth
                         size="small"
                         variant="standard"
@@ -204,10 +168,11 @@ const Exercises = () => {
                     />
 
                     <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
-                        <InputLabel id="type-filter-label">Type</InputLabel>
+                        <InputLabel id="type-filter-label" htmlFor="type-filter-input">Type</InputLabel>
                         <Select
                             labelId="type-filter-label"
                             id="type-filter"
+                            inputProps={{ id: 'type-filter-input' }}
                             value={filter}
                             label="Type"
                             onChange={(e) => { setFilter(e.target.value as ExerciseType | 'all'); }}
@@ -223,10 +188,11 @@ const Exercises = () => {
                     </FormControl>
 
                     <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
-                        <InputLabel id="bodypart-filter-label">Body Part</InputLabel>
+                        <InputLabel id="bodypart-filter-label" htmlFor="bodypart-filter-input">Body Part</InputLabel>
                         <Select
                             labelId="bodypart-filter-label"
                             id="bodypart-filter"
+                            inputProps={{ id: 'bodypart-filter-input' }}
                             value={bodypartFilter}
                             label="Body Part"
                             onChange={(e) => { setBodypartFilter(e.target.value as BodyPart | 'all'); }}
@@ -239,10 +205,11 @@ const Exercises = () => {
                     </FormControl>
 
                     <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
-                        <InputLabel id="category-filter-label">Category</InputLabel>
+                        <InputLabel id="category-filter-label" htmlFor="category-filter-input">Category</InputLabel>
                         <Select
                             labelId="category-filter-label"
                             id="category-filter"
+                            inputProps={{ id: 'category-filter-input' }}
                             value={categoryFilter}
                             label="Category"
                             onChange={(e) => { setCategoryFilter(e.target.value as ExerciseCategory | 'all'); }}
@@ -291,18 +258,6 @@ const Exercises = () => {
                 >
                     No exercises match the selected filter or search. <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>Create a new one?</RouterLink>
                 </Alert>
-            ) : viewMode === 'grid' ? (
-                <Grid container spacing={{ xs: 2, md: 3 }}>
-                    {displayedExercises.map((exercise, index) => (
-                        <Grid
-                            size={{ xs: 12, sm: 6, md: 4 }}
-                            key={exercise.id}
-                            ref={index === displayedExercises.length - 1 ? lastElementRef : null}
-                        >
-                            <ExerciseCard exercise={exercise} markerStatus={profile?.markedExercises?.[exercise.id]} />
-                        </Grid>
-                    ))}
-                </Grid>
             ) : (
                 <Paper variant="outlined">
                     <List disablePadding>

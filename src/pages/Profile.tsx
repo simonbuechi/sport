@@ -466,6 +466,7 @@ const Profile = () => {
                         <Grid container spacing={3}>
                             <Grid size={{ xs: 12 }}>
                                 <TextField
+                                    id="profile-name"
                                     label="Name"
                                     fullWidth
                                     value={formState?.name ?? ''}
@@ -475,6 +476,7 @@ const Profile = () => {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
+                                    id="profile-birthyear"
                                     label="Birth Year"
                                     type="number"
                                     fullWidth
@@ -487,6 +489,7 @@ const Profile = () => {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
+                                    id="profile-height"
                                     label="Height (cm)"
                                     type="number"
                                     fullWidth
@@ -499,6 +502,7 @@ const Profile = () => {
                             </Grid>
                             <Grid size={{ xs: 12 }}>
                                 <TextField
+                                    id="profile-notes"
                                     label="Training Notes / Journey"
                                     multiline
                                     rows={4}

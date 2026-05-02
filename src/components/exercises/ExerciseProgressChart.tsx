@@ -65,9 +65,11 @@ const ExerciseProgressChart = ({ workouts, exerciseId }: ExerciseProgressChartPr
             <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">Weight Progress</Typography>
                 <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel id="timeframe-label">Timeframe</InputLabel>
+                    <InputLabel id="timeframe-label" htmlFor="timeframe-input">Timeframe</InputLabel>
                     <Select
                         labelId="timeframe-label"
+                        id="timeframe-select"
+                        inputProps={{ id: 'timeframe-input' }}
                         value={timeFrame}
                         label="Timeframe"
                         onChange={(e) => { setTimeFrame(e.target.value as TimeFrame); }}

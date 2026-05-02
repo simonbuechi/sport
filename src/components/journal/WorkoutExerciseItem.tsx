@@ -180,6 +180,7 @@ const WorkoutExerciseItem = ({
                 <DialogTitle>Set {sessionExercise.sets.findIndex(s => s.id === noteEditingSetId) + 1} Notes</DialogTitle>
                 <DialogContent dividers>
                     <TextField
+                        id={`set-notes-${noteEditingSetId ?? 'default'}`}
                         variant="filled"
                         fullWidth
                         multiline
@@ -208,6 +209,7 @@ const WorkoutExerciseItem = ({
                 <DialogTitle>{exercise?.name ?? 'Exercise'} Notes</DialogTitle>
                 <DialogContent dividers>
                     <TextField
+                        id={`exercise-notes-${sessionExercise.exerciseId}`}
                         variant="filled"
                         fullWidth
                         multiline

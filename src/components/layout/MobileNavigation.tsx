@@ -30,7 +30,11 @@ const MobileNavigation = () => {
                 right: 0,
                 display: { xs: 'block', md: 'none' }, // Only show on mobile
                 zIndex: 1000,
-                background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                background: (theme) => theme.palette.mode === 'light'
+                    ? `linear-gradient(45deg, #f5e6f8 0%, #f8e6eb 100%)`
+                    : `linear-gradient(45deg, #2d1d32 0%, #321d26 100%)`,
+                borderTop: '1px solid',
+                borderColor: 'divider',
             }}
             elevation={8}
         >
@@ -47,11 +51,11 @@ const MobileNavigation = () => {
                     bgcolor: 'transparent',
                     height: 64,
                     '& .MuiBottomNavigationAction-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
+                        color: 'text.secondary',
                         transition: 'all 0.2s ease-in-out',
                     },
                     '& .Mui-selected': {
-                        color: '#fff !important',
+                        color: (theme) => `${theme.palette.primary.main} !important`,
                         '& .MuiBottomNavigationAction-label': {
                             fontWeight: 700,
                             fontSize: '0.85rem',

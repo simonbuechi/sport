@@ -186,6 +186,7 @@ export default function ExerciseForm() {
                     <Grid container spacing={3}>
                         <Grid size={{ xs: 12, sm: 8 }}>
                             <TextField
+                                id="ex-name"
                                 variant="standard"
                                 label="Exercise Name"
                                 fullWidth
@@ -200,6 +201,7 @@ export default function ExerciseForm() {
                             <FormControlLabel
                                 control={
                                     <Checkbox
+                                        id="ex-popular"
                                         checked={formData.popular}
                                         onChange={handleChange('popular')}
                                         color="primary"
@@ -211,6 +213,7 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
+                                id="ex-name-url"
                                 variant="standard"
                                 label="Name URL"
                                 fullWidth
@@ -223,6 +226,7 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
+                                id="ex-icon-url"
                                 variant="standard"
                                 label="Icon URL"
                                 fullWidth
@@ -235,6 +239,7 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
+                                id="ex-type"
                                 select
                                 variant="standard"
                                 label="Type"
@@ -254,6 +259,7 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
+                                id="ex-bodypart"
                                 select
                                 variant="standard"
                                 label="Body Part"
@@ -272,6 +278,7 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
+                                id="ex-category"
                                 select
                                 variant="standard"
                                 label="Category"
@@ -290,6 +297,7 @@ export default function ExerciseForm() {
 
                         <Grid size={{ xs: 12 }}>
                             <TextField
+                                id="ex-description"
                                 variant="standard"
                                 label="Description"
                                 multiline
@@ -310,6 +318,7 @@ export default function ExerciseForm() {
                                     mb: 1
                                 }}>
                                 <TextField
+                                    id="ex-alias-input"
                                     variant="standard"
                                     label="Add Alias"
                                     fullWidth
@@ -353,6 +362,7 @@ export default function ExerciseForm() {
                                     mb: 1
                                 }}>
                                 <TextField
+                                    id="ex-link-url"
                                     variant="standard"
                                     label="Link URL"
                                     fullWidth
@@ -363,6 +373,7 @@ export default function ExerciseForm() {
                                     slotProps={{ htmlInput: { maxLength: 500 } }}
                                 />
                                 <TextField
+                                    id="ex-link-label"
                                     variant="standard"
                                     label="Label (Optional)"
                                     fullWidth

@@ -87,6 +87,7 @@ const WorkoutForm = () => {
                         <Grid container spacing={{ xs: 1.5, sm: 3 }}>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
+                                    id="workout-date"
                                     variant="standard"
                                     label="Date"
                                     type="date"
@@ -100,6 +101,7 @@ const WorkoutForm = () => {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
+                                    id="workout-time"
                                     variant="standard"
                                     label="Time"
                                     type="time"
@@ -112,6 +114,7 @@ const WorkoutForm = () => {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
+                                    id="workout-type"
                                     select
                                     variant="standard"
                                     label="Workout Type"
@@ -130,6 +133,7 @@ const WorkoutForm = () => {
 
                             <Grid size={{ xs: 12, sm: 3 }}>
                                 <TextField
+                                    id="workout-length"
                                     variant="standard"
                                     label="Length (min)"
                                     type="number"
@@ -142,6 +146,7 @@ const WorkoutForm = () => {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 3 }}>
                                 <TextField
+                                    id="workout-pulse"
                                     variant="standard"
                                     label="Max Pulse"
                                     type="number"
@@ -155,6 +160,7 @@ const WorkoutForm = () => {
 
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
+                                    id="workout-notes"
                                     variant="standard"
                                     label="Notes"
                                     fullWidth
@@ -172,6 +178,7 @@ const WorkoutForm = () => {
                                 <Grid container spacing={2} sx={{ mb: 3, alignItems: 'center' }}>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
+                                            id="workout-template"
                                             select
                                             variant="filled"
                                             label="Use Template"
@@ -194,6 +201,7 @@ const WorkoutForm = () => {
                                             <FormControlLabel
                                                 control={
                                                     <Switch
+                                                        id="workout-autofill"
                                                         checked={autoFillFromLast}
                                                         onChange={(e) => { setAutoFillFromLast(e.target.checked); }}
                                                         color="primary"
@@ -237,6 +245,7 @@ const WorkoutForm = () => {
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
+                                                id="add-exercise-autocomplete"
                                                 variant="filled"
                                                 label="Add Exercise"
                                                 placeholder="Search exercises..."

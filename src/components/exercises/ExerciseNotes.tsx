@@ -94,6 +94,8 @@ const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
             </Box>
             <Divider sx={{ mb: 2 }} />
             <TextField
+                id="exercise-personal-notes"
+                aria-label="My Notes"
                 multiline
                 rows={6}
                 fullWidth

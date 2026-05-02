@@ -66,6 +66,7 @@ const WorkoutSetItem = ({
                 </Grid>
                 <Grid size={4}>
                     <TextField
+                        id={`weight-${set.id}`}
                         variant="standard"
                         label={index === 0 ? "Weight" : ""}
                         placeholder="kg"
@@ -82,6 +83,7 @@ const WorkoutSetItem = ({
                 </Grid>
                 <Grid size={4}>
                     <TextField
+                        id={`reps-${set.id}`}
                         variant="standard"
                         label={index === 0 ? "Reps" : ""}
                         placeholder="reps"

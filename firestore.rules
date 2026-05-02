@@ -2,23 +2,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Allow anyone to read exercises, but only the admin can modify them
-    match /exercises/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'Ib3y7vFU94QZbgbXB7flrrHGbtk1';
+    // Functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // Allow users to read and write their own profile
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Allow authenticated users to read exercises, but only the admin can modify them
+    match /exercises/{exerciseId} {
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == 'Ib3y7vFU94QZbgbXB7flrrHGbtk1';
       
-      // Workout activities are private to the user
-      match /activities/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Basic validation for admin writes
+      allow create, update: if request.resource.data.name is string
+                           && request.resource.data.type is string;
+    }
+    
+    // User profile and subcollections
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      // Validation for profile
+      allow create, update: if request.resource.data.name is string;
+      
+      // Workout activities
+      match /activities/{activityId} {
+        allow read, write: if isOwner(userId);
+        
+        allow create, update: if request.resource.data.date is string
+                             && request.resource.data.exercises is list;
       }
 
-      match /templates/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Training templates
+      match /templates/{templateId} {
+        allow read, write: if isOwner(userId);
+        
+        allow create, update: if request.resource.data.name is string
+                             && request.resource.data.exercises is list;
       }
     }
     

@@ -55,7 +55,7 @@ function CustomTabPanel(props: TabPanelProps) {
             {...other}
         >
             {value === index && (
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 3 }}>
                     {children}
                 </Box>
             )}
@@ -223,175 +223,167 @@ const Profile = () => {
             {error && <Alert severity="error" sx={{ mt: 3, mb: 0 }}>{error}</Alert>}
             {message && <Alert severity="success" sx={{ mt: 3, mb: 0 }}>{message}</Alert>}
             <CustomTabPanel value={activeTab} index={0}>
-                <Grid container spacing={4}>
-                    <Grid size={12}>
-                        <Grid
-                            container
-                            sx={{
-                                alignItems: { xs: "flex-start", sm: "center" },
-                                justifyContent: "space-between",
-                                mt: { xs: 1, md: 2 },
-                                mb: { xs: 2, md: 4 }
-                            }}
-                            spacing={2}
-                        >
-                            <Grid>
-                                <Typography variant="h4" component="h1">
-                                    Profile
-                                </Typography>
+                <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 7 }}>
+                        <Grid container spacing={3}>
+                            <Grid size={12}>
+                                <Paper sx={{ p: { xs: 2, md: 3 }, }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                        <Typography variant="h5" sx={{ fontWeight: 700 }}>Profile</Typography>
+                                        <Grid container spacing={1} sx={{ width: 'auto' }}>
+                                            <Grid>
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    startIcon={<Edit />}
+                                                    onClick={() => { setIsEditDialogOpen(true); }}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </Grid>
+                                            <Grid>
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    onClick={handleLogout}
+                                                    startIcon={<Logout />}
+                                                >
+                                                    Logout
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+
+                                    <Grid container spacing={3}>
+                                        <Grid size={{ xs: 12 }}>
+                                            <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>Name</Typography>
+                                            <Typography variant="body1" sx={{ fontWeight: 600 }}>{profile.name}</Typography>
+                                        </Grid>
+
+                                        <Grid size={{ xs: 12, sm: 6 }}>
+                                            <Typography variant="subtitle2" sx={{
+                                                color: "text.secondary"
+                                            }}>Birth Year</Typography>
+                                            <Typography variant="body1">{profile.birthYear ?? 'Not specified'}</Typography>
+                                        </Grid>
+
+                                        <Grid size={{ xs: 12, sm: 6 }}>
+                                            <Typography variant="subtitle2" sx={{
+                                                color: "text.secondary"
+                                            }}>Height</Typography>
+                                            <Typography variant="body1">{profile.height ? `${String(profile.height)} cm` : 'Not specified'}</Typography>
+                                        </Grid>
+
+                                        {profile.notes && (
+                                            <Grid size={{ xs: 12 }}>
+                                                <Typography
+                                                    variant="subtitle2"
+                                                    sx={{
+                                                        color: "text.secondary",
+                                                        mb: 1
+                                                    }}>Notes & Journey</Typography>
+                                                <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, bgcolor: 'background.default', }}>
+                                                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                        {profile.notes}
+                                                    </Typography>
+                                                </Paper>
+                                            </Grid>
+                                        )}
+
+                                        <Grid size={{ xs: 12, sm: 6 }}>
+                                            <Typography variant="subtitle2" sx={{
+                                                color: "text.secondary"
+                                            }}>Member Since</Typography>
+                                            <Typography variant="body1">
+                                                {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, sm: 6 }}>
+                                            <Typography variant="subtitle2" sx={{
+                                                color: "text.secondary"
+                                            }}>Last Login</Typography>
+                                            <Typography variant="body1">
+                                                {currentUser?.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
+                                            </Typography>
+                                        </Grid>
+
+                                    </Grid>
+                                </Paper>
                             </Grid>
-                            <Grid>
-                                <Grid container spacing={1.5}>
-                                    <Grid>
-                                        <Button
-                                            variant="contained"
-                                            startIcon={<Edit />}
-                                            onClick={() => { setIsEditDialogOpen(true); }}
-                                        >
-                                            Edit
-                                        </Button>
+
+                            <Grid size={12}>
+                                <Paper sx={{ p: { xs: 2, md: 3 } }}>
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="h6">Settings</Typography>
+                                    </Box>
+
+                                    <Grid container spacing={3}>
+                                        <Grid size={12}>
+                                            <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>Theme</Typography>
+                                            <ToggleButtonGroup
+                                                value={mode}
+                                                exclusive
+                                                onChange={handleThemeChange}
+                                                aria-label="theme toggle"
+                                                size="small"
+                                                color="primary"
+                                                fullWidth
+                                            >
+                                                <ToggleButton value="light" aria-label="light theme">
+                                                    Light
+                                                </ToggleButton>
+                                                <ToggleButton value="dark" aria-label="dark theme">
+                                                    Dark
+                                                </ToggleButton>
+                                                <ToggleButton value="system" aria-label="system theme">
+                                                    System
+                                                </ToggleButton>
+                                            </ToggleButtonGroup>
+                                        </Grid>
+
+                                        <Grid size={12}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={profile.settings?.autoFillSets ?? false}
+                                                        onChange={handleSettingChange('autoFillSets')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <Box>
+                                                        <Typography variant="body1">Auto-fill</Typography>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            when switched on, you workout data is auto-filled with data from your last workout
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </Grid>
+
+                                        <Grid size={12}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={profile.settings?.showTimer ?? true}
+                                                        onChange={handleSettingChange('showTimer')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <Box>
+                                                        <Typography variant="body1">Timer</Typography>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            When you start a new workout, a timer starts running
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </Grid>
                                     </Grid>
-                                    <Grid>
-                                        <Button
-                                            variant="outlined"
-                                            onClick={handleLogout}
-                                            startIcon={<Logout />}
-                                        >
-                                            Logout
-                                        </Button>
-                                    </Grid>
-                                </Grid>
+                                </Paper>
                             </Grid>
                         </Grid>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 7 }}>
-                        <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, }}>
-
-                            <Grid container spacing={3}>
-                                <Grid size={{ xs: 12 }}>
-                                    <Typography variant="body1">{profile.name}</Typography>
-                                </Grid>
-
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Typography variant="subtitle2" sx={{
-                                        color: "text.secondary"
-                                    }}>Birth Year</Typography>
-                                    <Typography variant="body1">{profile.birthYear ?? 'Not specified'}</Typography>
-                                </Grid>
-
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Typography variant="subtitle2" sx={{
-                                        color: "text.secondary"
-                                    }}>Height</Typography>
-                                    <Typography variant="body1">{profile.height ? `${String(profile.height)} cm` : 'Not specified'}</Typography>
-                                </Grid>
-
-                                {profile.notes && (
-                                    <Grid size={{ xs: 12 }}>
-                                        <Typography
-                                            variant="subtitle2"
-                                            sx={{
-                                                color: "text.secondary",
-                                                mb: 1
-                                            }}>Notes & Journey</Typography>
-                                        <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, bgcolor: 'background.default', }}>
-                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                                                {profile.notes}
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                )}
-
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Typography variant="subtitle2" sx={{
-                                        color: "text.secondary"
-                                    }}>Member Since</Typography>
-                                    <Typography variant="body1">
-                                        {currentUser?.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'Unknown'}
-                                    </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Typography variant="subtitle2" sx={{
-                                        color: "text.secondary"
-                                    }}>Last Login</Typography>
-                                    <Typography variant="body1">
-                                        {currentUser?.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
-                                    </Typography>
-                                </Grid>
-
-                            </Grid>
-                        </Paper>
-
-                        <Paper elevation={3} sx={{ p: { xs: 1.5, md: 3 }, mt: 3 }}>
-                            <Box sx={{ mb: 2 }}>
-                                <Typography variant="h6">Settings</Typography>
-                            </Box>
-
-                            <Grid container spacing={3}>
-                                <Grid size={12}>
-                                    <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>Theme</Typography>
-                                    <ToggleButtonGroup
-                                        value={mode}
-                                        exclusive
-                                        onChange={handleThemeChange}
-                                        aria-label="theme toggle"
-                                        size="small"
-                                        color="primary"
-                                        fullWidth
-                                    >
-                                        <ToggleButton value="light" aria-label="light theme">
-                                            Light
-                                        </ToggleButton>
-                                        <ToggleButton value="dark" aria-label="dark theme">
-                                            Dark
-                                        </ToggleButton>
-                                        <ToggleButton value="system" aria-label="system theme">
-                                            System
-                                        </ToggleButton>
-                                    </ToggleButtonGroup>
-                                </Grid>
-
-                                <Grid size={12}>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={profile.settings?.autoFillSets ?? false}
-                                                onChange={handleSettingChange('autoFillSets')}
-                                                color="primary"
-                                            />
-                                        }
-                                        label={
-                                            <Box>
-                                                <Typography variant="body1">Auto-fill</Typography>
-                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                    when switched on, you workout data is auto-filled with data from your last workout
-                                                </Typography>
-                                            </Box>
-                                        }
-                                    />
-                                </Grid>
-
-                                <Grid size={12}>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={profile.settings?.showTimer ?? true}
-                                                onChange={handleSettingChange('showTimer')}
-                                                color="primary"
-                                            />
-                                        }
-                                        label={
-                                            <Box>
-                                                <Typography variant="body1">Timer</Typography>
-                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                    When you start a new workout, a timer starts running
-                                                </Typography>
-                                            </Box>
-                                        }
-                                    />
-                                </Grid>
-                            </Grid>
-                        </Paper>
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 5 }}>
@@ -431,7 +423,7 @@ const Profile = () => {
                 </Suspense>
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={2}>
-                <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', mt: 4 }}>
+                <Paper sx={{ p: { xs: 2, md: 3 }, textAlign: 'center' }}>
                     <Typography color="text.secondary">Detailed analytics and progress stats coming soon!</Typography>
                 </Paper>
             </CustomTabPanel>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -178,8 +177,8 @@ export default function MeasurementsSection() {
     };
 
     return (
-        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, }}>
-            <Stack direction="row" sx={{ mb: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h5" component="h2">Measurements</Typography>
                 <Button
                     variant="text"
@@ -189,7 +188,7 @@ export default function MeasurementsSection() {
                 >
                     Explain
                 </Button>
-            </Stack>
+            </Box>
 
             <Box sx={{ mb: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>Latest Measurement</Typography>
@@ -205,23 +204,28 @@ export default function MeasurementsSection() {
                 )}
             </Box>
 
-            <Stack direction="row" spacing={2}>
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={handleOpenAdd}
-                    fullWidth
-                >
-                    Measure now
-                </Button>
-                <Button
-                    variant="outlined"
-                    component={RouterLink}
-                    to="/profile/body/history"
-                    fullWidth
-                >
-                    History
-                </Button>            </Stack>
+            <Grid container spacing={2}>
+                <Grid size={6}>
+                    <Button
+                        variant="contained"
+                        startIcon={<Add />}
+                        onClick={handleOpenAdd}
+                        fullWidth
+                    >
+                        Measure now
+                    </Button>
+                </Grid>
+                <Grid size={6}>
+                    <Button
+                        variant="outlined"
+                        component={RouterLink}
+                        to="/profile/body/history"
+                        fullWidth
+                    >
+                        History
+                    </Button>
+                </Grid>
+            </Grid>
 
             {/* Add/Edit Dialog */}
             <Dialog open={isAddEditOpen} onClose={() => { if (!saving) { setIsAddEditOpen(false); } }} maxWidth="sm" fullWidth
@@ -251,13 +255,13 @@ export default function MeasurementsSection() {
                         </Grid>
 
                         {/* Core body */}
-                        <Grid size={{ xs: 6, sm: 4 }}>
+                        <Grid size={{ xs: 6 }}>
                             <MeasurementField label="Chest" field="chest" value={formData.chest ?? ''} onChange={(val) => { handleFieldChange('chest', val); }} />
                         </Grid>
-                        <Grid size={{ xs: 6, sm: 4 }}>
+                        <Grid size={{ xs: 6 }}>
                             <MeasurementField label="Shoulders" field="shoulders" value={formData.shoulders ?? ''} onChange={(val) => { handleFieldChange('shoulders', val); }} />
                         </Grid>
-                        <Grid size={{ xs: 6, sm: 4 }}>
+                        <Grid size={{ xs: 6 }}>
                             <MeasurementField label="Neck" field="neck" value={formData.neck ?? ''} onChange={(val) => { handleFieldChange('neck', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>

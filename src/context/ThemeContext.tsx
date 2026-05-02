@@ -67,6 +67,8 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
     if (mode !== prevMode) {
         if (mode !== 'system') {
             setResolvedMode(mode);
+        } else {
+            setResolvedMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         }
         setPrevMode(mode);
     }
@@ -79,7 +81,6 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
             setResolvedMode(e.matches ? 'dark' : 'light');
         };
 
-        setResolvedMode(mediaQuery.matches ? 'dark' : 'light');
         mediaQuery.addEventListener('change', handleChange);
         return () => {
             mediaQuery.removeEventListener('change', handleChange);

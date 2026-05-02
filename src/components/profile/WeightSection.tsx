@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -9,6 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
+import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
@@ -123,45 +123,51 @@ export default function WeightSection() {
 
 
     return (
-        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, }}>
-            <Stack direction="row" sx={{ mb: 3, justifyContent: 'space-between', alignItems: 'center' }}>
-                <Stack direction="row" sx={{ alignItems: 'center' }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, }}>
+            <Grid container spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
+                <Grid size={{ xs: 12, sm: 'auto' }}>
                     <Typography variant="h5" component="h2">Weight Tracking</Typography>
-                </Stack>
-                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                    <FormControl size="small" sx={{ minWidth: 100 }}>
-                        <InputLabel id="weight-metric-label" htmlFor="weight-metric-input">Metric</InputLabel>
-                        <Select
-                            labelId="weight-metric-label"
-                            id="weight-metric-select"
-                            inputProps={{ id: 'weight-metric-input' }}
-                            value={metric}
-                            label="Metric"
-                            onChange={(e) => { setMetric(e.target.value); }}
-                        >
-                            <MenuItem value="weight">Weight</MenuItem>
-                            <MenuItem value="bmi" disabled={!profile.height}>BMI</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <InputLabel id="weight-timeframe-label" htmlFor="weight-timeframe-input">Timeframe</InputLabel>
-                        <Select
-                            labelId="weight-timeframe-label"
-                            id="weight-timeframe-select"
-                            inputProps={{ id: 'weight-timeframe-input' }}
-                            value={timeFrame}
-                            label="Timeframe"
-                            onChange={(e) => { setTimeFrame(e.target.value as TimeFrame); }}
-                        >
-                            <MenuItem value="1m">Last Month</MenuItem>
-                            <MenuItem value="3m">Last 3 Months</MenuItem>
-                            <MenuItem value="6m">Last 6 Months</MenuItem>
-                            <MenuItem value="1y">Last Year</MenuItem>
-                            <MenuItem value="all">All Time</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Stack>
-            </Stack>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 'auto' }}>
+                    <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+                        <Grid>
+                            <FormControl size="small" sx={{ minWidth: 100 }}>
+                                <InputLabel id="weight-metric-label" htmlFor="weight-metric-input">Metric</InputLabel>
+                                <Select
+                                    labelId="weight-metric-label"
+                                    id="weight-metric-select"
+                                    inputProps={{ id: 'weight-metric-input' }}
+                                    value={metric}
+                                    label="Metric"
+                                    onChange={(e) => { setMetric(e.target.value); }}
+                                >
+                                    <MenuItem value="weight">Weight</MenuItem>
+                                    <MenuItem value="bmi" disabled={!profile.height}>BMI</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid>
+                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                <InputLabel id="weight-timeframe-label" htmlFor="weight-timeframe-input">Timeframe</InputLabel>
+                                <Select
+                                    labelId="weight-timeframe-label"
+                                    id="weight-timeframe-select"
+                                    inputProps={{ id: 'weight-timeframe-input' }}
+                                    value={timeFrame}
+                                    label="Timeframe"
+                                    onChange={(e) => { setTimeFrame(e.target.value as TimeFrame); }}
+                                >
+                                    <MenuItem value="1m">Last Month</MenuItem>
+                                    <MenuItem value="3m">Last 3 Months</MenuItem>
+                                    <MenuItem value="6m">Last 6 Months</MenuItem>
+                                    <MenuItem value="1y">Last Year</MenuItem>
+                                    <MenuItem value="all">All Time</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
             <Box sx={{ width: '100%', height: 250, mt: 2, mb: 2 }}>
                 <LineChart
                     {...defaults}
@@ -186,24 +192,28 @@ export default function WeightSection() {
                 />
             </Box>
             
-            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={handleOpenAdd}
-                    fullWidth
-                >
-                    Log Weight
-                </Button>
-                <Button
-                    variant="outlined"
-                    component={RouterLink}
-                    to="/profile/body/history"
-                    fullWidth
-                >
-                    View History
-                </Button>
-            </Stack>
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid size={6}>
+                    <Button
+                        variant="contained"
+                        startIcon={<Add />}
+                        onClick={handleOpenAdd}
+                        fullWidth
+                    >
+                        Log Weight
+                    </Button>
+                </Grid>
+                <Grid size={6}>
+                    <Button
+                        variant="outlined"
+                        component={RouterLink}
+                        to="/profile/body/history"
+                        fullWidth
+                    >
+                        View History
+                    </Button>
+                </Grid>
+            </Grid>
             {/* Add/Edit Dialog */}
             <Dialog open={isAddEditOpen} onClose={() => { if (!saving) { setIsAddEditOpen(false); } }} maxWidth="xs" fullWidth
                 slotProps={{

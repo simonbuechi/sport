@@ -23,7 +23,7 @@ interface ExerciseListSectionProps {
 
 const ExerciseListSection = ({ icon, title, techniques, expanded, onToggle }: ExerciseListSectionProps) => {
     return (
-        <Paper elevation={3} sx={{ p: 3, }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, }}>
             <Box
                 onClick={onToggle}
                 sx={{

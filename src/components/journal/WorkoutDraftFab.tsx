@@ -13,7 +13,20 @@ interface DraftData {
 const WorkoutDraftFab = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [draftKey, setDraftKey] = useState<string | null>(null);
+    const [draftKey, setDraftKey] = useState<string | null>(() => {
+        try {
+            const draftStr = localStorage.getItem('workout_draft_new');
+            if (draftStr) {
+                const draft = JSON.parse(draftStr) as DraftData;
+                const hasExercises = (draft.exercises?.length ?? 0) > 0;
+                const hasComment = (draft.comment?.trim() ?? '') !== '';
+                if (hasExercises || hasComment) return 'workout_draft_new';
+            }
+        } catch (e) {
+            console.error("Error parsing workout draft", e);
+        }
+        return null;
+    });
 
     const checkDrafts = useCallback(() => {
         try {
@@ -35,9 +48,6 @@ const WorkoutDraftFab = () => {
     }, []);
 
     useEffect(() => {
-        // Initial check
-        checkDrafts();
-
         // Polling as a fallback for window-local changes
         const interval = setInterval(checkDrafts, 3000);
 

@@ -17,18 +17,21 @@ interface ExerciseNotesProps {
 const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
     const { currentUser } = useAuth();
     const { profile, updateProfile } = useUserProfile();
-    const [notes, setNotes] = useState('');
-    const lastSavedNotes = useRef<string>('');
+    const [notes, setNotes] = useState(() => profile?.markedExercises?.[exerciseId]?.notes ?? '');
+    const lastSavedNotes = useRef<string>(notes);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [prevData, setPrevData] = useState({ exerciseId, profileId: profile?.uid });
 
-    // Initialize notes from profile
+    // Sync notes when exercise or profile changes
+    if (exerciseId !== prevData.exerciseId || profile?.uid !== prevData.profileId) {
+        const currentNotes = profile?.markedExercises?.[exerciseId]?.notes ?? '';
+        setNotes(currentNotes);
+        setPrevData({ exerciseId, profileId: profile?.uid });
+    }
+
     useEffect(() => {
-        if (profile) {
-            const currentNotes = profile.markedExercises?.[exerciseId]?.notes ?? '';
-            setNotes(currentNotes);
-            lastSavedNotes.current = currentNotes;
-        }
-    }, [exerciseId, profile]);
+        lastSavedNotes.current = notes;
+    }, [prevData, notes]);
 
     const handleSave = async (content: string) => {
         if (!currentUser || !profile || content === lastSavedNotes.current) return;

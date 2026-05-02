@@ -1,14 +1,14 @@
 import { memo, useMemo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 
 const WeightWidget = () => {
     const { profile } = useUserProfile();
-    const weights = profile?.weights ?? [];
 
     const stats = useMemo(() => {
+        const weights = profile?.weights ?? [];
         if (weights.length === 0) return null;
 
         const latestEntry = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
@@ -43,7 +43,7 @@ const WeightWidget = () => {
             latestWeight,
             changeText
         };
-    }, [weights]);
+    }, [profile?.weights]);
 
     if (!stats) {
         return (
@@ -54,21 +54,25 @@ const WeightWidget = () => {
     }
 
     return (
-        <Stack spacing={1}>
-            <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
-                <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                    {stats.latestWeight}
-                </Typography>
-                <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
-                    kg
-                </Typography>
-            </Box>
+        <Grid container spacing={1}>
+            <Grid size={12}>
+                <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
+                    <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                        {stats.latestWeight}
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
+                        kg
+                    </Typography>
+                </Box>
+            </Grid>
             {stats.changeText && (
-                <Typography variant="body2" color="text.secondary">
-                    {stats.changeText}
-                </Typography>
+                <Grid size={12}>
+                    <Typography variant="body2" color="text.secondary">
+                        {stats.changeText}
+                    </Typography>
+                </Grid>
             )}
-        </Stack>
+        </Grid>
     );
 };
 

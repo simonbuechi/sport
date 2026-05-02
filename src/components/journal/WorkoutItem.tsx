@@ -80,7 +80,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                         {entry.time && ` • ${entry.time}`}
                         {` • ${bodyPartsSummary}`}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', md: 'block' }, mt: 0.5 }}>
                         {exerciseNames}
                     </Typography>
                 </Box>

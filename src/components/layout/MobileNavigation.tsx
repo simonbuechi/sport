@@ -31,10 +31,10 @@ const MobileNavigation = () => {
                 display: { xs: 'block', md: 'none' }, // Only show on mobile
                 zIndex: 1000,
                 background: (theme) => theme.palette.mode === 'light'
-                    ? '#e2e8f0' // Slate 200 (a bit darker than the Slate 100 background)
+                    ? '#bdcfe7ff' // Slate 200 (a bit darker than the Slate 100 background)
                     : '#1e293b', // Slate 800 for dark mode
-                borderTop: '1px solid',
-                borderColor: 'divider',
+                borderRadius: 0,
+                border: 'none',
             }}
             elevation={8}
         >

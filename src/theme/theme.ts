@@ -16,7 +16,7 @@ export const THEME_COLORS = {
     light: {
         primary: '#9123A6',    // Purple
         secondary: '#D7195F',  // Ruby / Deep Pink
-        background: '#f1f5f9ff', // Slate 100
+        background: '#ecf5ffff', // Slate 100
         paper: '#FFFFFF',
         warning: '#fbc02d',    // Vibrant Yellow-Gold (less orange)
     },
@@ -31,7 +31,7 @@ export const THEME_COLORS = {
 
 export const getAppTheme = (mode: PaletteMode) => {
     const isDark = mode === 'dark';
-    
+
     // Unified Surface Style for Cards, Paper, and Dialogs
     const surfaceStyle = {
         borderRadius: 12,

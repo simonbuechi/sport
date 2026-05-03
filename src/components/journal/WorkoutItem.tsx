@@ -99,7 +99,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
             </Stack>
 
             {entry.exercises.length > 0 && (
-                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 2 }}>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mt: 1 }}>
                     <Chip size="small" label={`${String(stats.numEx)} exercises`} variant="outlined" color="primary" />
                     <Chip size="small" label={`${formatCount(stats.totalSets)} sets`} variant="outlined" color="primary" />
                     <Chip size="small" label={`${formatCount(stats.totalReps)} reps`} variant="outlined" color="primary" />

@@ -28,7 +28,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const [entries, setEntries] = useState<Workout[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [loading, setLoading] = useState(true);
-    const [currentLimit, setCurrentLimit] = useState(5000);
+    const [currentLimit, setCurrentLimit] = useState(10);
     const [hasMore, setHasMore] = useState(true);
 
     // Reset state during render if user logs out (React recommended pattern)
@@ -39,7 +39,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             setEntries([]);
             setTemplates([]);
             setLoading(false);
-            setCurrentLimit(5000);
+            setCurrentLimit(20);
             setHasMore(true);
         } else {
             setLoading(true);
@@ -52,13 +52,13 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
 
         // Subscribe to workouts with dynamic limit
         const unsubscribeEntries = subscribeToWorkouts(
-            currentUser.uid, 
+            currentUser.uid,
             (data) => {
                 setEntries(data);
                 setLoading(false);
                 // If we got fewer items than requested, we reached the end
                 setHasMore(data.length === currentLimit);
-            }, 
+            },
             currentLimit
         );
 
@@ -82,11 +82,11 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [loading, hasMore]);
 
-    const value = useMemo(() => ({ 
-        entries, 
-        templates, 
-        loading, 
-        loadMore, 
+    const value = useMemo(() => ({
+        entries,
+        templates,
+        loading,
+        loadMore,
         hasMore,
         currentLimit
     }), [entries, templates, loading, loadMore, hasMore, currentLimit]);

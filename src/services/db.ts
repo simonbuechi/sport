@@ -67,7 +67,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 };
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
-    await setDoc(doc(db, 'users', uid), data, { merge: true });
+    await updateDoc(doc(db, 'users', uid), data);
 };
 
 export const subscribeToUserProfile = (

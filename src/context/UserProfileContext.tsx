@@ -1,13 +1,16 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
-import { subscribeToUserProfile, updateUserProfile as dbUpdateUserProfile } from '../services/db';
+import { subscribeToUserProfile, updateUserProfile as dbUpdateUserProfile, addWeightEntry, addMeasurementEntry, updateExerciseStatusInProfile } from '../services/db';
 import { useAuth } from './AuthContext';
-import type { UserProfile } from '../types';
+import type { UserProfile, WeightEntry, MeasurementEntry, MarkedStatus } from '../types';
 
 interface UserProfileContextType {
     profile: UserProfile | null;
     loading: boolean;
     error: string | null;
     updateProfile: (updates: Partial<UserProfile>) => Promise<boolean>;
+    addWeight: (entry: WeightEntry) => Promise<boolean>;
+    addMeasurement: (entry: MeasurementEntry) => Promise<boolean>;
+    updateExerciseStatus: (exerciseId: string, status: Partial<MarkedStatus>) => Promise<boolean>;
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
@@ -81,12 +84,48 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [currentUser]);
 
+    const addWeight = useCallback(async (entry: WeightEntry) => {
+        if (!currentUser) return false;
+        try {
+            await addWeightEntry(currentUser.uid, entry);
+            return true;
+        } catch (_err) {
+            setError('Failed to add weight entry');
+            throw _err;
+        }
+    }, [currentUser]);
+
+    const addMeasurement = useCallback(async (entry: MeasurementEntry) => {
+        if (!currentUser) return false;
+        try {
+            await addMeasurementEntry(currentUser.uid, entry);
+            return true;
+        } catch (_err) {
+            setError('Failed to add measurement entry');
+            throw _err;
+        }
+    }, [currentUser]);
+
+    const updateExerciseStatus = useCallback(async (exerciseId: string, status: Partial<MarkedStatus>) => {
+        if (!currentUser) return false;
+        try {
+            await updateExerciseStatusInProfile(currentUser.uid, exerciseId, status);
+            return true;
+        } catch (_err) {
+            setError('Failed to update exercise status');
+            throw _err;
+        }
+    }, [currentUser]);
+
     const value = useMemo(() => ({
         profile,
         loading,
         error,
-        updateProfile
-    }), [profile, loading, error, updateProfile]);
+        updateProfile,
+        addWeight,
+        addMeasurement,
+        updateExerciseStatus
+    }), [profile, loading, error, updateProfile, addWeight, addMeasurement, updateExerciseStatus]);
 
     return (
         <UserProfileContext.Provider value={value}>

@@ -145,7 +145,14 @@ const Profile = () => {
             setError('');
             setMessage('');
 
-            await updateProfile(formState);
+            // ONLY update the fields that are in the form, to avoid overwriting 
+            // arrays like weights or markedExercises if formState is stale.
+            await updateProfile({
+                name: formState.name,
+                birthYear: formState.birthYear,
+                height: formState.height,
+                notes: formState.notes
+            });
 
             setMessage('Profile updated successfully');
             setIsEditDialogOpen(false);
@@ -156,6 +163,8 @@ const Profile = () => {
             setSaving(false);
         }
     };
+
+
 
     if (profileLoading || (exercises.length === 0) || !profile) return (
         <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
@@ -231,6 +240,7 @@ const Profile = () => {
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                                         <Typography variant="h5" sx={{ fontWeight: 700 }}>Profile</Typography>
                                         <Grid container spacing={1} sx={{ width: 'auto' }}>
+
                                             <Grid>
                                                 <Button
                                                     variant="contained"

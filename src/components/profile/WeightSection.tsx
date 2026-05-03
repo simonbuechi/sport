@@ -25,7 +25,7 @@ import { useTheme } from '@mui/material/styles';
 type TimeFrame = '1m' | '3m' | '6m' | '1y' | 'all';
 
 export default function WeightSection() {
-    const { profile, updateProfile } = useUserProfile();
+    const { profile, addWeight } = useUserProfile();
     const theme = useTheme();
     const defaults = getChartDefaults(theme);
 
@@ -110,7 +110,7 @@ export default function WeightSection() {
             newWeights.push(cleanedEntry);
 
             // Save to database
-            await updateProfile({ weights: newWeights });
+            await addWeight(cleanedEntry);
 
             setIsAddEditOpen(false);
         } catch (error) {

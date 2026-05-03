@@ -7,7 +7,6 @@ import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import EditNote from '@mui/icons-material/EditNote';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { updateExerciseStatus } from '../../utils/exerciseUtils';
 import { useAuth } from '../../context/AuthContext';
 
 interface ExerciseNotesProps {
@@ -16,7 +15,7 @@ interface ExerciseNotesProps {
 
 const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
     const { currentUser } = useAuth();
-    const { profile, updateProfile } = useUserProfile();
+    const { profile, updateExerciseStatus } = useUserProfile();
     const [notes, setNotes] = useState(() => profile?.markedExercises?.[exerciseId]?.notes ?? '');
     const lastSavedNotes = useRef<string>(notes);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -37,8 +36,7 @@ const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
         if (!currentUser || !profile || content === lastSavedNotes.current) return;
 
         try {
-            const updatedMarked = updateExerciseStatus(profile, exerciseId, { notes: content });
-            await updateProfile({ markedExercises: updatedMarked });
+            await updateExerciseStatus(exerciseId, { notes: content });
             lastSavedNotes.current = content;
         } catch (err) {
             console.error("Failed to save notes", err);

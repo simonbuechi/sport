@@ -46,9 +46,6 @@ const Auth = () => {
                 // Create Firestore profile for new user
                 await createUserProfile(user.uid, {
                     name: user.displayName ?? email.split('@')[0],
-                    weights: [],
-                    measurements: [],
-                    markedExercises: {}
                 });
             }
             
@@ -74,9 +71,6 @@ const Auth = () => {
                 if (!existingProfile) {
                     await createUserProfile(user.uid, {
                         name: user.displayName ?? user.email?.split('@')[0] ?? 'Athlete',
-                        weights: [],
-                        measurements: [],
-                        markedExercises: {}
                     });
                 }
             }

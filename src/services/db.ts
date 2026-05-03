@@ -1,13 +1,11 @@
 import {
     collection, doc, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
-    onSnapshot, limit, getDocsFromCache, getDocsFromServer, getDoc, type Unsubscribe, type QueryDocumentSnapshot
+    onSnapshot, limit, getDocsFromCache, getDocsFromServer, getDoc, arrayUnion, type Unsubscribe, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import type { Exercise, UserProfile, Workout, TrainingTemplate } from '../types';
-
+import type { Exercise, UserProfile, Workout, TrainingTemplate, WeightEntry, MeasurementEntry, MarkedStatus } from '../types';
 
 // Exercises
-
 
 export const getExercisesCacheFirst = async (): Promise<Exercise[]> => {
     const q = query(
@@ -68,6 +66,18 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
     await updateDoc(doc(db, 'users', uid), data);
+};
+
+export const addWeightEntry = async (uid: string, entry: WeightEntry): Promise<void> => {
+    await updateDoc(doc(db, 'users', uid), {
+        weights: arrayUnion(entry)
+    });
+};
+
+export const addMeasurementEntry = async (uid: string, entry: MeasurementEntry): Promise<void> => {
+    await updateDoc(doc(db, 'users', uid), {
+        measurements: arrayUnion(entry)
+    });
 };
 
 export const subscribeToUserProfile = (
@@ -158,4 +168,11 @@ export const updateTemplate = async (userId: string, templateId: string, data: P
 export const deleteTemplate = async (userId: string, templateId: string): Promise<void> => {
     const templateRef = doc(db, 'users', userId, 'templates', templateId);
     await deleteDoc(templateRef);
+};
+
+export const updateExerciseStatusInProfile = async (uid: string, exerciseId: string, status: Partial<MarkedStatus>): Promise<void> => {
+    const updateData: Record<string, unknown> = {};
+    if (status.favorite !== undefined) updateData[`markedExercises.${exerciseId}.favorite`] = status.favorite;
+    if (status.notes !== undefined) updateData[`markedExercises.${exerciseId}.notes`] = status.notes;
+    await updateDoc(doc(db, 'users', uid), updateData);
 };

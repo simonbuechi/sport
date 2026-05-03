@@ -22,7 +22,6 @@ import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
 import { sanitizeUrl } from '../utils/security';
-import { updateExerciseStatus } from '../utils/exerciseUtils';
 import ExerciseNotes from '../components/exercises/ExerciseNotes';
 
 
@@ -32,7 +31,7 @@ const ExerciseDetails = () => {
     const { currentUser } = useAuth();
 
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { profile, updateProfile, loading: profileLoading } = useUserProfile();
+    const { profile, updateExerciseStatus, loading: profileLoading } = useUserProfile();
     const { entries: allEntries, loading: workoutsLoading } = useWorkouts();
     const [error] = useState('');
 
@@ -55,9 +54,7 @@ const ExerciseDetails = () => {
 
         try {
             const currentValue = profile.markedExercises?.[id]?.favorite ?? false;
-            const updatedMarked = updateExerciseStatus(profile, id, { favorite: !currentValue });
-
-            await updateProfile({ markedExercises: updatedMarked });
+            await updateExerciseStatus(id, { favorite: !currentValue });
         } catch (_err) {
             // setError('Failed to toggle favorite');
         }

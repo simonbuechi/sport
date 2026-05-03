@@ -105,7 +105,7 @@ const MeasurementField = ({
 };
 
 export default function MeasurementsSection() {
-    const { profile, updateProfile } = useUserProfile();
+    const { profile, addMeasurement } = useUserProfile();
 
     const [isAddEditOpen, setIsAddEditOpen] = useState(false);
     const [isExplainOpen, setIsExplainOpen] = useState(false);
@@ -153,7 +153,8 @@ export default function MeasurementsSection() {
             ) as MeasurementEntry;
             newMeasurements.push(cleaned);
 
-            await updateProfile({ measurements: newMeasurements });
+            // Save to database
+            await addMeasurement(cleaned);
             setIsAddEditOpen(false);
         } catch (error) {
             console.error("Failed to save measurement", error);

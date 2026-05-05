@@ -39,7 +39,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             setEntries([]);
             setTemplates([]);
             setLoading(false);
-            setCurrentLimit(20);
+            setCurrentLimit(10);
             setHasMore(true);
         } else {
             setLoading(true);
@@ -48,11 +48,12 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     }
 
     useEffect(() => {
-        if (!currentUser) return;
+        const uid = currentUser?.uid;
+        if (!uid) return;
 
         // Subscribe to workouts with dynamic limit
         const unsubscribeEntries = subscribeToWorkouts(
-            currentUser.uid,
+            uid,
             (data) => {
                 setEntries(data);
                 setLoading(false);
@@ -62,19 +63,27 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             currentLimit
         );
 
+        return () => {
+            unsubscribeEntries();
+        };
+    }, [currentUser?.uid, currentLimit]);
+
+    useEffect(() => {
+        const uid = currentUser?.uid;
+        if (!uid) return;
+
         // Subscribe to templates
         const unsubscribeTemplates = subscribeToTemplates(
-            currentUser.uid,
+            uid,
             (data) => {
                 setTemplates(data);
             }
         );
 
         return () => {
-            unsubscribeEntries();
             unsubscribeTemplates();
         };
-    }, [currentUser, currentLimit]);
+    }, [currentUser?.uid]);
 
     const loadMore = useCallback(() => {
         if (!loading && hasMore) {

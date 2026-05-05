@@ -45,15 +45,16 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
     }
 
     useEffect(() => {
-        if (!currentUser) return;
+        const uid = currentUser?.uid;
+        if (!uid) return;
 
-        const unsubscribe = subscribeToUserProfile(currentUser.uid, (data) => {
+        const unsubscribe = subscribeToUserProfile(uid, (data) => {
             if (data) {
                 setProfile(data);
             } else {
                 // Initial default profile if none exists in DB
                 setProfile({
-                    uid: currentUser.uid,
+                    uid: uid,
                     name: currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Anonymous Athlete',
                     notes: '',
                     markedExercises: {},
@@ -68,7 +69,7 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => { unsubscribe(); };
-    }, [currentUser]);
+    }, [currentUser?.uid, currentUser?.displayName, currentUser?.email]);
 
     const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
         if (!currentUser) return false;

@@ -116,6 +116,10 @@ Represents completed workout sessions logged by either Web or Android app.
 | `comment` | `string` | No | Notes or comments | `"Felt strong on bench today"` |
 | `exerciseIds` | `string[]` | Yes | List of exercise IDs performed | `["bench-press", "pull-ups"]` |
 | `exercises` | `array<WorkoutExercise>` | Yes | Detailed exercises and sets | See below |
+| `templateId` | `string` | No | ID of template used (references `/templates/{templateId}`) | `"tpl_123"` |
+
+> **Note on Template Referencing**:
+> When a workout is created from a template, `templateId` is attached to the workout record. Even if the user adapts the workout (adds/removes exercises or adjusts sets), `templateId` remains linked so users can track workout history by routine.
 
 #### Sub-object: `WorkoutExercise`
 ```typescript

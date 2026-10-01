@@ -1,4 +1,5 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -13,6 +14,9 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Avatar from '@mui/material/Avatar';
+import Divider from '@mui/material/Divider';
+import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,11 +28,17 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import StarIcon from '@mui/icons-material/Star';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import HistoryIcon from '@mui/icons-material/History';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-import type { TrainingTemplate, Exercise } from '../../types';
+import type { TrainingTemplate, Exercise, Workout } from '../../types';
+import { subscribeToWorkoutsByTemplate } from '../../services/db';
+import { formatWeight } from '../../utils/format';
 
 interface TemplateAccordionProps {
     template: TrainingTemplate;
+    userId: string;
     exercises: Exercise[];
     exerciseMap: Record<string, Exercise | undefined>;
     activeSearchId: string | null;
@@ -45,6 +55,7 @@ interface TemplateAccordionProps {
 
 const TemplateAccordion = ({
     template,
+    userId,
     exercises,
     exerciseMap,
     activeSearchId,
@@ -59,6 +70,25 @@ const TemplateAccordion = ({
     onOpenSetDialog
 }: TemplateAccordionProps) => {
 
+    const navigate = useNavigate();
+    const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [loadingWorkouts, setLoadingWorkouts] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+        if (!userId || !template.id || !isExpanded) return;
+
+        setLoadingWorkouts(true);
+        const unsubscribe = subscribeToWorkoutsByTemplate(userId, template.id, (data) => {
+            setWorkouts(data);
+            setLoadingWorkouts(false);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [userId, template.id, isExpanded]);
+
     const getExercise = (id: string) => {
         return exerciseMap[id];
     };
@@ -70,6 +100,8 @@ const TemplateAccordion = ({
     return (
         <Accordion
             elevation={4}
+            expanded={isExpanded}
+            onChange={(_, expanded) => { setIsExpanded(expanded); }}
             sx={{
                 borderRadius: '12px !important',
                 border: '1px solid',
@@ -107,7 +139,17 @@ const TemplateAccordion = ({
                         {template.notes && ` • ${template.notes}`}
                     </Typography>
                 </Box>
-                <Box sx={{ mr: 2 }} onClick={(e) => { e.stopPropagation(); }}>
+                <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', gap: 1 }} onClick={(e) => { e.stopPropagation(); }}>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<PlayArrowIcon fontSize="small" />}
+                        onClick={() => { void navigate(`/journal/new?templateId=${template.id}`); }}
+                        sx={{ textTransform: 'none', py: 0.25, px: 1.25, borderRadius: 2 }}
+                    >
+                        Use
+                    </Button>
                     <Tooltip title="Edit Template">
                         <Box
                             component="span"
@@ -116,7 +158,7 @@ const TemplateAccordion = ({
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                p: 1,
+                                p: 0.75,
                                 borderRadius: '50%',
                                 cursor: 'pointer',
                                 color: 'action.active',
@@ -316,6 +358,116 @@ const TemplateAccordion = ({
                             >
                                 Add Exercise
                             </Button>
+                        )}
+                    </Box>
+
+                    <Divider sx={{ my: 2.5 }} />
+
+                    <Box sx={{ mt: 1 }}>
+                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                                <HistoryIcon color="primary" fontSize="small" />
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    Workouts with this Template
+                                </Typography>
+                                <Chip
+                                    size="small"
+                                    label={loadingWorkouts ? '...' : workouts.length}
+                                    color={workouts.length > 0 ? "primary" : "default"}
+                                    variant="outlined"
+                                    sx={{ height: 20, fontSize: '0.75rem' }}
+                                />
+                            </Stack>
+                            <Button
+                                size="small"
+                                variant="text"
+                                color="primary"
+                                startIcon={<PlayArrowIcon fontSize="small" />}
+                                onClick={() => { void navigate(`/journal/new?templateId=${template.id}`); }}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                Start Workout
+                            </Button>
+                        </Stack>
+
+                        {loadingWorkouts ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
+                                <CircularProgress size={18} />
+                                <Typography variant="body2" color="text.secondary">
+                                    Loading workout history...
+                                </Typography>
+                            </Box>
+                        ) : workouts.length === 0 ? (
+                            <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover', borderRadius: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    No workouts have been logged with this template yet.
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<PlayArrowIcon />}
+                                    onClick={() => { void navigate(`/journal/new?templateId=${template.id}`); }}
+                                    sx={{ textTransform: 'none' }}
+                                >
+                                    Log First Workout
+                                </Button>
+                            </Box>
+                        ) : (
+                            <List disablePadding>
+                                {workouts.map((w) => {
+                                    const totalSets = w.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+                                    const totalVolume = w.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + ((s.weight ?? 0) * (s.reps ?? 0)), 0), 0);
+                                    const exerciseNames = w.exercises
+                                        .map(ex => getExerciseName(ex.exerciseId))
+                                        .filter(Boolean)
+                                        .join(' • ');
+
+                                    return (
+                                        <Paper
+                                            key={w.id}
+                                            variant="outlined"
+                                            sx={{
+                                                p: 1.25,
+                                                mb: 1,
+                                                borderRadius: 2,
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' }
+                                            }}
+                                            onClick={() => { void navigate(`/journal/${w.id}`); }}
+                                        >
+                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                <Box sx={{ minWidth: 0 }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                                        {new Date(w.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                                        {w.time && ` • ${w.time}`}
+                                                    </Typography>
+                                                    <Typography
+                                                        variant="caption"
+                                                        color="text.secondary"
+                                                        sx={{
+                                                            display: 'block',
+                                                            whiteSpace: 'nowrap',
+                                                            textOverflow: 'ellipsis',
+                                                            overflow: 'hidden'
+                                                        }}
+                                                    >
+                                                        {exerciseNames}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 0.25 }}>
+                                                        {w.exercises.length} exercises • {totalSets} sets • {formatWeight(totalVolume)} kg
+                                                        {w.length ? ` • ${w.length} min` : ''}
+                                                    </Typography>
+                                                </Box>
+                                                <IconButton size="small" color="primary" aria-label="view workout details">
+                                                    <ChevronRightIcon fontSize="small" />
+                                                </IconButton>
+                                            </Stack>
+                                        </Paper>
+                                    );
+                                })}
+                            </List>
                         )}
                     </Box>
                 </Box>

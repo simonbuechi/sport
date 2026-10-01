@@ -20,6 +20,7 @@ import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
@@ -38,9 +39,14 @@ const WorkoutDetails = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, loading: sessionsLoading } = useWorkouts();
+    const { entries, templates, loading: sessionsLoading } = useWorkouts();
 
     const workout = useMemo(() => entries.find(e => e.id === id) ?? null, [entries, id]);
+    const referencedTemplate = useMemo(() => {
+        if (!workout?.templateId) return null;
+        return templates.find(t => t.id === workout.templateId) ?? null;
+    }, [workout?.templateId, templates]);
+
     const error = useMemo(() => {
         if (!currentUser || sessionsLoading) return '';
         return !workout ? 'Workout not found' : '';
@@ -170,6 +176,21 @@ const WorkoutDetails = () => {
                                     <Grid size={12}>
                                         <Typography variant="caption" color="text.secondary">Notes</Typography>
                                         <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{workout.comment}</Typography>
+                                    </Grid>
+                                )}
+                                {workout.templateId && (
+                                    <Grid size={12}>
+                                        <Typography variant="caption" color="text.secondary">Template</Typography>
+                                        <Box sx={{ mt: 0.5 }}>
+                                            <Chip
+                                                icon={<DescriptionIcon fontSize="small" />}
+                                                label={referencedTemplate?.name ?? 'Referenced Template'}
+                                                variant="outlined"
+                                                color="primary"
+                                                clickable
+                                                onClick={() => { void navigate('/journal/templates'); }}
+                                            />
+                                        </Box>
                                     </Grid>
                                 )}
                             </Grid>

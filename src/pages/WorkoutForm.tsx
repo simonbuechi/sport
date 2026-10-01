@@ -186,7 +186,7 @@ const WorkoutForm = () => {
                                             size="small"
                                             value={selectedTemplateId}
                                             onChange={(e) => { handleTemplateChange(e.target.value); }}
-                                            helperText="Prepopulates workout"
+                                            helperText={selectedTemplateId ? "Template linked to this workout" : "Prepopulates workout"}
                                         >
                                             <MenuItem value=""><em>None</em></MenuItem>
                                             {sortTemplates(templates).map((t) => (
@@ -194,6 +194,11 @@ const WorkoutForm = () => {
                                                     {t.isFavorite && '★ '}{t.name}
                                                 </MenuItem>
                                             ))}
+                                            {selectedTemplateId && !templates.some(t => t.id === selectedTemplateId) && (
+                                                <MenuItem value={selectedTemplateId}>
+                                                    <em>Referenced Template</em>
+                                                </MenuItem>
+                                            )}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>

@@ -1,6 +1,6 @@
 import {
     collection, doc, setDoc, updateDoc, addDoc, query, orderBy, deleteDoc,
-    onSnapshot, limit, getDoc, arrayUnion, type Unsubscribe, type QueryDocumentSnapshot
+    onSnapshot, limit, getDoc, arrayUnion, where, type Unsubscribe, type QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Exercise, UserProfile, Workout, TrainingTemplate, WeightEntry, MeasurementEntry, MarkedStatus } from '../types';
@@ -128,6 +128,28 @@ export const updateWorkout = async (userId: string, entryId: string, data: Parti
 export const deleteWorkout = async (userId: string, entryId: string): Promise<void> => {
     const entryRef = doc(db, 'users', userId, 'activities', entryId);
     await deleteDoc(entryRef);
+};
+
+export const subscribeToWorkoutsByTemplate = (
+    userId: string,
+    templateId: string,
+    callback: (entries: Workout[]) => void
+): Unsubscribe => {
+    const entriesRef = collection(db, 'users', userId, 'activities');
+    const q = query(
+        entriesRef,
+        where('templateId', '==', templateId)
+    );
+    return onSnapshot(q, (snapshot) => {
+        const entries = snapshot.docs
+            .map(mapWorkout)
+            .sort((a, b) => {
+                const dateCompare = (b.date || '').localeCompare(a.date || '');
+                if (dateCompare !== 0) return dateCompare;
+                return (b.time || '').localeCompare(a.time || '');
+            });
+        callback(entries);
+    });
 };
 
 

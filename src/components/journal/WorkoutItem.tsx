@@ -7,6 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import Chip from '@mui/material/Chip';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { useNavigate } from 'react-router-dom';
 import type { Workout, Exercise, BodyPart } from '../../types';
 import { formatWeight, formatCount } from '../../utils/format';
@@ -16,6 +17,7 @@ import { useMemo } from 'react';
 interface WorkoutItemProps {
     entry: Workout;
     exerciseMap: Record<string, Exercise | undefined>;
+    templateName?: string;
     onEdit: (entry: Workout) => void;
     onDelete: (id: string) => void;
 }
@@ -23,6 +25,7 @@ interface WorkoutItemProps {
 const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
     entry,
     exerciseMap,
+    templateName,
     onEdit,
     onDelete
 }, ref) => {
@@ -75,11 +78,23 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                     }}
                     onClick={() => { void navigate(`/journal/${entry.id}`); }}
                 >
-                    <Typography variant="body1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                        {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-                        {entry.time && ` • ${entry.time}`}
-                        {` • ${bodyPartsSummary}`}
-                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.25 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                            {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                            {entry.time && ` • ${entry.time}`}
+                            {` • ${bodyPartsSummary}`}
+                        </Typography>
+                        {templateName && (
+                            <Chip
+                                size="small"
+                                icon={<DescriptionIcon sx={{ fontSize: '13px !important' }} />}
+                                label={templateName}
+                                variant="outlined"
+                                color="primary"
+                                sx={{ height: 20, fontSize: '0.72rem', '& .MuiChip-label': { px: 0.75 } }}
+                            />
+                        )}
+                    </Stack>
                     <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', md: 'block' }, mt: 0.5 }}>
                         {exerciseNames}
                     </Typography>

@@ -115,4 +115,5 @@ export interface Workout {
     comment: string;
     exerciseIds: string[];
     exercises: WorkoutExercise[];
+    templateId?: string; // Reference to /users/{userId}/templates/{templateId}
 }

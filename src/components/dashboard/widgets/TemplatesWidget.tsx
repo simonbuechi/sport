@@ -29,7 +29,7 @@ const TemplatesWidget = ({ templates }: TemplatesWidgetProps) => {
                         variant="contained"
                         color="primary"
                         size="small"
-                        onClick={() => { void navigate('/profile?tab=templates'); }}
+                        onClick={() => { void navigate('/journal/templates'); }}
                     >
                         Create Template
                     </Button>
@@ -40,7 +40,7 @@ const TemplatesWidget = ({ templates }: TemplatesWidgetProps) => {
                         <ListItem key={template.id} disablePadding sx={{ borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { borderBottom: 'none' } }}>
                             <ListItemButton
                                 sx={{ py: 0.75, px: 1, }}
-                                onClick={() => { void navigate('/profile?tab=templates'); }}
+                                onClick={() => { void navigate('/journal/templates'); }}
                             >
                                 <ListItemIcon sx={{ minWidth: 32 }}>
                                     <DescriptionIcon fontSize="small" color="primary" />
@@ -59,7 +59,7 @@ const TemplatesWidget = ({ templates }: TemplatesWidgetProps) => {
                         <ListItem disablePadding>
                             <ListItemButton
                                 sx={{ py: 0.5, px: 1, justifyContent: 'center' }}
-                                onClick={() => { void navigate('/profile?tab=templates'); }}
+                                onClick={() => { void navigate('/journal/templates'); }}
                             >
                                 <Typography variant="caption" color="primary">
                                     View all {templates.length} templates

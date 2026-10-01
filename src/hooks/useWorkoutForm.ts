@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
@@ -18,10 +18,13 @@ interface WorkoutFormDraft {
     exercises: WorkoutExercise[];
     startTime?: number | null;
     autoFillFromLast?: boolean;
+    templateId?: string;
 }
 
 export const useWorkoutForm = (id?: string) => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const queryTemplateId = searchParams.get('templateId') ?? '';
     const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading } = useExercises();
     const { entries, templates, loading: sessionsLoading } = useWorkouts();
@@ -76,7 +79,8 @@ export const useWorkoutForm = (id?: string) => {
                     sessionType: entry.sessionType ?? 'strength',
                     maxPulse: entry.maxPulse ?? '',
                     comment: entry.comment,
-                    exercises: entry.exercises
+                    exercises: entry.exercises,
+                    templateId: entry.templateId ?? ''
                 };
             } else {
                 setError('Workout not found');
@@ -109,6 +113,9 @@ export const useWorkoutForm = (id?: string) => {
             setComment(baseData.comment);
             setLocalComment(baseData.comment);
             setWorkoutExercises(baseData.exercises);
+            if (baseData.templateId !== undefined) {
+                setSelectedTemplateId(baseData.templateId);
+            }
             if (baseData.startTime) setStartTime(baseData.startTime);
             if (baseData.autoFillFromLast !== undefined) setAutoFillFromLast(baseData.autoFillFromLast);
 
@@ -117,6 +124,19 @@ export const useWorkoutForm = (id?: string) => {
             const now = Date.now();
             setStartTime(now);
             const { date: d, time: t } = getDefaultDateTime();
+
+            const queryTemplate = queryTemplateId ? templates.find(t => t.id === queryTemplateId) : null;
+            const initialExercises: WorkoutExercise[] = queryTemplate?.exercises ? queryTemplate.exercises.map(te => ({
+                exerciseId: te.exerciseId,
+                note: te.note,
+                sets: te.sets?.map(s => ({
+                    id: crypto.randomUUID(),
+                    weight: s.weight ?? undefined,
+                    reps: s.reps ?? undefined,
+                    notes: s.notes ?? ''
+                })) ?? []
+            })) : [];
+
             const initialNewData: WorkoutFormDraft = {
                 date: d,
                 time: t,
@@ -124,9 +144,17 @@ export const useWorkoutForm = (id?: string) => {
                 sessionType: 'strength',
                 maxPulse: '',
                 comment: '',
-                exercises: [],
-                startTime: now
+                exercises: initialExercises,
+                startTime: now,
+                templateId: queryTemplateId || undefined
             };
+
+            setDate(d);
+            setTime(t);
+            setWorkoutExercises(initialExercises);
+            if (queryTemplateId) {
+                setSelectedTemplateId(queryTemplateId);
+            }
             lastSavedDataRef.current = JSON.stringify(initialNewData);
 
             if (profile?.settings?.autoFillSets) {
@@ -135,7 +163,7 @@ export const useWorkoutForm = (id?: string) => {
         }
 
         setLoading(false);
-    }, [currentUser, id, isEditing, entries, sessionsLoading, loading, DRAFT_KEY, profileLoading, profile]);
+    }, [currentUser, id, isEditing, entries, sessionsLoading, loading, DRAFT_KEY, profileLoading, profile, queryTemplateId, templates]);
 
     // Timer effect
     useEffect(() => {
@@ -164,7 +192,8 @@ export const useWorkoutForm = (id?: string) => {
             comment: comment.trim(),
             exercises: sessionExercises,
             startTime,
-            autoFillFromLast
+            autoFillFromLast,
+            templateId: selectedTemplateId || undefined
         };
 
         const dataStr = JSON.stringify(entryData);
@@ -180,7 +209,7 @@ export const useWorkoutForm = (id?: string) => {
             }
         }, 1000);
         return () => { clearTimeout(timer); };
-    }, [currentUser, loading, submitting, date, time, length, sessionType, maxPulse, comment, sessionExercises, DRAFT_KEY, startTime, autoFillFromLast]);
+    }, [currentUser, loading, submitting, date, time, length, sessionType, maxPulse, comment, sessionExercises, DRAFT_KEY, startTime, autoFillFromLast, selectedTemplateId]);
 
     // Comment debouncing
     useEffect(() => {
@@ -348,7 +377,8 @@ export const useWorkoutForm = (id?: string) => {
                 maxPulse: Number(maxPulse) || undefined,
                 comment: comment.trim(),
                 exerciseIds: filteredExercises.map(se => se.exerciseId),
-                exercises: filteredExercises
+                exercises: filteredExercises,
+                templateId: selectedTemplateId || undefined
             };
 
             let finalId = id;

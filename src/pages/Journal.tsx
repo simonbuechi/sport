@@ -40,7 +40,14 @@ const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, loading: sessionsLoading, loadMore, hasMore } = useWorkouts();
+    const { entries, templates, loading: sessionsLoading, loadMore, hasMore } = useWorkouts();
+
+    const templateMap = useMemo(() => {
+        return templates.reduce<Record<string, string>>((acc, t) => {
+            acc[t.id] = t.name;
+            return acc;
+        }, {});
+    }, [templates]);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
@@ -285,6 +292,7 @@ const Journal = () => {
                                 ref={index === displayedEntries.length - 1 ? lastElementRef : null}
                                 entry={entry}
                                 exerciseMap={exerciseMap}
+                                templateName={entry.templateId ? templateMap[entry.templateId] : undefined}
                                 onEdit={handleEditClick}
                                 onDelete={handleDeleteClick}
                             />

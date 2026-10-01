@@ -362,6 +362,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                         <Grid size={{ xs: 12 }} key={template.id}>
                             <TemplateAccordion
                                 template={template}
+                                userId={userId}
                                 exercises={exercises}
                                 exerciseMap={exerciseMap}
                                 activeSearchId={activeSearchId}

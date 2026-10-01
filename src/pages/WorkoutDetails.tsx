@@ -45,7 +45,7 @@ const WorkoutDetails = () => {
     const referencedTemplate = useMemo(() => {
         if (!workout?.templateId) return null;
         return templates.find(t => t.id === workout.templateId) ?? null;
-    }, [workout?.templateId, templates]);
+    }, [workout, templates]);
 
     const error = useMemo(() => {
         if (!currentUser || sessionsLoading) return '';

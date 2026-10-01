@@ -78,7 +78,6 @@ const TemplateAccordion = ({
     useEffect(() => {
         if (!userId || !template.id || !isExpanded) return;
 
-        setLoadingWorkouts(true);
         const unsubscribe = subscribeToWorkoutsByTemplate(userId, template.id, (data) => {
             setWorkouts(data);
             setLoadingWorkouts(false);
@@ -101,7 +100,10 @@ const TemplateAccordion = ({
         <Accordion
             elevation={4}
             expanded={isExpanded}
-            onChange={(_, expanded) => { setIsExpanded(expanded); }}
+            onChange={(_, expanded) => {
+                setIsExpanded(expanded);
+                if (expanded) setLoadingWorkouts(true);
+            }}
             sx={{
                 borderRadius: '12px !important',
                 border: '1px solid',
@@ -457,7 +459,7 @@ const TemplateAccordion = ({
                                                     </Typography>
                                                     <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 0.25 }}>
                                                         {w.exercises.length} exercises • {totalSets} sets • {formatWeight(totalVolume)} kg
-                                                        {w.length ? ` • ${w.length} min` : ''}
+                                                        {w.length ? ` • ${String(w.length)} min` : ''}
                                                     </Typography>
                                                 </Box>
                                                 <IconButton size="small" color="primary" aria-label="view workout details">

@@ -62,7 +62,7 @@ export default defineConfig({
             if (id.includes('@mui')) return 'vendor_mui';
             if (id.includes('firebase')) return 'vendor_firebase';
 
-            if (id.includes('react-router-dom') || id.includes('@remix-run')) return 'vendor_router';
+            if (id.includes('react-router') || id.includes('@remix-run')) return 'vendor_router';
             return 'vendor';
           }
         }

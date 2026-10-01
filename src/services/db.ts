@@ -144,9 +144,9 @@ export const subscribeToWorkoutsByTemplate = (
         const entries = snapshot.docs
             .map(mapWorkout)
             .sort((a, b) => {
-                const dateCompare = (b.date || '').localeCompare(a.date || '');
+                const dateCompare = b.date.localeCompare(a.date);
                 if (dateCompare !== 0) return dateCompare;
-                return (b.time || '').localeCompare(a.time || '');
+                return (b.time ?? '').localeCompare(a.time ?? '');
             });
         callback(entries);
     });

@@ -33,6 +33,8 @@ import { lazy, Suspense } from 'react';
 import type { UserProfile, Exercise } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
 import HistoryIcon from '@mui/icons-material/History';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../components/common/LanguageSelector';
 
 const WeightSection = lazy(() => import('../components/profile/WeightSection'));
 const MeasurementsSection = lazy(() => import('../components/profile/MeasurementsSection'));
@@ -64,6 +66,7 @@ function CustomTabPanel(props: TabPanelProps) {
 }
 
 const Profile = () => {
+    const { t } = useTranslation();
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const { mode, setThemeMode } = useAppTheme();
@@ -89,7 +92,7 @@ const Profile = () => {
         else void navigate('/profile');
     };
 
-    const { exercises } = useExercises();
+    const { exercises, loading: exercisesLoading } = useExercises();
     const { entries: workouts } = useWorkouts();
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -166,7 +169,7 @@ const Profile = () => {
 
 
 
-    if (profileLoading || (exercises.length === 0) || !profile) return (
+    if (profileLoading || (exercisesLoading && exercises.length === 0) || !profile) return (
         <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
     );
 
@@ -195,7 +198,7 @@ const Profile = () => {
                     textColor="primary"
                 >
                     <Tab
-                        label="Profile"
+                        label={t('profile.overview')}
                         sx={{
                             minHeight: 48,
                             textTransform: 'none',
@@ -206,7 +209,7 @@ const Profile = () => {
                         }}
                     />
                     <Tab
-                        label="Body"
+                        label={t('profile.bodyAndWeight')}
                         sx={{
                             minHeight: 48,
                             textTransform: 'none',
@@ -217,7 +220,7 @@ const Profile = () => {
                         }}
                     />
                     <Tab
-                        label="Stats"
+                        label={t('profile.stats')}
                         sx={{
                             minHeight: 48,
                             textTransform: 'none',
@@ -238,7 +241,7 @@ const Profile = () => {
                             <Grid size={12}>
                                 <Paper sx={{ p: { xs: 2, md: 3 }, }}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                        <Typography variant="h5" sx={{ fontWeight: 700 }}>Profile</Typography>
+                                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('profile.title')}</Typography>
                                         <Grid container spacing={1} sx={{ width: 'auto' }}>
 
                                             <Grid>
@@ -248,7 +251,7 @@ const Profile = () => {
                                                     startIcon={<Edit />}
                                                     onClick={() => { setIsEditDialogOpen(true); }}
                                                 >
-                                                    Edit
+                                                    {t('common.edit')}
                                                 </Button>
                                             </Grid>
                                             <Grid>
@@ -258,7 +261,7 @@ const Profile = () => {
                                                     onClick={handleLogout}
                                                     startIcon={<Logout />}
                                                 >
-                                                    Logout
+                                                    {t('nav.logout')}
                                                 </Button>
                                             </Grid>
                                         </Grid>
@@ -266,22 +269,22 @@ const Profile = () => {
 
                                     <Grid container spacing={3}>
                                         <Grid size={{ xs: 12 }}>
-                                            <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>Name</Typography>
+                                            <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>{t('profile.name')}</Typography>
                                             <Typography variant="body1" sx={{ fontWeight: 600 }}>{profile.name}</Typography>
                                         </Grid>
 
                                         <Grid size={{ xs: 12, sm: 6 }}>
                                             <Typography variant="subtitle2" sx={{
                                                 color: "text.secondary"
-                                            }}>Birth Year</Typography>
-                                            <Typography variant="body1">{profile.birthYear ?? 'Not specified'}</Typography>
+                                            }}>{t('profile.birthYear')}</Typography>
+                                            <Typography variant="body1">{profile.birthYear ?? '-'}</Typography>
                                         </Grid>
 
                                         <Grid size={{ xs: 12, sm: 6 }}>
                                             <Typography variant="subtitle2" sx={{
                                                 color: "text.secondary"
-                                            }}>Height</Typography>
-                                            <Typography variant="body1">{profile.height ? `${String(profile.height)} cm` : 'Not specified'}</Typography>
+                                            }}>{t('profile.height')}</Typography>
+                                            <Typography variant="body1">{profile.height ? `${String(profile.height)} cm` : '-'}</Typography>
                                         </Grid>
 
                                         {profile.notes && (
@@ -291,7 +294,7 @@ const Profile = () => {
                                                     sx={{
                                                         color: "text.secondary",
                                                         mb: 1
-                                                    }}>Notes & Journey</Typography>
+                                                    }}>{t('profile.notes')}</Typography>
                                                 <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, bgcolor: 'background.default', }}>
                                                     <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                                                         {profile.notes}
@@ -324,12 +327,12 @@ const Profile = () => {
                             <Grid size={12}>
                                 <Paper sx={{ p: { xs: 2, md: 3 } }}>
                                     <Box sx={{ mb: 2 }}>
-                                        <Typography variant="h6">Settings</Typography>
+                                        <Typography variant="h6">{t('profile.settings')}</Typography>
                                     </Box>
 
                                     <Grid container spacing={3}>
                                         <Grid size={12}>
-                                            <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>Theme</Typography>
+                                            <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>{t('profile.theme')}</Typography>
                                             <ToggleButtonGroup
                                                 value={mode}
                                                 exclusive
@@ -340,15 +343,20 @@ const Profile = () => {
                                                 fullWidth
                                             >
                                                 <ToggleButton value="light" aria-label="light theme">
-                                                    Light
+                                                    {t('profile.themeLight')}
                                                 </ToggleButton>
                                                 <ToggleButton value="dark" aria-label="dark theme">
-                                                    Dark
+                                                    {t('profile.themeDark')}
                                                 </ToggleButton>
                                                 <ToggleButton value="system" aria-label="system theme">
-                                                    System
+                                                    {t('profile.themeSystem')}
                                                 </ToggleButton>
                                             </ToggleButtonGroup>
+                                        </Grid>
+
+                                        <Grid size={12}>
+                                            <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>{t('profile.language')}</Typography>
+                                            <LanguageSelector variant="select" size="small" />
                                         </Grid>
 
                                         <Grid size={12}>
@@ -362,9 +370,9 @@ const Profile = () => {
                                                 }
                                                 label={
                                                     <Box>
-                                                        <Typography variant="body1">Auto-fill</Typography>
+                                                        <Typography variant="body1">{t('profile.autoFill')}</Typography>
                                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                            when switched on, you workout data is auto-filled with data from your last workout
+                                                            {t('profile.autoFillDesc')}
                                                         </Typography>
                                                     </Box>
                                                 }
@@ -382,9 +390,9 @@ const Profile = () => {
                                                 }
                                                 label={
                                                     <Box>
-                                                        <Typography variant="body1">Timer</Typography>
+                                                        <Typography variant="body1">{t('profile.timer')}</Typography>
                                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                            When you start a new workout, a timer starts running
+                                                            {t('profile.timerDesc')}
                                                         </Typography>
                                                     </Box>
                                                 }
@@ -401,7 +409,7 @@ const Profile = () => {
                             <Grid size={12}>
                                 <ExerciseListSection
                                     icon={<Star color="warning" sx={{ mr: 1 }} />}
-                                    title="Favorites"
+                                    title={t('profile.favorites')}
                                     techniques={favoriteTechs}
                                     expanded={favoritesExpanded}
                                     onToggle={() => { setFavoritesExpanded(!favoritesExpanded); }}
@@ -410,7 +418,7 @@ const Profile = () => {
                             <Grid size={12}>
                                 <ExerciseListSection
                                     icon={<HistoryIcon color="action" sx={{ mr: 1 }} />}
-                                    title="Used Exercises"
+                                    title={t('profile.usedExercises')}
                                     techniques={usedExercises}
                                     expanded={usedExpanded}
                                     onToggle={() => { setUsedExpanded(!usedExpanded); }}
@@ -434,7 +442,7 @@ const Profile = () => {
             </CustomTabPanel>
             <CustomTabPanel value={activeTab} index={2}>
                 <Paper sx={{ p: { xs: 2, md: 3 }, textAlign: 'center' }}>
-                    <Typography color="text.secondary">Detailed analytics and progress stats coming soon!</Typography>
+                    <Typography color="text.secondary">{t('profile.statsComingSoon')}</Typography>
                 </Paper>
             </CustomTabPanel>
             <Dialog
@@ -449,9 +457,9 @@ const Profile = () => {
                 }}
             >
                 <DialogTitle sx={{ pb: 1 }}>
-                    Edit Profile
+                    {t('profile.editProfile')}
                     <IconButton
-                        aria-label="close"
+                        aria-label={t('common.close')}
                         onClick={() => { setIsEditDialogOpen(false); }}
                         sx={{
                             position: 'absolute',
@@ -469,7 +477,7 @@ const Profile = () => {
                             <Grid size={{ xs: 12 }}>
                                 <TextField
                                     id="profile-name"
-                                    label="Name"
+                                    label={t('profile.name')}
                                     fullWidth
                                     value={formState?.name ?? ''}
                                     onChange={handleFormChange('name')}
@@ -479,7 +487,7 @@ const Profile = () => {
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
                                     id="profile-birthyear"
-                                    label="Birth Year"
+                                    label={t('profile.birthYear')}
                                     type="number"
                                     fullWidth
                                     value={formState?.birthYear ?? ''}
@@ -492,7 +500,7 @@ const Profile = () => {
                             <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
                                     id="profile-height"
-                                    label="Height (cm)"
+                                    label={t('profile.height')}
                                     type="number"
                                     fullWidth
                                     value={formState?.height ?? ''}
@@ -505,20 +513,20 @@ const Profile = () => {
                             <Grid size={{ xs: 12 }}>
                                 <TextField
                                     id="profile-notes"
-                                    label="Training Notes / Journey"
+                                    label={t('profile.notes')}
                                     multiline
                                     rows={4}
                                     fullWidth
                                     value={formState?.notes ?? ''}
                                     onChange={handleFormChange('notes')}
-                                    placeholder="Keep track of your overall fitness goals, notes, or general thoughts..."
+                                    placeholder={t('profile.notesPlaceholder')}
                                 />
                             </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, py: 2 }}>
                         <Button onClick={() => { setIsEditDialogOpen(false); }} color="inherit">
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             type="submit"
@@ -527,7 +535,7 @@ const Profile = () => {
                             disabled={saving}
                             sx={{ px: 3 }}
                         >
-                            {saving ? 'Saving...' : 'Save Profile'}
+                            {saving ? t('common.saving') : t('common.save')}
                         </Button>
                     </DialogActions>
                 </form>

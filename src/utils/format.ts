@@ -34,8 +34,13 @@ export const formatCount = (value: number | string): string => {
  */
 export const getDefaultDateTime = () => {
     const now = new Date();
+    const year = String(now.getFullYear());
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
     return {
-        date: now.toISOString().split('T')[0],
-        time: `${now.getHours().toString().padStart(2, '0')}:00`
+        date: `${year}-${month}-${day}`,
+        time: `${hours}:00`
     };
 };
+

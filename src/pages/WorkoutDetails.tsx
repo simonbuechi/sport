@@ -26,15 +26,11 @@ import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { formatWeight, formatCount, formatNumber } from '../utils/format';
-
-
-const calculate1RM = (weight: number, reps: number) => {
-    if (reps === 0) return 0;
-    if (reps === 1) return weight;
-    return weight * (1 + reps / 30);
-};
+import { calculate1RM } from '../utils/fitness';
+import { useTranslation } from 'react-i18next';
 
 const WorkoutDetails = () => {
+    const { t, i18n } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -49,8 +45,8 @@ const WorkoutDetails = () => {
 
     const error = useMemo(() => {
         if (!currentUser || sessionsLoading) return '';
-        return !workout ? 'Workout not found' : '';
-    }, [currentUser, sessionsLoading, workout]);
+        return !workout ? t('journal.workoutNotFound') : '';
+    }, [currentUser, sessionsLoading, workout, t]);
     const loading = sessionsLoading;
 
     const stats = useMemo(() => {
@@ -105,10 +101,10 @@ const WorkoutDetails = () => {
         return (
             <Container maxWidth="lg">
                 <Box sx={{ py: 3 }}>
-                    <IconButton onClick={() => navigate('/journal')} sx={{ mb: 2 }} aria-label="go back">
+                    <IconButton onClick={() => navigate('/journal')} sx={{ mb: 2 }} aria-label={t('common.back')}>
                         <ArrowBackIcon />
                     </IconButton>
-                    <Alert severity="error">{error || 'Workout not found'}</Alert>
+                    <Alert severity="error">{error || t('journal.workoutNotFound')}</Alert>
                 </Box>
             </Container>
         );
@@ -122,13 +118,13 @@ const WorkoutDetails = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                     <Grid container spacing={1} sx={{ alignItems: 'center', width: 'auto' }}>
                         <Grid>
-                            <IconButton onClick={() => navigate('/journal')} aria-label="go back">
+                            <IconButton onClick={() => navigate('/journal')} aria-label={t('common.back')}>
                                 <ArrowBackIcon />
                             </IconButton>
                         </Grid>
                         <Grid>
                             <Typography variant="h4" component="h1">
-                                Workout Details
+                                {t('journal.workoutDetails')}
                             </Typography>
                         </Grid>
                     </Grid>
@@ -137,7 +133,7 @@ const WorkoutDetails = () => {
                         startIcon={<EditIcon />}
                         onClick={() => navigate(`/journal/${id ?? ''}/edit`)}
                     >
-                        Edit
+                        {t('common.edit')}
                     </Button>
                 </Box>
 
@@ -145,46 +141,46 @@ const WorkoutDetails = () => {
                     {/* Summary Card */}
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Paper sx={{ p: 3, height: '100%' }}>
-                            <Typography variant="h6" sx={{ mb: 2 }}>Summary</Typography>
+                            <Typography variant="h6" sx={{ mb: 2 }}>{t('journal.summary')}</Typography>
                             <Grid container spacing={2}>
                                 <Grid size={12}>
-                                    <Typography variant="caption" color="text.secondary">Date & Time</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('journal.dateTime')}</Typography>
                                     <Typography variant="body1">
-                                        {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                        {new Date(workout.date).toLocaleDateString(i18n.language, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                         {workout.time && ` at ${workout.time ?? ''}`}
                                     </Typography>
                                 </Grid>
                                 <Grid size={12}>
-                                    <Typography variant="caption" color="text.secondary">Type</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('journal.workoutType')}</Typography>
                                     <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
-                                        {workout.sessionType}
+                                        {workout.sessionType ? t(`exerciseTypes.${workout.sessionType}`, { defaultValue: workout.sessionType }) : '-'}
                                     </Typography>
                                 </Grid>
                                 {workout.length && (
                                     <Grid size={12}>
-                                        <Typography variant="caption" color="text.secondary">Duration</Typography>
-                                        <Typography variant="body1">{workout.length} minutes</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.duration')}</Typography>
+                                        <Typography variant="body1">{workout.length} {t('common.unitMin')}</Typography>
                                     </Grid>
                                 )}
                                 {workout.maxPulse && (
                                     <Grid size={12}>
-                                        <Typography variant="caption" color="text.secondary">Max Pulse</Typography>
-                                        <Typography variant="body1">{workout.maxPulse} bpm</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.maxPulse')}</Typography>
+                                        <Typography variant="body1">{workout.maxPulse} {t('journal.bpm')}</Typography>
                                     </Grid>
                                 )}
                                 {workout.comment && (
                                     <Grid size={12}>
-                                        <Typography variant="caption" color="text.secondary">Notes</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.notes')}</Typography>
                                         <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{workout.comment}</Typography>
                                     </Grid>
                                 )}
                                 {workout.templateId && (
                                     <Grid size={12}>
-                                        <Typography variant="caption" color="text.secondary">Template</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.selectTemplate')}</Typography>
                                         <Box sx={{ mt: 0.5 }}>
                                             <Chip
                                                 icon={<DescriptionIcon fontSize="small" />}
-                                                label={referencedTemplate?.name ?? 'Referenced Template'}
+                                                label={referencedTemplate?.name ?? t('journal.referencedTemplate', { name: '' })}
                                                 variant="outlined"
                                                 color="primary"
                                                 clickable
@@ -200,42 +196,42 @@ const WorkoutDetails = () => {
                     {/* Stats Dashboard */}
                     <Grid size={{ xs: 12, md: 8 }}>
                         <Paper sx={{ p: 3, height: '100%' }}>
-                            <Typography variant="h6" sx={{ mb: 3 }}>Performance Metrics</Typography>
+                            <Typography variant="h6" sx={{ mb: 3 }}>{t('journal.performanceMetrics')}</Typography>
                             <Grid container spacing={2}>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
                                         <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{formatNumber(stats.totals.volume)}</Typography>
-                                        <Typography variant="caption" color="text.secondary">Total Volume (kg)</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.totalVolume')} (kg)</Typography>
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
                                         <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{stats.totals.sets}</Typography>
-                                        <Typography variant="caption" color="text.secondary">Total Sets</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.totalSets')}</Typography>
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
                                         <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{stats.totals.reps}</Typography>
-                                        <Typography variant="caption" color="text.secondary">Total Reps</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.totalReps')}</Typography>
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
                                         <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{stats.totals.exercises}</Typography>
-                                        <Typography variant="caption" color="text.secondary">Exercises</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('journal.totalExercises')}</Typography>
                                     </Box>
                                 </Grid>
                             </Grid>
                             <Box sx={{ mt: 4, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.50', border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
-                                <Typography variant="body2" color="text.secondary">Detailed Intensity Charts Coming Soon</Typography>
+                                <Typography variant="body2" color="text.secondary">{t('journal.intensityChartsComingSoon')}</Typography>
                             </Box>
                         </Paper>
                     </Grid>
 
                     {/* Exercises List */}
                     <Grid size={12}>
-                        <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>Exercises</Typography>
+                        <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>{t('nav.exercises')}</Typography>
                         <Grid container spacing={2}>
                             {workoutExercises.map((we) => {
                                 const exercise = exercises.find(ex => ex.id === we.exerciseId);
@@ -267,8 +263,8 @@ const WorkoutDetails = () => {
                                                         </Avatar>
                                                     </ListItemAvatar>
                                                     <ListItemText 
-                                                        primary={<Typography variant="h6">{exercise?.name ?? 'Unknown Exercise'}</Typography>}
-                                                        secondary={`Volume: ${formatNumber(exStats.volume)} kg • Reps: ${String(exStats.reps)}`}
+                                                        primary={<Typography variant="h6">{exercise?.name ?? t('journal.unknownExercise')}</Typography>}
+                                                        secondary={`${t('journal.totalVolume')}: ${formatNumber(exStats.volume)} kg • ${t('journal.reps')}: ${String(exStats.reps)}`}
                                                     />
                                                 </ListItem>
                                             </List>
@@ -282,11 +278,11 @@ const WorkoutDetails = () => {
 
                                                 <Box sx={{ pl: { xs: 0, sm: 1 } }}>
                                                     <Grid container spacing={2} sx={{ fontWeight: 'bold', mb: 1, color: 'text.secondary', display: { xs: 'none', sm: 'flex' } }}>
-                                                        <Grid size={1}>Set</Grid>
-                                                        <Grid size={2.5}>Weight</Grid>
-                                                        <Grid size={2.5}>Reps</Grid>
-                                                        <Grid size={3}>Est. 1RM</Grid>
-                                                        <Grid size={3}>Notes</Grid>
+                                                        <Grid size={1}>{t('journal.set')}</Grid>
+                                                        <Grid size={2.5}>{t('journal.weight')}</Grid>
+                                                        <Grid size={2.5}>{t('journal.reps')}</Grid>
+                                                        <Grid size={3}>{t('exercises.estimated1RM')}</Grid>
+                                                        <Grid size={3}>{t('journal.notes')}</Grid>
                                                     </Grid>
                                                     {we.sets.map((set, idx) => {
                                                         const oneRM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
@@ -303,26 +299,26 @@ const WorkoutDetails = () => {
                                                                     </Grid>
                                                                     <Grid size={{ xs: 6, sm: 2.5 }}>
                                                                         <Typography variant="body1">
-                                                                            <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>Weight:</Box>
+                                                                            <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('journal.weight')}:</Box>
                                                                             {formatWeight(set.weight ?? 0)}
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid size={{ xs: 6, sm: 2.5 }}>
                                                                         <Typography variant="body1">
-                                                                            <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>Reps:</Box>
+                                                                            <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('journal.reps')}:</Box>
                                                                             {formatCount(set.reps ?? 0)}
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid size={{ xs: 12, sm: 3 }}>
                                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                                             <Typography variant="body1" sx={{ fontWeight: isPR ? 'bold' : 'normal', color: isPR ? 'primary.main' : 'inherit' }}>
-                                                                                <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>1RM:</Box>
+                                                                                <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('exercises.estimated1RM')}:</Box>
                                                                                 {oneRM > 0 ? `${formatNumber(oneRM, 1)} kg` : '-'}
                                                                             </Typography>
                                                                             {isPR && (
-                                                                                <Tooltip title="New All-Time Personal Record!">
+                                                                                <Tooltip title={t('journal.newPersonalRecord')}>
                                                                                     <Chip 
-                                                                                        label="PR!" 
+                                                                                        label={t('journal.personalRecordBadge')} 
                                                                                         size="small" 
                                                                                         color="primary" 
                                                                                         icon={<TrendingUpIcon />} 
@@ -335,7 +331,7 @@ const WorkoutDetails = () => {
                                                                     <Grid size={{ xs: 12, sm: 3 }}>
                                                                         {set.notes && (
                                                                             <Typography variant="body2" color="text.secondary">
-                                                                                <Box component="span" sx={{ display: { sm: 'none' }, fontWeight: 'bold', mr: 1 }}>Note:</Box>
+                                                                                <Box component="span" sx={{ display: { sm: 'none' }, fontWeight: 'bold', mr: 1 }}>{t('journal.notes')}:</Box>
                                                                                 {set.notes}
                                                                             </Typography>
                                                                         )}

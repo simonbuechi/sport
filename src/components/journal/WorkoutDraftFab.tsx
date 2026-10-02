@@ -1,64 +1,54 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Fab from '@mui/material/Fab';
 import Tooltip from '@mui/material/Tooltip';
 import runningAnim from '../../assets/animation-benchpress.png';
 import Box from '@mui/material/Box';
+import { useAuth } from '../../context/AuthContext';
+import { getWorkoutDraftKey } from '../../hooks/useWorkoutForm';
 
 interface DraftData {
     exercises?: unknown[];
     comment?: string;
 }
 
+const subscribeDraftUpdates = (callback: () => void) => {
+    window.addEventListener('storage', callback);
+    window.addEventListener('draft-updated', callback);
+    return () => {
+        window.removeEventListener('storage', callback);
+        window.removeEventListener('draft-updated', callback);
+    };
+};
+
 const WorkoutDraftFab = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [draftKey, setDraftKey] = useState<string | null>(() => {
+    const { currentUser } = useAuth();
+
+    const getSnapshot = useCallback((): string | null => {
+        if (!currentUser) return null;
         try {
-            const draftStr = localStorage.getItem('workout_draft_new');
+            const userKey = getWorkoutDraftKey(currentUser.uid, 'new');
+            let draftStr = localStorage.getItem(userKey);
+            let activeKey = userKey;
+            if (!draftStr) {
+                draftStr = localStorage.getItem('workout_draft_new');
+                activeKey = 'workout_draft_new';
+            }
             if (draftStr) {
                 const draft = JSON.parse(draftStr) as DraftData;
                 const hasExercises = (draft.exercises?.length ?? 0) > 0;
                 const hasComment = (draft.comment?.trim() ?? '') !== '';
-                if (hasExercises || hasComment) return 'workout_draft_new';
+                if (hasExercises || hasComment) return activeKey;
             }
         } catch (e) {
             console.error("Error parsing workout draft", e);
         }
         return null;
-    });
+    }, [currentUser]);
 
-    const checkDrafts = useCallback(() => {
-        try {
-            const draftStr = localStorage.getItem('workout_draft_new');
-            if (draftStr) {
-                const draft = JSON.parse(draftStr) as DraftData;
-                const hasExercises = (draft.exercises?.length ?? 0) > 0;
-                const hasComment = (draft.comment?.trim() ?? '') !== '';
-
-                if (hasExercises || hasComment) {
-                    setDraftKey('workout_draft_new');
-                    return;
-                }
-            }
-        } catch (e) {
-            console.error("Error parsing workout draft", e);
-        }
-        setDraftKey(null);
-    }, []);
-
-    useEffect(() => {
-        // Polling as a fallback for window-local changes
-        const interval = setInterval(checkDrafts, 3000);
-
-        // Listen for storage events (if changed in other tabs)
-        window.addEventListener('storage', checkDrafts);
-
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('storage', checkDrafts);
-        };
-    }, [checkDrafts]);
+    const draftKey = useSyncExternalStore(subscribeDraftUpdates, getSnapshot);
 
     // Don't show if we are on the workout form already
     const isWorkoutForm = location.pathname === '/journal/new' ||

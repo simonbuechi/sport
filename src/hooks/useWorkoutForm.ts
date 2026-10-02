@@ -21,6 +21,13 @@ interface WorkoutFormDraft {
     templateId?: string;
 }
 
+export const getWorkoutDraftKey = (userId?: string | null, workoutId?: string) => {
+    if (userId) {
+        return `workout_draft_${userId}_${workoutId ?? 'new'}`;
+    }
+    return `workout_draft_${workoutId ?? 'new'}`;
+};
+
 export const useWorkoutForm = (id?: string) => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -60,7 +67,7 @@ export const useWorkoutForm = (id?: string) => {
     const [elapsedMinutes, setElapsedMinutes] = useState<number>(0);
     const [autoFillFromLast, setAutoFillFromLast] = useState(false);
     const lastSavedDataRef = useRef<string>('');
-    const DRAFT_KEY = `workout_draft_${id ?? 'new'}`;
+    const DRAFT_KEY = useMemo(() => getWorkoutDraftKey(currentUser?.uid, id), [currentUser?.uid, id]);
 
     // Load initial data and drafts
     useEffect(() => {
@@ -90,7 +97,7 @@ export const useWorkoutForm = (id?: string) => {
         }
 
         // Load draft from local storage
-        const savedDraft = localStorage.getItem(DRAFT_KEY);
+        const savedDraft = localStorage.getItem(DRAFT_KEY) ?? (!isEditing ? localStorage.getItem('workout_draft_new') : null);
         if (savedDraft) {
             try {
                 const draft = JSON.parse(savedDraft) as WorkoutFormDraft;
@@ -202,6 +209,7 @@ export const useWorkoutForm = (id?: string) => {
         const timer = setTimeout(() => {
             try {
                 localStorage.setItem(DRAFT_KEY, dataStr);
+                window.dispatchEvent(new Event('draft-updated'));
                 lastSavedDataRef.current = dataStr;
                 setAutoSaveState({ isSaving: false, lastSaved: new Date(), error: '' });
             } catch (_err) {
@@ -390,6 +398,8 @@ export const useWorkoutForm = (id?: string) => {
 
             try {
                 localStorage.removeItem(DRAFT_KEY);
+                if (!isEditing) localStorage.removeItem('workout_draft_new');
+                window.dispatchEvent(new Event('draft-updated'));
             } catch (_err) {
                 // Silently fail
             }

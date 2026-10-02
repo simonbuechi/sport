@@ -89,8 +89,10 @@ export const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
 
     const theme = useMemo(() => getAppTheme(resolvedMode), [resolvedMode]);
 
+    const contextValue = useMemo(() => ({ mode, setThemeMode }), [mode, setThemeMode]);
+
     return (
-        <ThemeContext.Provider value={{ mode, setThemeMode }}>
+        <ThemeContext.Provider value={contextValue}>
             <MuiThemeProvider theme={theme}>
                 <CssBaseline />
                 {children}

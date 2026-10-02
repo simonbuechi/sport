@@ -22,10 +22,12 @@ import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
 import PageLoader from '../components/common/PageLoader';
 import { sortTemplates } from '../utils/workoutUtils';
 import { useWorkoutForm } from '../hooks/useWorkoutForm';
+import { useTranslation } from 'react-i18next';
 
 const SESSION_TYPES: SessionType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
 const WorkoutForm = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
@@ -70,12 +72,12 @@ const WorkoutForm = () => {
                     <IconButton 
                         onClick={() => { void navigate(isEditing ? `/journal/${id ?? ''}` : '/journal'); }} 
                         sx={{ mr: 1, p: { xs: 0.5, sm: 1 } }}
-                        aria-label="go back"
+                        aria-label={t('common.back')}
                     >
                         <ArrowBackIcon />
                     </IconButton>
                     <Typography variant="h4" component="h1">
-                        {isEditing ? 'Edit Workout' : 'New Workout'}
+                        {isEditing ? t('journal.editWorkout') : t('journal.newWorkout')}
                     </Typography>
                 </Box>
 
@@ -89,7 +91,7 @@ const WorkoutForm = () => {
                                 <TextField
                                     id="workout-date"
                                     variant="standard"
-                                    label="Date"
+                                    label={t('journal.date')}
                                     type="date"
                                     fullWidth
                                     size="small"
@@ -103,7 +105,7 @@ const WorkoutForm = () => {
                                 <TextField
                                     id="workout-time"
                                     variant="standard"
-                                    label="Time"
+                                    label={t('journal.time')}
                                     type="time"
                                     fullWidth
                                     size="small"
@@ -117,7 +119,7 @@ const WorkoutForm = () => {
                                     id="workout-type"
                                     select
                                     variant="standard"
-                                    label="Workout Type"
+                                    label={t('journal.workoutType')}
                                     fullWidth
                                     size="small"
                                     value={sessionType}
@@ -125,7 +127,7 @@ const WorkoutForm = () => {
                                 >
                                     {SESSION_TYPES.map((type) => (
                                         <MenuItem key={type} value={type}>
-                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                            {t(`exerciseTypes.${type}`, { defaultValue: type })}
                                         </MenuItem>
                                     ))}
                                 </TextField>
@@ -135,7 +137,7 @@ const WorkoutForm = () => {
                                 <TextField
                                     id="workout-length"
                                     variant="standard"
-                                    label="Length (min)"
+                                    label={t('journal.durationMin')}
                                     type="number"
                                     fullWidth
                                     size="small"
@@ -148,7 +150,7 @@ const WorkoutForm = () => {
                                 <TextField
                                     id="workout-pulse"
                                     variant="standard"
-                                    label="Max Pulse"
+                                    label={t('journal.maxPulse')}
                                     type="number"
                                     fullWidth
                                     size="small"
@@ -162,47 +164,47 @@ const WorkoutForm = () => {
                                 <TextField
                                     id="workout-notes"
                                     variant="standard"
-                                    label="Notes"
+                                    label={t('journal.notes')}
                                     fullWidth
                                     size="small"
                                     value={localComment}
                                     onChange={(e) => { setLocalComment(e.target.value); }}
-                                    placeholder="Quick notes..."
+                                    placeholder={t('journal.notesPlaceholder')}
                                     slotProps={{ htmlInput: { maxLength: 1000 } }}
                                 />
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
                                 <Divider sx={{ my: 2 }} />
-                                <Typography variant="h6" gutterBottom>Exercises & Sets</Typography>
+                                <Typography variant="h6" gutterBottom>{t('journal.exercisesAndSets')}</Typography>
                                 <Grid container spacing={2} sx={{ mb: 3, alignItems: 'center' }}>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
                                             id="workout-template"
                                             select
                                             variant="filled"
-                                            label="Use Template"
+                                            label={t('journal.useTemplate')}
                                             fullWidth
                                             size="small"
                                             value={selectedTemplateId}
                                             onChange={(e) => { handleTemplateChange(e.target.value); }}
-                                            helperText={selectedTemplateId ? "Template linked to this workout" : "Prepopulates workout"}
+                                            helperText={selectedTemplateId ? t('journal.templateLinked') : t('journal.prepopulatesWorkout')}
                                         >
-                                            <MenuItem value=""><em>None</em></MenuItem>
-                                            {sortTemplates(templates).map((t) => (
-                                                <MenuItem key={t.id} value={t.id}>
-                                                    {t.isFavorite && '★ '}{t.name}
+                                            <MenuItem value=""><em>{t('common.none')}</em></MenuItem>
+                                            {sortTemplates(templates).map((tItem) => (
+                                                <MenuItem key={tItem.id} value={tItem.id}>
+                                                    {tItem.isFavorite && '★ '}{tItem.name}
                                                 </MenuItem>
                                             ))}
-                                            {selectedTemplateId && !templates.some(t => t.id === selectedTemplateId) && (
+                                            {selectedTemplateId && !templates.some(tItem => tItem.id === selectedTemplateId) && (
                                                 <MenuItem value={selectedTemplateId}>
-                                                    <em>Referenced Template</em>
+                                                    <em>{t('journal.referencedTemplate', { name: '' })}</em>
                                                 </MenuItem>
                                             )}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Tooltip title="Automatically fill in weight and reps from your last training" arrow>
+                                        <Tooltip title={t('journal.autoFillTooltip')} arrow>
                                             <FormControlLabel
                                                 control={
                                                     <Switch
@@ -212,7 +214,7 @@ const WorkoutForm = () => {
                                                         color="primary"
                                                     />
                                                 }
-                                                label="Auto-fill"
+                                                label={t('journal.autoFillLast')}
                                                 sx={{ ml: 1 }}
                                             />
                                         </Tooltip>
@@ -252,8 +254,8 @@ const WorkoutForm = () => {
                                                 {...params}
                                                 id="add-exercise-autocomplete"
                                                 variant="filled"
-                                                label="Add Exercise"
-                                                placeholder="Search exercises..."
+                                                label={t('journal.addExercise')}
+                                                placeholder={t('journal.searchExercises')}
                                             />
                                         )}
                                         value={null}
@@ -268,16 +270,18 @@ const WorkoutForm = () => {
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <AccessTimeIcon fontSize="small" color="action" />
                                             <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                                {elapsedMinutes} min
+                                                {elapsedMinutes} {t('common.unitMin')}
                                             </Typography>
                                         </Box>
                                     )}
                                     <Box sx={{ display: 'flex', gap: 2 }}>
                                         <Button variant="outlined" onClick={() => {
                                             localStorage.removeItem(DRAFT_KEY);
+                                            if (!isEditing) localStorage.removeItem('workout_draft_new');
+                                            window.dispatchEvent(new Event('draft-updated'));
                                             void navigate(isEditing ? `/journal/${id ?? ''}` : '/journal');
                                         }}>
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                         <Button
                                             type="submit"
@@ -286,7 +290,7 @@ const WorkoutForm = () => {
                                             disabled={submitting}
                                             sx={{ minWidth: 150 }}
                                         >
-                                            {submitting ? 'Saving...' : (isEditing ? 'Update Workout' : 'Finish Workout')}
+                                            {submitting ? t('common.saving') : (isEditing ? t('journal.updateWorkout') : t('journal.finishWorkout'))}
                                         </Button>
                                     </Box>
                                 </Box>

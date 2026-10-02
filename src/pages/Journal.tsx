@@ -33,10 +33,10 @@ import { deleteWorkout } from '../services/db';
 import type { Workout, Exercise, SessionType } from '../types';
 import WorkoutItem from '../components/journal/WorkoutItem';
 import Skeleton from '@mui/material/Skeleton';
-
-
+import { useTranslation } from 'react-i18next';
 
 const Journal = () => {
+    const { t } = useTranslation();
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
@@ -71,11 +71,11 @@ const Journal = () => {
         setDeleteDialogOpen(true);
     }, []);
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (!currentUser || !entryToDelete) return;
 
         try {
-            void deleteWorkout(currentUser.uid, entryToDelete);
+            await deleteWorkout(currentUser.uid, entryToDelete);
             // entries state is managed by WorkoutsContext and will update via onSnapshot
             setDeleteDialogOpen(false);
             setEntryToDelete(null);
@@ -169,7 +169,7 @@ const Journal = () => {
                 }}
             >
                 <Typography variant="h4" component="h1">
-                    Journal
+                    {t('journal.title')}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
                     <Button
@@ -179,7 +179,7 @@ const Journal = () => {
                         onClick={() => navigate('/journal/templates')}
                         sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
                     >
-                        Templates
+                        {t('journal.templates')}
                     </Button>
                     <Button
                         variant="contained"
@@ -188,7 +188,7 @@ const Journal = () => {
                         onClick={() => navigate('/journal/new')}
                         sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
                     >
-                        Workout
+                        {t('journal.workout')}
                     </Button>
                 </Stack>
             </Stack>
@@ -211,33 +211,33 @@ const Journal = () => {
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <FilterListIcon color="primary" fontSize="small" />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Filters & Sorting</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{t('journal.filtersAndSorting')}</Typography>
                     </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ pt: 0, pb: 2, px: 2 }}>
                     <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
                         <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
-                            <InputLabel id="type-filter-label" htmlFor="type-filter-input">Workout Type</InputLabel>
+                            <InputLabel id="type-filter-label" htmlFor="type-filter-input">{t('journal.workoutType')}</InputLabel>
                             <Select
                                 labelId="type-filter-label"
                                 id="type-filter"
                                 inputProps={{ id: 'type-filter-input' }}
                                 value={typeFilter}
-                                label="Workout Type"
+                                label={t('journal.workoutType')}
                                 onChange={(e) => { setTypeFilter(e.target.value as SessionType | 'all'); }}
                                 sx={{ textTransform: 'capitalize' }}
                             >
-                                <MenuItem value="all">All Types</MenuItem>
-                                <MenuItem value="strength" sx={{ textTransform: 'capitalize' }}>Strength</MenuItem>
-                                <MenuItem value="cardio" sx={{ textTransform: 'capitalize' }}>Cardio</MenuItem>
-                                <MenuItem value="flexibility" sx={{ textTransform: 'capitalize' }}>Flexibility</MenuItem>
-                                <MenuItem value="other" sx={{ textTransform: 'capitalize' }}>Other</MenuItem>
+                                <MenuItem value="all">{t('journal.allTypes')}</MenuItem>
+                                <MenuItem value="strength" sx={{ textTransform: 'capitalize' }}>{t('exerciseTypes.strength')}</MenuItem>
+                                <MenuItem value="cardio" sx={{ textTransform: 'capitalize' }}>{t('exerciseTypes.cardio')}</MenuItem>
+                                <MenuItem value="flexibility" sx={{ textTransform: 'capitalize' }}>{t('exerciseTypes.flexibility')}</MenuItem>
+                                <MenuItem value="other" sx={{ textTransform: 'capitalize' }}>{t('exerciseTypes.other')}</MenuItem>
                             </Select>
                         </FormControl>
 
                         <TextField
                             id="journal-date-from"
-                            label="From"
+                            label={t('journal.from')}
                             type="date"
                             size="small"
                             value={startDate}
@@ -248,7 +248,7 @@ const Journal = () => {
 
                         <TextField
                             id="journal-date-to"
-                            label="To"
+                            label={t('journal.to')}
                             type="date"
                             size="small"
                             value={endDate}
@@ -258,17 +258,17 @@ const Journal = () => {
                         />
 
                         <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 }, ml: { md: 'auto' } }}>
-                            <InputLabel id="sort-by-label" htmlFor="sort-by-input">Sort By</InputLabel>
+                            <InputLabel id="sort-by-label" htmlFor="sort-by-input">{t('journal.sortBy')}</InputLabel>
                             <Select
                                 labelId="sort-by-label"
                                 id="sort-by"
                                 inputProps={{ id: 'sort-by-input' }}
                                 value={sortBy}
-                                label="Sort By"
+                                label={t('journal.sortBy')}
                                 onChange={(e) => { setSortBy(e.target.value); }}
                             >
-                                <MenuItem value="recent">Most Recent</MenuItem>
-                                <MenuItem value="oldest">Oldest</MenuItem>
+                                <MenuItem value="recent">{t('journal.sortByRecent')}</MenuItem>
+                                <MenuItem value="oldest">{t('journal.sortByOldest')}</MenuItem>
                             </Select>
                         </FormControl>
                     </Stack>
@@ -281,8 +281,8 @@ const Journal = () => {
                 {filteredAndSortedEntries.length === 0 ? (
                     <Alert severity="info" variant="outlined">
                         {entries.length === 0
-                            ? "No workouts yet. Start logging your training workouts!"
-                            : "No workouts match your filters."}
+                            ? t('journal.noWorkoutsYet')
+                            : t('journal.noWorkoutsMatch')}
                     </Alert>
                 ) : (
                     <List sx={{ p: 0 }}>
@@ -312,22 +312,22 @@ const Journal = () => {
                             color: "text.secondary",
                             my: 4
                         }}>
-                        You&apos;ve reached the end of the journal.
+                        {t('journal.endOfJournal')}
                     </Typography>
                 )}
             </Box>
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
-                <DialogTitle>Delete Workout</DialogTitle>
+                <DialogTitle>{t('journal.deleteWorkout')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete this training workout? This action cannot be undone.
+                        {t('journal.deleteConfirmShort')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
+                    <Button onClick={() => { setDeleteDialogOpen(false); }}>{t('common.cancel')}</Button>
                     <Button onClick={confirmDelete} color="error" variant="contained">
-                        Delete
+                        {t('common.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

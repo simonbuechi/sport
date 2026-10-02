@@ -69,6 +69,7 @@ export interface UserProfile {
         theme?: 'light' | 'dark' | 'system';
         autoFillSets?: boolean;
         showTimer?: boolean;
+        language?: string;
     };
 }
 

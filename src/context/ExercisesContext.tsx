@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { subscribeToExercises } from '../services/db';
 import type { Exercise } from '../types';
 
@@ -31,11 +31,13 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
         return () => { unsubscribe(); };
     }, []);
 
+    const value = useMemo(() => ({
+        exercises,
+        loading
+    }), [exercises, loading]);
+
     return (
-        <ExercisesContext.Provider value={{ 
-            exercises, 
-            loading
-        }}>
+        <ExercisesContext.Provider value={value}>
             {children}
         </ExercisesContext.Provider>
     );

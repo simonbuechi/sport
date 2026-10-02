@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { type User, onAuthStateChanged, signOut as firebaseSignOut, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, persistenceReady } from '../firebase/config';
 import PageLoader from '../components/common/PageLoader';
@@ -47,12 +47,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         await signInWithPopup(auth, googleProvider);
     }, []);
 
-    const value = {
+    const value = useMemo(() => ({
         currentUser,
         loading,
         logout,
         googleSignIn
-    };
+    }), [currentUser, loading, logout, googleSignIn]);
 
     return (
         <AuthContext.Provider value={value}>

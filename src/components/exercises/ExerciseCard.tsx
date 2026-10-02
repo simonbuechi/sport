@@ -7,6 +7,7 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Exercise, MarkedStatus } from '../../types';
 import MarkerIcons from './MarkerIcons';
 import LinkIcon from '@mui/icons-material/Link';
@@ -18,32 +19,33 @@ interface ExerciseCardProps {
 
 const ExerciseCard = ({ exercise, markerStatus }: ExerciseCardProps) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardActionArea 
                 onClick={() => navigate(`/exercises/${exercise.id}`)} 
                 sx={{ flexGrow: 1 }}
-                aria-label={`View details for ${exercise.name}`}
+                aria-label={t('exercises.viewDetails', { name: exercise.name })}
             >
                 <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}>
                         <Stack sx={{ flexWrap: "wrap" }} spacing={0.5}>
                             <Chip
-                                label={exercise.type}
+                                label={t(`exerciseTypes.${exercise.type}`, { defaultValue: exercise.type })}
                                 size="small"
                                 color="primary"
                                 variant="outlined"
                                 sx={{ textTransform: 'capitalize' }}
                             />
                             <Chip
-                                label={exercise.bodypart}
+                                label={t(`bodyParts.${exercise.bodypart}`, { defaultValue: exercise.bodypart })}
                                 size="small"
                                 color="primary"
                                 variant="outlined"
                             />
                             <Chip
-                                label={exercise.category}
+                                label={t(`categories.${exercise.category}`, { defaultValue: exercise.category })}
                                 size="small"
                                 color="primary"
                                 variant="outlined"

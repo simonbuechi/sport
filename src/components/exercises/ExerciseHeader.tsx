@@ -12,6 +12,7 @@ import Star from '@mui/icons-material/Star';
 import StarBorder from '@mui/icons-material/StarBorder';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import { useTranslation } from 'react-i18next';
 
 import type { Exercise } from '../../types';
 
@@ -22,6 +23,8 @@ interface ExerciseHeaderProps {
 }
 
 const ExerciseHeader = ({ exercise, isFavorite, onToggleFavorite }: ExerciseHeaderProps) => {
+    const { t } = useTranslation();
+
     return (
         <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
             <Box sx={{ flex: 1 }}>
@@ -31,7 +34,7 @@ const ExerciseHeader = ({ exercise, isFavorite, onToggleFavorite }: ExerciseHead
                     startIcon={<ArrowBack />}
                     sx={{ mb: 2, color: 'text.secondary' }}
                 >
-                    Back to Overview
+                    {t('exercises.backToOverview')}
                 </Button>
 
                 <Stack direction="row" spacing={3} sx={{ mb: 3, alignItems: 'center' }}>
@@ -51,12 +54,12 @@ const ExerciseHeader = ({ exercise, isFavorite, onToggleFavorite }: ExerciseHead
                         <Typography variant="h4" component="h1">
                             {exercise.name}
                         </Typography>
-                        <Tooltip title={isFavorite ? "Remove from Favorites" : "Mark as Favorite"}>
+                        <Tooltip title={isFavorite ? t('exercises.removeFavorite') : t('exercises.markFavorite')}>
                             <IconButton
                                 onClick={onToggleFavorite}
                                 color={isFavorite ? "warning" : "default"}
                                 size="large"
-                                aria-label={isFavorite ? "remove from favorites" : "mark as favorite"}
+                                aria-label={isFavorite ? t('exercises.removeFavorite') : t('exercises.markFavorite')}
                             >
                                 {isFavorite ? <Star fontSize="large" /> : <StarBorder fontSize="large" />}
                             </IconButton>
@@ -66,18 +69,18 @@ const ExerciseHeader = ({ exercise, isFavorite, onToggleFavorite }: ExerciseHead
 
                 <Stack spacing={1.5} sx={{ flexWrap: "wrap", mb: 2 }}>
                     <Chip
-                        label={`Type: ${exercise.type}`}
+                        label={`${t('exercises.type')}: ${t(`exerciseTypes.${exercise.type}`, { defaultValue: exercise.type })}`}
                         color="primary"
                         variant="outlined"
                         sx={{ textTransform: 'capitalize' }}
                     />
                     <Chip
-                        label={`Body part: ${exercise.bodypart}`}
+                        label={`${t('exercises.bodyPart')}: ${t(`bodyParts.${exercise.bodypart}`, { defaultValue: exercise.bodypart })}`}
                         color="primary"
                         variant="outlined"
                     />
                     <Chip
-                        label={`Category: ${exercise.category}`}
+                        label={`${t('exercises.category')}: ${t(`categories.${exercise.category}`, { defaultValue: exercise.category })}`}
                         color="primary"
                         variant="outlined"
                     />

@@ -10,6 +10,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from 'react-i18next';
 
 import type { TrainingTemplate } from '../../types';
 
@@ -39,6 +40,7 @@ const TemplateDialog = ({
     editingTemplate,
     onCreateSample
 }: TemplateDialogProps) => {
+    const { t } = useTranslation();
     const [name, setName] = useState(editingTemplate?.name ?? '');
     const [notes, setNotes] = useState(editingTemplate?.notes ?? '');
     const [isFavorite, setIsFavorite] = useState(!!editingTemplate?.isFavorite);
@@ -55,10 +57,10 @@ const TemplateDialog = ({
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle>{editingTemplate ? 'Rename Template' : 'Create Template'}</DialogTitle>
+            <DialogTitle>{editingTemplate ? t('templates.edit') : t('templates.create')}</DialogTitle>
             <DialogContent dividers>
                 <TextField
-                    label="Template Name"
+                    label={t('templates.name')}
                     fullWidth
                     margin="normal"
                     value={name}
@@ -66,19 +68,19 @@ const TemplateDialog = ({
                     placeholder="e.g. Push Day, Leg Routine"
                 />
                 <TextField
-                    label="Notes"
+                    label={t('templates.notes')}
                     fullWidth
                     multiline
                     rows={3}
                     margin="normal"
                     value={notes}
                     onChange={(e) => { setNotes(e.target.value); }}
-                    placeholder="General notes about this routine..."
+                    placeholder={t('templates.notesPlaceholder')}
                 />
                 <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                     <FormControlLabel
                         control={<Checkbox checked={isFavorite} onChange={(e) => { setIsFavorite(e.target.checked); }} />}
-                        label="Favorite"
+                        label={t('templates.favorite')}
                     />
                     <FormControlLabel
                         control={<Checkbox checked={isArchived} onChange={(e) => { setIsArchived(e.target.checked); }} />}
@@ -111,13 +113,13 @@ const TemplateDialog = ({
             <DialogActions sx={{ p: 2, bgcolor: 'grey.50', justifyContent: editingTemplate ? 'space-between' : 'flex-end' }}>
                 {editingTemplate && onDelete && (
                     <Button variant="outlined" startIcon={<DeleteIcon />} onClick={() => { onDelete(editingTemplate.id); }}>
-                        Delete
+                        {t('common.delete')}
                     </Button>
                 )}
                 <Box>
-                    <Button onClick={onClose}>Cancel</Button>
+                    <Button onClick={onClose}>{t('common.cancel')}</Button>
                     <Button variant="contained" onClick={handleSave} disabled={saving || !name.trim()}>
-                        {saving ? 'Saving...' : (editingTemplate ? 'Save Name' : 'Create Template')}
+                        {saving ? t('common.saving') : (editingTemplate ? t('common.save') : t('templates.create'))}
                     </Button>
                 </Box>
             </DialogActions>

@@ -20,6 +20,7 @@ import CommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import WorkoutSetItem from './WorkoutSetItem';
+import { useTranslation } from 'react-i18next';
 
 import type { WorkoutExercise, Exercise, ExerciseSet } from '../../types';
 
@@ -52,6 +53,7 @@ const WorkoutExerciseItem = ({
     isLast,
     previousExercise
 }: WorkoutExerciseItemProps) => {
+    const { t } = useTranslation();
     const [noteEditingSetId, setNoteEditingSetId] = useState<string | null>(null);
     const [isEditingExerciseNote, setIsEditingExerciseNote] = useState(false);
 
@@ -79,16 +81,16 @@ const WorkoutExerciseItem = ({
                             src={exercise?.icon_url ?
                                 `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
                                 : undefined}
-                            alt={exercise?.name ?? 'Unknown Exercise'}
+                            alt={exercise?.name ?? t('journal.unknownExercise')}
                             sx={{ width: 32, height: 32 }}
                         >
                             {(exercise?.name ?? 'U').charAt(0)}
                         </Avatar>
                         <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                            {exercise?.name ?? 'Unknown Exercise'}
+                            {exercise?.name ?? t('journal.unknownExercise')}
                         </Typography>
                     </Box>
-                    <Tooltip title="Add Notes" arrow>
+                    <Tooltip title={t('journal.addNotes')} arrow>
                         <IconButton
                             size="small"
                             onClick={() => { setIsEditingExerciseNote(true); }}
@@ -100,7 +102,7 @@ const WorkoutExerciseItem = ({
                     </Tooltip>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Tooltip title="Move Up" arrow>
+                    <Tooltip title={t('journal.moveUp')} arrow>
                         <span>
                             <IconButton 
                                 size="small" 
@@ -112,7 +114,7 @@ const WorkoutExerciseItem = ({
                             </IconButton>
                         </span>
                     </Tooltip>
-                    <Tooltip title="Move Down" arrow>
+                    <Tooltip title={t('journal.moveDown')} arrow>
                         <span>
                             <IconButton 
                                 size="small" 
@@ -124,7 +126,7 @@ const WorkoutExerciseItem = ({
                             </IconButton>
                         </span>
                     </Tooltip>
-                    <Tooltip title="Remove Exercise" arrow>
+                    <Tooltip title={t('journal.removeExercise')} arrow>
                         <IconButton 
                             size="small" 
                             onClick={() => { onRemoveExercise(sessionExercise.exerciseId); }} 
@@ -166,7 +168,7 @@ const WorkoutExerciseItem = ({
                     size="small" 
                     onClick={() => { onAddSet(sessionExercise.exerciseId); }}
                 >
-                    Add Set
+                    {t('journal.addSet')}
                 </Button>
             </Box>
 
@@ -177,7 +179,7 @@ const WorkoutExerciseItem = ({
                 maxWidth="xs"
                 fullWidth
             >
-                <DialogTitle>Set {sessionExercise.sets.findIndex(s => s.id === noteEditingSetId) + 1} Notes</DialogTitle>
+                <DialogTitle>{t('journal.setNotesTitle', { number: sessionExercise.sets.findIndex(s => s.id === noteEditingSetId) + 1 })}</DialogTitle>
                 <DialogContent dividers>
                     <TextField
                         id={`set-notes-${noteEditingSetId ?? 'default'}`}
@@ -185,7 +187,7 @@ const WorkoutExerciseItem = ({
                         fullWidth
                         multiline
                         rows={4}
-                        placeholder="Add notes for this set..."
+                        placeholder={t('journal.setNotesPlaceholder')}
                         value={editingSet?.notes ?? ''}
                         onChange={(e) => { 
                             if (noteEditingSetId) {
@@ -195,7 +197,7 @@ const WorkoutExerciseItem = ({
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => { setNoteEditingSetId(null); }} variant="contained">Done</Button>
+                    <Button onClick={() => { setNoteEditingSetId(null); }} variant="contained">{t('common.done')}</Button>
                 </DialogActions>
             </Dialog>
 
@@ -206,7 +208,7 @@ const WorkoutExerciseItem = ({
                 maxWidth="xs"
                 fullWidth
             >
-                <DialogTitle>{exercise?.name ?? 'Exercise'} Notes</DialogTitle>
+                <DialogTitle>{t('journal.exerciseNotesTitle', { name: exercise?.name ?? t('journal.unknownExercise') })}</DialogTitle>
                 <DialogContent dividers>
                     <TextField
                         id={`exercise-notes-${sessionExercise.exerciseId}`}
@@ -214,13 +216,13 @@ const WorkoutExerciseItem = ({
                         fullWidth
                         multiline
                         rows={4}
-                        placeholder="General notes for this exercise..."
+                        placeholder={t('journal.exerciseNotePlaceholder')}
                         value={sessionExercise.note ?? ''}
                         onChange={(e) => { onUpdateExerciseNote(sessionExercise.exerciseId, e.target.value); }}
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => { setIsEditingExerciseNote(false); }} variant="contained">Done</Button>
+                    <Button onClick={() => { setIsEditingExerciseNote(false); }} variant="contained">{t('common.done')}</Button>
                 </DialogActions>
             </Dialog>
         </Paper>

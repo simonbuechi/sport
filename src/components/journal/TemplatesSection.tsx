@@ -18,6 +18,7 @@ import type { TrainingTemplate, Exercise } from '../../types';
 import TemplateDialog, { type TemplateFormData } from './TemplateDialog';
 import TemplateSetDialog, { type SetDialogData } from './TemplateSetDialog';
 import TemplateAccordion from './TemplateAccordion';
+import { useTranslation } from 'react-i18next';
 
 interface TemplatesSectionProps {
     userId: string;
@@ -26,6 +27,7 @@ interface TemplatesSectionProps {
 }
 
 const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) => {
+    const { t } = useTranslation();
     const { templates: contextTemplates, loading: contextLoading } = useWorkouts();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<TrainingTemplate | null>(null);
@@ -326,17 +328,17 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                             onClick={onBack}
                             sx={{ color: 'text.secondary' }}
                         >
-                            Back
+                            {t('common.back')}
                         </Button>
                     )}
                     <Typography variant="h4" component="h1">
-                        Templates
+                        {t('templates.title')}
                     </Typography>
                 </Stack>
                 
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => { handleOpenDialog(); }}>
-                        Template
+                        {t('templates.create')}
                     </Button>
                     <Button
                         variant="outlined"
@@ -344,18 +346,18 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                         onClick={() => { setIsInfoDialogOpen(true); }}
                         sx={{ minWidth: 'auto', px: 1.5 }}
                     >
-                        Info
+                        {t('common.info', { defaultValue: 'Info' })}
                     </Button>
                 </Stack>
             </Stack>
             {loading ? (
                 <Typography sx={{
                     color: "text.secondary"
-                }}>Loading templates...</Typography>
+                }}>{t('templates.loadingTemplates')}</Typography>
             ) : templates.length === 0 ? (
                 <Typography sx={{
                     color: "text.secondary"
-                }}>No templates created yet. Create one to easily log your favorite workouts!</Typography>
+                }}>{t('templates.emptyTemplatesDesc')}</Typography>
             ) : (
                 <Grid container spacing={2}>
                     {sortedTemplates.map(template => (
@@ -405,15 +407,15 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                 open={isInfoDialogOpen}
                 onClose={() => { setIsInfoDialogOpen(false); }}
             >
-                <DialogTitle>Training Templates</DialogTitle>
+                <DialogTitle>{t('templates.infoTitle')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        You can set up templates for your workouts with a set of exercises and sets. When logging a new workout, you can select your template.
+                        {t('templates.infoDesc')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ pb: 2, px: 3 }}>
                     <Button onClick={() => { setIsInfoDialogOpen(false); }} variant="contained">
-                        Close
+                        {t('common.close')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -422,15 +424,15 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                 open={isDeleteDialogOpen}
                 onClose={() => { if (!saving) setIsDeleteDialogOpen(false); }}
             >
-                <DialogTitle>Delete Template?</DialogTitle>
+                <DialogTitle>{t('templates.deletePrompt')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete this template? This action cannot be undone.
+                        {t('templates.deleteConfirm')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ pb: 2, px: 3 }}>
                     <Button onClick={() => { setIsDeleteDialogOpen(false); }} disabled={saving}>
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button 
                         onClick={() => { void confirmDeleteTemplate(); }} 
@@ -438,7 +440,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                         variant="contained"
                         disabled={saving}
                     >
-                        {saving ? 'Deleting...' : 'Delete'}
+                        {saving ? t('common.loading') : t('common.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

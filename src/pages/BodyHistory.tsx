@@ -27,8 +27,10 @@ import { useAuth } from '../context/AuthContext';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { formatWeight } from '../utils/format';
 import type { UserProfile, MeasurementEntry } from '../types';
+import { useTranslation } from 'react-i18next';
 
 const BodyHistory = () => {
+    const { t, i18n } = useTranslation();
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState(0);
 
@@ -82,12 +84,12 @@ const BodyHistory = () => {
 
     const getMeasurementSummary = (entry: MeasurementEntry) => {
         const parts = [];
-        if (entry.waist) parts.push(`Waist: ${String(entry.waist)}cm`);
-        if (entry.hips) parts.push(`Hips: ${String(entry.hips)}cm`);
-        if (entry.chest) parts.push(`Chest: ${String(entry.chest)}cm`);
-        if (entry.shoulders) parts.push(`Shoulders: ${String(entry.shoulders)}cm`);
-        if (entry.neck) parts.push(`Neck: ${String(entry.neck)}cm`);
-        return parts.length > 0 ? parts.join(' • ') : 'No data';
+        if (entry.waist) parts.push(`${t('measurements.waist')}: ${String(entry.waist)}cm`);
+        if (entry.hips) parts.push(`${t('measurements.hips')}: ${String(entry.hips)}cm`);
+        if (entry.chest) parts.push(`${t('measurements.chest')}: ${String(entry.chest)}cm`);
+        if (entry.shoulders) parts.push(`${t('measurements.shoulders')}: ${String(entry.shoulders)}cm`);
+        if (entry.neck) parts.push(`${t('measurements.neck')}: ${String(entry.neck)}cm`);
+        return parts.length > 0 ? parts.join(' • ') : t('common.noData', { defaultValue: 'No data' });
     };
 
     const calculateBMI = (weightKg: number) => {
@@ -101,14 +103,14 @@ const BodyHistory = () => {
             <Box sx={{ mb: 4 }}>
                 <Button
                     component={RouterLink}
-                    to="/profile/body"
+                    to="/profile"
                     startIcon={<ArrowBack />}
                     sx={{ mb: 2 }}
                 >
-                    Back to Body
+                    {t('common.back')}
                 </Button>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    Body History
+                    {t('profile.history')}
                 </Typography>
             </Box>
 
@@ -117,8 +119,8 @@ const BodyHistory = () => {
                 onChange={(_, newValue: number) => { setActiveTab(newValue); }}
                 sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
             >
-                <Tab label={`Weight (${String(sortedWeights.length)})`} />
-                <Tab label={`Measurements (${String(sortedMeasurements.length)})`} />
+                <Tab label={`${t('dashboard.weight')} (${String(sortedWeights.length)})`} />
+                <Tab label={`${t('profile.measurements')} (${String(sortedMeasurements.length)})`} />
             </Tabs>
 
             {activeTab === 0 && (
@@ -128,18 +130,18 @@ const BodyHistory = () => {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Date</TableCell>
-                                        <TableCell align="right">Weight</TableCell>
-                                        <TableCell align="right">BMI</TableCell>
-                                        <TableCell align="right">Body Fat %</TableCell>
-                                        <TableCell align="right">Actions</TableCell>
+                                        <TableCell>{t('journal.date')}</TableCell>
+                                        <TableCell align="right">{t('dashboard.weight')}</TableCell>
+                                        <TableCell align="right">{t('profile.bmi')}</TableCell>
+                                        <TableCell align="right">{t('profile.bodyFat')}</TableCell>
+                                        <TableCell align="right">{t('common.delete')}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {sortedWeights.map((weight) => (
                                         <TableRow key={weight.id} hover>
                                             <TableCell>
-                                                {new Date(weight.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                {new Date(weight.date).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </TableCell>
                                             <TableCell align="right" sx={{ fontWeight: 'bold' }}>
                                                 {formatWeight(weight.weightKg)} kg
@@ -155,7 +157,7 @@ const BodyHistory = () => {
                                                     size="small" 
                                                     color="error" 
                                                     onClick={() => { handleDeleteClick(weight.id, 'weight', weight.date, `${String(weight.weightKg)}kg`); }}
-                                                    aria-label="delete weight entry"
+                                                    aria-label={t('common.delete')}
                                                 >
                                                     <Delete fontSize="small" />
                                                 </IconButton>
@@ -167,7 +169,7 @@ const BodyHistory = () => {
                         </TableContainer>
                     ) : (
                         <Paper variant="outlined" sx={{ py: 6, textAlign: 'center', bgcolor: 'background.default' }}>
-                            <Typography color="text.secondary">No weight entries recorded.</Typography>
+                            <Typography color="text.secondary">{t('dashboard.noWeightData')}</Typography>
                         </Paper>
                     )}
                 </Box>
@@ -180,16 +182,16 @@ const BodyHistory = () => {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Date</TableCell>
-                                        <TableCell>Details</TableCell>
-                                        <TableCell align="right">Actions</TableCell>
+                                        <TableCell>{t('journal.date')}</TableCell>
+                                        <TableCell>{t('profile.overview')}</TableCell>
+                                        <TableCell align="right">{t('common.delete')}</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {sortedMeasurements.map((entry) => (
                                         <TableRow key={entry.id} hover>
                                             <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                                                {new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                {new Date(entry.date).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </TableCell>
                                             <TableCell>
                                                 <Typography variant="body2">{getMeasurementSummary(entry)}</Typography>
@@ -199,7 +201,7 @@ const BodyHistory = () => {
                                                     size="small" 
                                                     color="error" 
                                                     onClick={() => { handleDeleteClick(entry.id, 'measurement', entry.date, 'measurements'); }}
-                                                    aria-label="delete measurement entry"
+                                                    aria-label={t('common.delete')}
                                                 >
                                                     <Delete fontSize="small" />
                                                 </IconButton>
@@ -211,7 +213,7 @@ const BodyHistory = () => {
                         </TableContainer>
                     ) : (
                         <Paper variant="outlined" sx={{ py: 6, textAlign: 'center', bgcolor: 'background.default' }}>
-                            <Typography color="text.secondary">No measurements recorded.</Typography>
+                            <Typography color="text.secondary">{t('profile.noMeasurements')}</Typography>
                         </Paper>
                     )}
                 </Box>
@@ -219,16 +221,16 @@ const BodyHistory = () => {
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteOpen} onClose={() => { if (!saving) { setIsDeleteOpen(false); } }} maxWidth="xs" fullWidth>
-                <DialogTitle>Delete {itemToDelete?.type === 'weight' ? 'Weight Entry' : 'Measurements'}?</DialogTitle>
+                <DialogTitle>{t('profile.deleteEntryTitle')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete the {itemToDelete?.type} log from {itemToDelete?.date ? new Date(itemToDelete.date).toLocaleDateString() : ''}? This action cannot be undone.
+                        {t('profile.deleteEntryConfirm')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => { setIsDeleteOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
+                    <Button onClick={() => { setIsDeleteOpen(false); }} color="inherit" disabled={saving}>{t('common.cancel')}</Button>
                     <Button onClick={() => { void handleDeleteConfirm(); }} color="error" variant="contained" disabled={saving}>
-                        {saving ? 'Deleting...' : 'Delete'}
+                        {saving ? t('common.loading') : t('common.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

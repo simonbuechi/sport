@@ -8,9 +8,12 @@ import Book from '@mui/icons-material/Book';
 import Person from '@mui/icons-material/Person';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { useTranslation } from 'react-i18next';
+
 const MobileNavigation = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { t } = useTranslation();
     const getNavigationValue = () => {
         if (location.pathname === '/') return 0;
         if (location.pathname.startsWith('/exercises')) return 1;
@@ -66,10 +69,10 @@ const MobileNavigation = () => {
                     },
                 }}
             >
-                <BottomNavigationAction label="Home" icon={<Home />} />
-                <BottomNavigationAction label="Exercises" icon={<LibraryBooks />} />
-                <BottomNavigationAction label="Journal" icon={<Book />} />
-                <BottomNavigationAction label="Profile" icon={<Person />} />
+                <BottomNavigationAction label={t('nav.home')} icon={<Home />} />
+                <BottomNavigationAction label={t('nav.exercises')} icon={<LibraryBooks />} />
+                <BottomNavigationAction label={t('nav.journal')} icon={<Book />} />
+                <BottomNavigationAction label={t('nav.profile')} icon={<Person />} />
             </BottomNavigation>
         </Paper>
     );

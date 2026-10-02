@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useMemo, useCallback, t
 import { subscribeToUserProfile, updateUserProfile as dbUpdateUserProfile, addWeightEntry, addMeasurementEntry, updateExerciseStatusInProfile } from '../services/db';
 import { useAuth } from './AuthContext';
 import type { UserProfile, WeightEntry, MeasurementEntry, MarkedStatus } from '../types';
+import i18n from '../i18n';
 
 interface UserProfileContextType {
     profile: UserProfile | null;
@@ -70,6 +71,15 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
 
         return () => { unsubscribe(); };
     }, [currentUser?.uid, currentUser?.displayName, currentUser?.email]);
+
+    // Sync language setting from profile
+    useEffect(() => {
+        const lang = profile?.settings?.language;
+        if (lang && i18n.language !== lang) {
+            void i18n.changeLanguage(lang);
+            document.documentElement.lang = lang;
+        }
+    }, [profile?.settings?.language]);
 
     const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
         if (!currentUser) return false;

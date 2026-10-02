@@ -12,7 +12,10 @@ import { auth, persistenceReady } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 import { createUserProfile, getUserProfile } from '../services/db';
 
+import { useTranslation } from 'react-i18next';
+
 const Auth = () => {
+    const { t } = useTranslation();
     const location = useLocation();
     const isLogin = location.pathname === '/login';
     
@@ -29,7 +32,7 @@ const Auth = () => {
         e.preventDefault();
 
         if (!isLogin && password !== passwordConfirm) {
-            setError('Passwords do not match');
+            setError(t('auth.passwordsDoNotMatch'));
             return;
         }
 
@@ -51,7 +54,7 @@ const Auth = () => {
             
             void navigate('/');
         } catch (_err) {
-            setError(isLogin ? 'Failed to log in' : 'Failed to create an account');
+            setError(isLogin ? t('auth.failedToLogin') : t('auth.failedToRegister'));
             // console.error(_err);
         } finally {
             setLoading(false);
@@ -77,7 +80,7 @@ const Auth = () => {
             
             void navigate('/');
         } catch (_err) {
-            setError(isLogin ? 'Failed to log in with Google' : 'Failed to sign up with Google');
+            setError(isLogin ? t('auth.failedToLoginGoogle') : t('auth.failedToRegisterGoogle'));
             // console.error(_err);
         } finally {
             setLoading(false);
@@ -102,7 +105,7 @@ const Auth = () => {
             </Box>
             <Paper key={isLogin ? 'login' : 'register'} elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center">
-                    {isLogin ? 'Login' : 'Register'}
+                    {isLogin ? t('auth.login') : t('auth.register')}
                 </Typography>
                 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -111,7 +114,7 @@ const Auth = () => {
                     <TextField
                         id="email"
                         name="email"
-                        label="Email"
+                        label={t('auth.email')}
                         type="email"
                         autoComplete="username email"
                         fullWidth
@@ -123,7 +126,7 @@ const Auth = () => {
                     <TextField
                         id="password"
                         name="password"
-                        label="Password"
+                        label={t('auth.password')}
                         type="password"
                         autoComplete={isLogin ? "current-password" : "new-password"}
                         fullWidth
@@ -137,7 +140,7 @@ const Auth = () => {
                         <TextField
                             id="passwordConfirm"
                             name="passwordConfirm"
-                            label="Confirm Password"
+                            label={t('auth.confirmPassword')}
                             type="password"
                             autoComplete="new-password"
                             fullWidth
@@ -157,7 +160,7 @@ const Auth = () => {
                         disabled={loading}
                         sx={{ mt: 3, mb: 2 }}
                     >
-                        {isLogin ? 'Log In' : 'Sign Up'}
+                        {isLogin ? t('auth.login') : t('auth.register')}
                     </Button>
                     
                     <Button
@@ -169,15 +172,15 @@ const Auth = () => {
                         startIcon={<GoogleIcon />}
                         sx={{ mb: 2 }}
                     >
-                        {isLogin ? 'Log in with Google' : 'Sign up with Google'}
+                        {isLogin ? t('auth.loginWithGoogle') : t('auth.signUpWithGoogle')}
                     </Button>
                 </form>
                 
                 <Typography align="center" variant="body2">
                     {isLogin ? (
-                        <>Need an account? <Link to="/register">Register</Link></>
+                        <>{t('auth.needAccount')} <Link to="/register">{t('auth.register')}</Link></>
                     ) : (
-                        <>Already have an account? <Link to="/login">Log in</Link></>
+                        <>{t('auth.alreadyHaveAccount')} <Link to="/login">{t('auth.login')}</Link></>
                     )}
                 </Typography>
             </Paper>

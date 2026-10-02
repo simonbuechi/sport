@@ -9,9 +9,13 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../common/LanguageSelector';
+
 const Navbar = () => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleLogout = async () => {
         try {
@@ -23,9 +27,9 @@ const Navbar = () => {
     };
 
     const pages = [
-        { title: 'Exercises', path: '/exercises' },
-        { title: 'Journal', path: '/journal' },
-        { title: 'Profile', path: '/profile' }
+        { title: t('nav.exercises'), path: '/exercises' },
+        { title: t('nav.journal'), path: '/journal' },
+        { title: t('nav.profile'), path: '/profile' }
     ];
 
     return (
@@ -60,17 +64,22 @@ const Navbar = () => {
                 {/* Desktop menu */}
                 <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
                     {pages.map((page) => (
-                        <Button key={page.title} color="inherit" component={RouterLink} to={page.path}>
+                        <Button key={page.path} color="inherit" component={RouterLink} to={page.path}>
                             {page.title}
                         </Button>
                     ))}
                     {currentUser && (
-                        <Tooltip title="Logout">
-                            <IconButton color="inherit" onClick={handleLogout} aria-label="logout">
+                        <Tooltip title={t('nav.logout')}>
+                            <IconButton color="inherit" onClick={handleLogout} aria-label={t('nav.logout')}>
                                 <LogoutIcon />
                             </IconButton>
                         </Tooltip>
                     )}
+                </Box>
+
+                {/* Language Switcher (visible on both mobile and desktop) */}
+                <Box sx={{ ml: 1 }}>
+                    <LanguageSelector />
                 </Box>
             </Toolbar>
         </AppBar>

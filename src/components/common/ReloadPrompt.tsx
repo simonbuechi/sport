@@ -4,8 +4,10 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { registerSW } from 'virtual:pwa-register';
+import { useTranslation } from 'react-i18next';
 
 const ReloadPrompt = () => {
+    const { t } = useTranslation();
     const [needRefresh, setNeedRefresh] = useState(false);
     const [offlineReady, setOfflineReady] = useState(false);
     const updateSWRef = useRef<((reloadPage?: boolean) => Promise<void>) | null>(null);
@@ -34,12 +36,12 @@ const ReloadPrompt = () => {
         <>
             <Snackbar
                 open={needRefresh}
-                message="A new version is available."
+                message={t('common.newVersionAvailable')}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 action={
                     <>
                         <Button color="primary" size="small" onClick={handleUpdate}>
-                            Reload
+                            {t('common.reload')}
                         </Button>
                         <IconButton size="small" color="inherit" onClick={handleClose}>
                             <CloseIcon fontSize="small" />
@@ -51,7 +53,7 @@ const ReloadPrompt = () => {
                 open={offlineReady}
                 autoHideDuration={5000}
                 onClose={handleClose}
-                message="App ready to work offline."
+                message={t('common.appReadyOffline')}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             />
         </>

@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import EventNote from '@mui/icons-material/EventNote';
+import { useTranslation } from 'react-i18next';
 import type { Workout } from '../../types';
 import { calculate1RM } from '../../utils/fitness';
 import { formatWeight, formatCount } from '../../utils/format';
@@ -20,13 +21,14 @@ interface ExerciseHistoryCardProps {
 
 const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps) => {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     if (workouts.length === 0) return null;
 
     const recentWorkouts = workouts.slice(0, 3);
 
     return (
         <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 } }}>
-            <Typography variant="h6" gutterBottom>Training History</Typography>
+            <Typography variant="h6" gutterBottom>{t('exercises.trainingHistory')}</Typography>
             <Divider sx={{ mb: 2 }} />
             <List disablePadding>
                 {recentWorkouts.map(workout => {
@@ -50,7 +52,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                                 <EventNote fontSize="small" color="primary" />
                                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                                    {new Date(workout.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    {new Date(workout.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                 </Typography>
                             </Stack>
 
@@ -65,7 +67,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                                                 return current1RM > max ? current1RM : max;
                                             }, 0);
 
-                                            return `1RM: ${formatWeight(Math.round(max1RM))}kg, Reps: ${formatCount(totalReps)}, Volume: ${formatWeight(totalVolume)}kg`;
+                                            return `1RM: ${formatWeight(Math.round(max1RM))}kg, ${t('journal.reps')}: ${formatCount(totalReps)}, ${t('journal.volume')}: ${formatWeight(totalVolume)}kg`;
                                         })()}
                                     </Typography>
                                 )}
@@ -82,7 +84,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                 size="small"
                 sx={{ mt: 1 }}
             >
-                Full History
+                {t('exercises.fullHistory')}
             </Button>
         </Paper>
     );

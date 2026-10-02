@@ -23,9 +23,10 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-
+import { useTranslation } from 'react-i18next';
 
 export default function ExerciseForm() {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const isEditing = Boolean(id);
@@ -177,7 +178,7 @@ export default function ExerciseForm() {
         <Container maxWidth="md">
             <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mt: 4, }}>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    {isEditing ? 'Edit Exercise' : 'Add New Exercise'}
+                    {isEditing ? t('exercises.editExercise') : t('exercises.newExercise')}
                 </Typography>
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -188,7 +189,7 @@ export default function ExerciseForm() {
                             <TextField
                                 id="ex-name"
                                 variant="standard"
-                                label="Exercise Name"
+                                label={t('exercises.name')}
                                 fullWidth
                                 required
                                 value={formData.name}
@@ -207,7 +208,7 @@ export default function ExerciseForm() {
                                         color="primary"
                                     />
                                 }
-                                label="Popular Exercise"
+                                label={t('exercises.popular')}
                             />
                         </Grid>
 
@@ -215,7 +216,7 @@ export default function ExerciseForm() {
                             <TextField
                                 id="ex-name-url"
                                 variant="standard"
-                                label="Name URL"
+                                label={t('exercises.nameUrl')}
                                 fullWidth
                                 value={formData.name_url}
                                 onChange={handleChange('name_url')}
@@ -242,7 +243,7 @@ export default function ExerciseForm() {
                                 id="ex-type"
                                 select
                                 variant="standard"
-                                label="Type"
+                                label={t('exercises.type')}
                                 fullWidth
                                 required
                                 value={formData.type}
@@ -251,7 +252,7 @@ export default function ExerciseForm() {
                             >
                                 {EXERCISE_TYPES.map((type) => (
                                     <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
-                                        {type}
+                                        {t(`exerciseTypes.${type}`, { defaultValue: type })}
                                     </MenuItem>
                                 ))}
                             </TextField>
@@ -262,15 +263,15 @@ export default function ExerciseForm() {
                                 id="ex-bodypart"
                                 select
                                 variant="standard"
-                                label="Body Part"
+                                label={t('exercises.bodyPart')}
                                 fullWidth
                                 required
                                 value={formData.bodypart}
                                 onChange={handleChange('bodypart')}
                             >
                                 {BODY_PARTS.map((bp) => (
-                                    <MenuItem key={bp} value={ bp}>
-                                        {bp}
+                                    <MenuItem key={bp} value={bp}>
+                                        {t(`bodyParts.${bp}`, { defaultValue: bp })}
                                     </MenuItem>
                                 ))}
                             </TextField>
@@ -281,7 +282,7 @@ export default function ExerciseForm() {
                                 id="ex-category"
                                 select
                                 variant="standard"
-                                label="Category"
+                                label={t('exercises.category')}
                                 fullWidth
                                 required
                                 value={formData.category}
@@ -289,7 +290,7 @@ export default function ExerciseForm() {
                             >
                                 {CATEGORIES.map((cat) => (
                                     <MenuItem key={cat} value={cat}>
-                                        {cat}
+                                        {t(`categories.${cat}`, { defaultValue: cat })}
                                     </MenuItem>
                                 ))}
                             </TextField>
@@ -299,7 +300,7 @@ export default function ExerciseForm() {
                             <TextField
                                 id="ex-description"
                                 variant="standard"
-                                label="Description"
+                                label={t('exercises.description')}
                                 multiline
                                 rows={4}
                                 fullWidth
@@ -310,7 +311,7 @@ export default function ExerciseForm() {
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" gutterBottom>Aliases</Typography>
+                            <Typography variant="subtitle2" gutterBottom>{t('exercises.aliases')}</Typography>
                             <Box
                                 sx={{
                                     display: "flex",
@@ -320,7 +321,7 @@ export default function ExerciseForm() {
                                 <TextField
                                     id="ex-alias-input"
                                     variant="standard"
-                                    label="Add Alias"
+                                    label={t('exercises.addAlias')}
                                     fullWidth
                                     size="small"
                                     value={aliasInput}
@@ -333,7 +334,7 @@ export default function ExerciseForm() {
                                     }}
                                     slotProps={{ htmlInput: { maxLength: 50 } }}
                                 />
-                                <Button variant="outlined" onClick={handleAddAlias}>Add</Button>
+                                <Button variant="outlined" onClick={handleAddAlias}>{t('common.add', { defaultValue: 'Add' })}</Button>
                             </Box>
                             <Box
                                 sx={{
@@ -353,7 +354,7 @@ export default function ExerciseForm() {
                         </Grid>
 
                         <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" gutterBottom>Links</Typography>
+                            <Typography variant="subtitle2" gutterBottom>{t('exercises.links')}</Typography>
                             <Box
                                 sx={{
                                     display: "flex",
@@ -364,7 +365,7 @@ export default function ExerciseForm() {
                                 <TextField
                                     id="ex-link-url"
                                     variant="standard"
-                                    label="Link URL"
+                                    label={t('exercises.linkUrl')}
                                     fullWidth
                                     size="small"
                                     value={linkInput.url}
@@ -375,7 +376,7 @@ export default function ExerciseForm() {
                                 <TextField
                                     id="ex-link-label"
                                     variant="standard"
-                                    label="Label (Optional)"
+                                    label={t('exercises.linkLabel')}
                                     fullWidth
                                     size="small"
                                     value={linkInput.label}
@@ -388,7 +389,7 @@ export default function ExerciseForm() {
                                     onClick={handleAddLink}
                                     sx={{ minWidth: 100 }}
                                 >
-                                    Add Link
+                                    {t('exercises.addLink')}
                                 </Button>
                             </Box>
                             <Box
@@ -422,7 +423,7 @@ export default function ExerciseForm() {
                                             color="error" 
                                             onClick={() => { handleRemoveLink(index); }}
                                         >
-                                            Remove
+                                            {t('common.delete')}
                                         </Button>
                                     </Paper>
                                 ))}
@@ -441,7 +442,7 @@ export default function ExerciseForm() {
                                     variant="outlined"
                                     onClick={() => { void navigate(isEditing ? `/exercises/${String(id)}` : '/exercises'); }}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 {isEditing && (
                                     <Button
@@ -450,7 +451,7 @@ export default function ExerciseForm() {
                                         onClick={handleDelete}
                                         disabled={submitting}
                                     >
-                                        Delete Exercise
+                                        {t('exercises.deleteExercise')}
                                     </Button>
                                 )}
                                 <Button
@@ -459,7 +460,7 @@ export default function ExerciseForm() {
                                     color="primary"
                                     disabled={submitting}
                                 >
-                                    {submitting ? 'Saving...' : 'Save Exercise'}
+                                    {submitting ? t('common.saving') : t('common.save')}
                                 </Button>
                             </Box>
                         </Grid>
@@ -468,16 +469,16 @@ export default function ExerciseForm() {
             </Paper>
 
             <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
-                <DialogTitle>Delete Exercise</DialogTitle>
+                <DialogTitle>{t('exercises.deleteExercise')}</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to delete <strong>{formData.name}</strong>? This action cannot be undone and will remove it from all templates and workouts.
+                        {t('exercises.deleteConfirm')}
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ pb: 2, px: 3 }}>
-                    <Button onClick={() => { setDeleteDialogOpen(false); }}>Cancel</Button>
+                    <Button onClick={() => { setDeleteDialogOpen(false); }}>{t('common.cancel')}</Button>
                     <Button onClick={() => { void confirmDelete(); }} color="error" variant="contained" disabled={submitting}>
-                        {submitting ? 'Deleting...' : 'Delete'}
+                        {submitting ? t('common.loading') : t('common.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

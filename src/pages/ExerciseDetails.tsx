@@ -23,10 +23,10 @@ import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
 import { sanitizeUrl } from '../utils/security';
 import ExerciseNotes from '../components/exercises/ExerciseNotes';
-
-
+import { useTranslation } from 'react-i18next';
 
 const ExerciseDetails = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const { currentUser } = useAuth();
 
@@ -88,11 +88,11 @@ const ExerciseDetails = () => {
 
 
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
-                            {exercise.description ?? 'No description available.'}
+                            {exercise.description ?? t('exercises.noDescription')}
                         </Typography>
                         {exercise.aliases.length > 0 && (
                             <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8, mt: 1 }}>
-                                Also known as: {exercise.aliases.join(', ')}
+                                {t('exercises.alsoKnownAs')}: {exercise.aliases.join(', ')}
                             </Typography>
                         )}
 
@@ -102,7 +102,7 @@ const ExerciseDetails = () => {
 
                         {exercise.links && exercise.links.length > 0 && (
                             <Box sx={{ mt: { xs: 2, md: 3 } }}>
-                                <Typography variant="h5" gutterBottom>Links & Resources</Typography>
+                                <Typography variant="h5" gutterBottom>{t('exercises.links')}</Typography>
                                 <List sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                                     {exercise.links.map((link, index) => (
                                         <Box key={index}>
@@ -121,7 +121,7 @@ const ExerciseDetails = () => {
                                                     <LinkIcon color="primary" />
                                                 </ListItemIcon>
                                                 <ListItemText 
-                                                    primary={link.label ?? 'Web Link'} 
+                                                    primary={link.label ?? t('exercises.linkLabel')} 
                                                     secondary={link.url}
                                                     slotProps={{ secondary: { noWrap: true, sx: { maxWidth: '100%' } } }}
                                                 />

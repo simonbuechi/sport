@@ -9,10 +9,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { useNavigate } from 'react-router-dom';
-import type { Workout, Exercise, BodyPart } from '../../types';
-import { formatWeight, formatCount } from '../../utils/format';
+import { formatWeight } from '../../utils/format';
 import { useMemo } from 'react';
-
+import { useTranslation } from 'react-i18next';
+import type { Workout, Exercise } from '../../types';
 
 interface WorkoutItemProps {
     entry: Workout;
@@ -30,6 +30,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
     onDelete
 }, ref) => {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
 
     const stats = useMemo(() => {
         const numEx = entry.exercises.length;
@@ -41,11 +42,15 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
     }, [entry.exercises]);
 
     const bodyPartsSummary = useMemo(() => {
-        const bodyParts = entry.exercises.map(ex => exerciseMap[ex.exerciseId]?.bodypart).filter((p): p is BodyPart => !!p);
+        const bodyParts = entry.exercises.map(ex => {
+            const bp = exerciseMap[ex.exerciseId]?.bodypart;
+            return bp ? t(`bodyParts.${bp}`, { defaultValue: bp }) : null;
+        }).filter((p): p is string => !!p);
         const uniqueParts = Array.from(new Set(bodyParts));
-        const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== 'Whole Body') : uniqueParts;
-        return filteredParts.length > 0 ? filteredParts.join(', ') : 'Workout';
-    }, [entry.exercises, exerciseMap]);
+        const wholeBodyLabel = t('bodyParts.Whole Body', { defaultValue: 'Whole Body' });
+        const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== wholeBodyLabel) : uniqueParts;
+        return filteredParts.length > 0 ? filteredParts.join(', ') : t('journal.workout');
+    }, [entry.exercises, exerciseMap, t]);
 
     const exerciseNames = useMemo(() => {
         return entry.exercises
@@ -80,7 +85,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                 >
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.25 }}>
                         <Typography variant="body1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                            {new Date(entry.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                            {new Date(entry.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                             {entry.time && ` • ${entry.time}`}
                             {` • ${bodyPartsSummary}`}
                         </Typography>
@@ -104,10 +109,10 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                     spacing={{ xs: 0.5, sm: 1 }}
                     sx={{ alignItems: 'center', flexShrink: 0 }}
                 >
-                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); onEdit(entry); }} color="primary" aria-label="edit workout">
+                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); onEdit(entry); }} color="primary" aria-label={t('journal.editWorkout')}>
                         <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }} color="error" aria-label="delete workout">
+                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }} color="error" aria-label={t('journal.deleteWorkout')}>
                         <DeleteIcon fontSize="small" />
                     </IconButton>
                 </Stack>
@@ -115,9 +120,9 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
 
             {entry.exercises.length > 0 && (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mt: 1 }}>
-                    <Chip size="small" label={`${String(stats.numEx)} exercises`} variant="outlined" color="primary" />
-                    <Chip size="small" label={`${formatCount(stats.totalSets)} sets`} variant="outlined" color="primary" />
-                    <Chip size="small" label={`${formatCount(stats.totalReps)} reps`} variant="outlined" color="primary" />
+                    <Chip size="small" label={t('journal.exercisesCount', { count: stats.numEx })} variant="outlined" color="primary" />
+                    <Chip size="small" label={t('journal.setsCount', { count: stats.totalSets })} variant="outlined" color="primary" />
+                    <Chip size="small" label={t('journal.repsCount', { count: stats.totalReps })} variant="outlined" color="primary" />
                     <Chip size="small" label={`${formatWeight(stats.totalVolume)} kg`} variant="outlined" color="primary" />
                 </Stack>
             )}

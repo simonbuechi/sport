@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
 import CommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
+import { useTranslation } from 'react-i18next';
 import type { ExerciseSet } from '../../types';
 
 interface WorkoutSetItemProps {
@@ -29,6 +30,7 @@ const WorkoutSetItem = ({
     onEditNotes,
     previousSet
 }: WorkoutSetItemProps) => {
+    const { t } = useTranslation();
     // Local state for instant feedback while typing
     const [localWeight, setLocalWeight] = useState<string>(set.weight?.toString() ?? '');
     const [localReps, setLocalReps] = useState<string>(set.reps?.toString() ?? '');
@@ -68,8 +70,8 @@ const WorkoutSetItem = ({
                     <TextField
                         id={`weight-${set.id}`}
                         variant="standard"
-                        label={index === 0 ? "Weight" : ""}
-                        placeholder="kg"
+                        label={index === 0 ? t('journal.weight') : ""}
+                        placeholder={t('common.unitKg')}
                         type="number"
                         size="small"
                         fullWidth
@@ -85,8 +87,8 @@ const WorkoutSetItem = ({
                     <TextField
                         id={`reps-${set.id}`}
                         variant="standard"
-                        label={index === 0 ? "Reps" : ""}
-                        placeholder="reps"
+                        label={index === 0 ? t('journal.reps') : ""}
+                        placeholder={t('journal.reps')}
                         type="number"
                         size="small"
                         fullWidth
@@ -99,7 +101,7 @@ const WorkoutSetItem = ({
                     />
                 </Grid>
                 <Grid size="auto" sx={{ display: 'flex', gap: 0.5 }}>
-                    <Tooltip title="Add Notes" arrow>
+                    <Tooltip title={t('journal.addNotes')} arrow>
                         <IconButton 
                             size="small" 
                             onClick={() => { onEditNotes(set.id); }}
@@ -109,7 +111,7 @@ const WorkoutSetItem = ({
                             {set.notes ? <CommentIcon fontSize="small" /> : <CommentOutlinedIcon fontSize="small" />}
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Remove Set" arrow>
+                    <Tooltip title={t('journal.removeSet')} arrow>
                         <IconButton 
                             size="small" 
                             onClick={() => { onRemoveSet(exerciseId, set.id); }} 
@@ -124,9 +126,9 @@ const WorkoutSetItem = ({
             {previousSet && (previousSet.weight !== undefined || previousSet.reps !== undefined) && (
                 <Box sx={{ ml: 4, mt: -1.5, mb: 1, display: 'flex', gap: 1 }}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Last: {previousSet.weight !== undefined ? `${String(previousSet.weight)}kg` : ''} 
+                        {t('journal.lastSession')} {previousSet.weight !== undefined ? `${String(previousSet.weight)}${t('common.unitKg')}` : ''} 
                         {previousSet.weight !== undefined && previousSet.reps !== undefined ? ' × ' : ''}
-                        {previousSet.reps !== undefined ? `${String(previousSet.reps)} reps` : ''}
+                        {previousSet.reps !== undefined ? `${String(previousSet.reps)} ${t('journal.reps')}` : ''}
                     </Typography>
                 </Box>
             )}

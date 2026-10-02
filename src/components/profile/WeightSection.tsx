@@ -21,10 +21,12 @@ import type { WeightEntry } from '../../types';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { getChartDefaults, xAxisDateFormatter } from '../../theme/charts';
 import { useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 type TimeFrame = '1m' | '3m' | '6m' | '1y' | 'all';
 
 export default function WeightSection() {
+    const { t } = useTranslation();
     const { profile, addWeight } = useUserProfile();
     const theme = useTheme();
     const defaults = getChartDefaults(theme);
@@ -132,36 +134,36 @@ export default function WeightSection() {
                     <Grid container spacing={2} sx={{ alignItems: 'center' }}>
                         <Grid>
                             <FormControl size="small" sx={{ minWidth: 100 }}>
-                                <InputLabel id="weight-metric-label" htmlFor="weight-metric-input">Metric</InputLabel>
+                                <InputLabel id="weight-metric-label" htmlFor="weight-metric-input">{t('profile.metric')}</InputLabel>
                                 <Select
                                     labelId="weight-metric-label"
                                     id="weight-metric-select"
                                     inputProps={{ id: 'weight-metric-input' }}
                                     value={metric}
-                                    label="Metric"
+                                    label={t('profile.metric')}
                                     onChange={(e) => { setMetric(e.target.value); }}
                                 >
-                                    <MenuItem value="weight">Weight</MenuItem>
-                                    <MenuItem value="bmi" disabled={!profile.height}>BMI</MenuItem>
+                                    <MenuItem value="weight">{t('dashboard.weight')}</MenuItem>
+                                    <MenuItem value="bmi" disabled={!profile.height}>{t('profile.bmi')}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
                         <Grid>
                             <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <InputLabel id="weight-timeframe-label" htmlFor="weight-timeframe-input">Timeframe</InputLabel>
+                                <InputLabel id="weight-timeframe-label" htmlFor="weight-timeframe-input">{t('profile.timeframe')}</InputLabel>
                                 <Select
                                     labelId="weight-timeframe-label"
                                     id="weight-timeframe-select"
                                     inputProps={{ id: 'weight-timeframe-input' }}
                                     value={timeFrame}
-                                    label="Timeframe"
+                                    label={t('profile.timeframe')}
                                     onChange={(e) => { setTimeFrame(e.target.value as TimeFrame); }}
                                 >
-                                    <MenuItem value="1m">Last Month</MenuItem>
-                                    <MenuItem value="3m">Last 3 Months</MenuItem>
-                                    <MenuItem value="6m">Last 6 Months</MenuItem>
-                                    <MenuItem value="1y">Last Year</MenuItem>
-                                    <MenuItem value="all">All Time</MenuItem>
+                                    <MenuItem value="1m">{t('profile.lastMonth')}</MenuItem>
+                                    <MenuItem value="3m">{t('profile.last3Months')}</MenuItem>
+                                    <MenuItem value="6m">{t('profile.last6Months')}</MenuItem>
+                                    <MenuItem value="1y">{t('profile.lastYear')}</MenuItem>
+                                    <MenuItem value="all">{t('profile.timeframeAll')}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
@@ -183,7 +185,7 @@ export default function WeightSection() {
                     }]}
                     series={[{
                         data: chartValues,
-                        label: metric === 'weight' ? 'Weight (kg)' : 'BMI',
+                        label: metric === 'weight' ? t('profile.weightKg') : t('profile.bmi'),
                         showMark: false,
                         curve: 'catmullRom',
                         area: true,
@@ -200,7 +202,7 @@ export default function WeightSection() {
                         onClick={handleOpenAdd}
                         fullWidth
                     >
-                        Log Weight
+                        {t('profile.logWeight')}
                     </Button>
                 </Grid>
                 <Grid size={6}>
@@ -210,7 +212,7 @@ export default function WeightSection() {
                         to="/profile/body/history"
                         fullWidth
                     >
-                        View History
+                        {t('profile.viewHistory')}
                     </Button>
                 </Grid>
             </Grid>
@@ -223,7 +225,7 @@ export default function WeightSection() {
                     }
                 }}
             >
-                <DialogTitle>Log New Weight</DialogTitle>
+                <DialogTitle>{t('profile.logNewWeight')}</DialogTitle>
                 <DialogContent dividers>
                     <Box
                         sx={{
@@ -234,7 +236,7 @@ export default function WeightSection() {
                         }}>
                         <TextField
                             id="weight-date"
-                            label="Date"
+                            label={t('journal.date')}
                             type="date"
                             fullWidth
                             required
@@ -246,7 +248,7 @@ export default function WeightSection() {
                         />
                         <TextField
                             id="weight-value"
-                            label="Weight (kg)"
+                            label={t('profile.weightKg')}
                             type="number"
                             fullWidth
                             required
@@ -258,7 +260,7 @@ export default function WeightSection() {
                         />
                         <TextField
                             id="weight-bodyfat"
-                            label="Body Fat %"
+                            label={t('profile.bodyFat')}
                             type="number"
                             fullWidth
                             value={formBodyFat}
@@ -271,9 +273,9 @@ export default function WeightSection() {
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
+                    <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>{t('common.cancel')}</Button>
                     <Button type="submit" variant="contained" disabled={saving}>
-                        {saving ? 'Saving...' : 'Save'}
+                        {saving ? t('common.saving') : t('common.save')}
                     </Button>
                 </DialogActions>
             </Dialog>

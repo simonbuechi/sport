@@ -29,8 +29,10 @@ import MarkerIcons from '../components/exercises/MarkerIcons';
 import { useExercises } from '../context/ExercisesContext';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
+import { useTranslation } from 'react-i18next';
 
 const Exercises = () => {
+    const { t } = useTranslation();
     const { exercises, loading: exercisesLoading } = useExercises();
     const { profile } = useUserProfile();
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
@@ -130,7 +132,7 @@ const Exercises = () => {
             <Stack direction="column" spacing={{ xs: 0.5, md: 2 }} sx={{ mt: { xs: 0.5, md: 2 }, mb: { xs: 1.5, md: 4 } }}>
                 <Stack sx={{ justifyContent: "space-between" }}>
                     <Typography variant="h4" component="h1">
-                        Exercises
+                        {t('exercises.title')}
                     </Typography>
                 </Stack>
 
@@ -148,8 +150,8 @@ const Exercises = () => {
                         fullWidth
                         size="small"
                         variant="standard"
-                        label="Search"
-                        placeholder="Search exercises..."
+                        label={t('common.search')}
+                        placeholder={t('exercises.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); }}
                         sx={{
@@ -168,55 +170,55 @@ const Exercises = () => {
                     />
 
                     <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
-                        <InputLabel id="type-filter-label" htmlFor="type-filter-input">Type</InputLabel>
+                        <InputLabel id="type-filter-label" htmlFor="type-filter-input">{t('exercises.type')}</InputLabel>
                         <Select
                             labelId="type-filter-label"
                             id="type-filter"
                             inputProps={{ id: 'type-filter-input' }}
                             value={filter}
-                            label="Type"
+                            label={t('exercises.type')}
                             onChange={(e) => { setFilter(e.target.value as ExerciseType | 'all'); }}
                             sx={{ textTransform: 'capitalize' }}
                         >
-                            <MenuItem value="all">All Types</MenuItem>
+                            <MenuItem value="all">{t('exercises.allTypes')}</MenuItem>
                             {EXERCISE_TYPES.map(type => (
                                 <MenuItem key={type} value={type} sx={{ textTransform: 'capitalize' }}>
-                                    {type}
+                                    {t(`exerciseTypes.${type}`, { defaultValue: type })}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
                     <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
-                        <InputLabel id="bodypart-filter-label" htmlFor="bodypart-filter-input">Body Part</InputLabel>
+                        <InputLabel id="bodypart-filter-label" htmlFor="bodypart-filter-input">{t('exercises.bodyPart')}</InputLabel>
                         <Select
                             labelId="bodypart-filter-label"
                             id="bodypart-filter"
                             inputProps={{ id: 'bodypart-filter-input' }}
                             value={bodypartFilter}
-                            label="Body Part"
+                            label={t('exercises.bodyPart')}
                             onChange={(e) => { setBodypartFilter(e.target.value as BodyPart | 'all'); }}
                         >
-                            <MenuItem value="all">All Body Parts</MenuItem>
+                            <MenuItem value="all">{t('exercises.allBodyParts')}</MenuItem>
                             {BODY_PARTS.map(bp => (
-                                <MenuItem key={bp} value={bp}>{bp}</MenuItem>
+                                <MenuItem key={bp} value={bp}>{t(`bodyParts.${bp}`, { defaultValue: bp })}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
                     <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
-                        <InputLabel id="category-filter-label" htmlFor="category-filter-input">Category</InputLabel>
+                        <InputLabel id="category-filter-label" htmlFor="category-filter-input">{t('exercises.category')}</InputLabel>
                         <Select
                             labelId="category-filter-label"
                             id="category-filter"
                             inputProps={{ id: 'category-filter-input' }}
                             value={categoryFilter}
-                            label="Category"
+                            label={t('exercises.category')}
                             onChange={(e) => { setCategoryFilter(e.target.value as ExerciseCategory | 'all'); }}
                         >
-                            <MenuItem value="all">All Categories</MenuItem>
+                            <MenuItem value="all">{t('exercises.allCategories')}</MenuItem>
                             {CATEGORIES.map(cat => (
-                                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                                <MenuItem key={cat} value={cat}>{t(`categories.${cat}`, { defaultValue: cat })}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -232,13 +234,16 @@ const Exercises = () => {
                             size="small"
                             component={RouterLink}
                             to="/exercises/new"
-                            aria-label="add new exercise"
+                            aria-label={t('exercises.newExercise')}
                         >
                             <Add />
                         </IconButton>
                     }
                 >
-                    No exercises found in the database. <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>Create the first one.</RouterLink>
+                    {t('exercises.noExercisesInDb')}{' '}
+                    <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>
+                        {t('exercises.createFirst')}
+                    </RouterLink>
                 </Alert>
             ) : displayedExercises.length === 0 ? (
                 <Alert 
@@ -250,13 +255,16 @@ const Exercises = () => {
                             size="small"
                             component={RouterLink}
                             to="/exercises/new"
-                            aria-label="add new exercise"
+                            aria-label={t('exercises.newExercise')}
                         >
                             <Add />
                         </IconButton>
                     }
                 >
-                    No exercises match the selected filter or search. <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>Create a new one?</RouterLink>
+                    {t('exercises.noExercisesMatch')}{' '}
+                    <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>
+                        {t('exercises.createNewPrompt')}
+                    </RouterLink>
                 </Alert>
             ) : (
                 <Paper variant="outlined">
@@ -292,21 +300,21 @@ const Exercises = () => {
                                                 {exercise.name}
                                             </Typography>
                                             <Chip
-                                                label={exercise.type.charAt(0).toUpperCase() + exercise.type.slice(1)}
+                                                label={t(`exerciseTypes.${exercise.type}`, { defaultValue: exercise.type })}
+                                                size="small"
+                                                color="primary"
+                                                variant="outlined"
+                                                sx={{ display: { xs: 'none', sm: 'inline-flex' }, textTransform: 'capitalize' }}
+                                            />
+                                            <Chip
+                                                label={t(`bodyParts.${exercise.bodypart}`, { defaultValue: exercise.bodypart })}
                                                 size="small"
                                                 color="primary"
                                                 variant="outlined"
                                                 sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
                                             <Chip
-                                                label={exercise.bodypart}
-                                                size="small"
-                                                color="primary"
-                                                variant="outlined"
-                                                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-                                            />
-                                            <Chip
-                                                label={exercise.category}
+                                                label={t(`categories.${exercise.category}`, { defaultValue: exercise.category })}
                                                 size="small"
                                                 color="primary"
                                                 variant="outlined"
@@ -339,7 +347,7 @@ const Exercises = () => {
                         color: "text.secondary",
                         my: 4
                     }}>
-                    You&apos;ve reached the end of the list.
+                    {t('exercises.endOfList')}
                 </Typography>
             )}
         </Container>

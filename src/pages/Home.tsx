@@ -29,10 +29,12 @@ import WeightWidget from '../components/dashboard/widgets/WeightWidget';
 import TemplatesWidget from '../components/dashboard/widgets/TemplatesWidget';
 import ProjectUpdatesWidget from '../components/dashboard/widgets/ProjectUpdatesWidget';
 import FeedbackWidget from '../components/dashboard/widgets/FeedbackWidget';
+import { useTranslation } from 'react-i18next';
 import { useHomeState, WIDGET_TYPES, type WidgetType } from '../hooks/useHomeState';
 
 const Home = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const {
         visibleWidgets,
         orderedAllWidgets,
@@ -116,7 +118,7 @@ const Home = () => {
                 }}
             >
                 <Typography variant="h4" component="h1">
-                    Dashboard
+                    {t('home.dashboard')}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
                     <Button
@@ -126,13 +128,13 @@ const Home = () => {
                         onClick={() => { void navigate('/journal/new'); }}
                         sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
                     >
-                        Workout
+                        {t('home.workout')}
                     </Button>
-                    <Tooltip title="Manage Widgets">
+                    <Tooltip title={t('home.manageWidgets')}>
                         <IconButton
                             onClick={() => { setIsManageDialogOpen(true); }}
                             color="primary"
-                            aria-label="manage widgets"
+                            aria-label={t('home.manageWidgets')}
                         >
                             <SettingsIcon />
                         </IconButton>
@@ -153,12 +155,12 @@ const Home = () => {
                                 size="small"
                                 sx={{ position: 'absolute', top: 8, right: 8 }}
                                 onClick={() => { setWidgetToClose(widget); }}
-                                aria-label={`remove ${widget} widget`}
+                                aria-label={`remove ${t(`widgets.${widget}`, { defaultValue: widget })} widget`}
                             >
                                 <CloseIcon fontSize="small" />
                             </IconButton>
                             <Typography variant="h6" sx={{ mb: 2, pr: 4 }}>
-                                {widget}
+                                {t(`widgets.${widget}`, { defaultValue: widget })}
                             </Typography>
                             <Box sx={{ flexGrow: 1 }}>
                                 {renderWidgetContent(widget)}
@@ -175,10 +177,10 @@ const Home = () => {
                 maxWidth="xs"
                 fullWidth
             >
-                <DialogTitle>Manage Dashboard</DialogTitle>
+                <DialogTitle>{t('home.manageDashboard')}</DialogTitle>
                 <DialogContent>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Select the elements you want to show on your dashboard.
+                        {t('home.manageDashboardSubtitle')}
                     </Typography>
                     <List dense sx={{ py: 0 }}>
                         {orderedAllWidgets.map((element, index) => (
@@ -202,10 +204,10 @@ const Home = () => {
                                             sx={{ py: 0.5 }}
                                         />
                                     }
-                                    label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{element}</Typography>}
+                                    label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{t(`widgets.${element}`, { defaultValue: element })}</Typography>}
                                 />
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Tooltip title="Move Up" arrow>
+                                    <Tooltip title={t('common.back')} arrow>
                                         <span>
                                             <IconButton
                                                 size="small"
@@ -217,7 +219,7 @@ const Home = () => {
                                             </IconButton>
                                         </span>
                                     </Tooltip>
-                                    <Tooltip title="Move Down" arrow>
+                                    <Tooltip title={t('common.back')} arrow>
                                         <span>
                                             <IconButton
                                                 size="small"
@@ -236,7 +238,7 @@ const Home = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => { setIsManageDialogOpen(false); }} color="primary">
-                        Close
+                        {t('common.close')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -245,16 +247,16 @@ const Home = () => {
                 open={Boolean(widgetToClose)}
                 onClose={() => { setWidgetToClose(null); }}
             >
-                <DialogTitle>Hide Widget?</DialogTitle>
+                <DialogTitle>{t('common.close')}</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to hide the <strong>{widgetToClose}</strong> widget? You can add it back anytime from the &quot;Widgets&quot; menu.
+                        {widgetToClose && t(`widgets.${widgetToClose}`, { defaultValue: widgetToClose })}
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => { setWidgetToClose(null); }}>Cancel</Button>
+                    <Button onClick={() => { setWidgetToClose(null); }}>{t('common.cancel')}</Button>
                     <Button onClick={removeWidget} color="primary" variant="contained">
-                        Hide
+                        {t('common.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

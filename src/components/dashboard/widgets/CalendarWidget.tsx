@@ -9,12 +9,16 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import { alpha } from '@mui/material/styles';
 import { useWorkouts } from '../../../context/WorkoutsContext';
 
+import { useTranslation } from 'react-i18next';
+
 const CalendarWidget = () => {
     const { entries } = useWorkouts();
+    const { i18n } = useTranslation();
+    const lang = i18n.language || 'en';
     const today = new Date();
     const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
-    const monthName = viewDate.toLocaleString('default', { month: 'long' });
+    const monthName = viewDate.toLocaleString(lang, { month: 'long' });
     const year = viewDate.getFullYear();
 
     // Days in month
@@ -69,7 +73,13 @@ const CalendarWidget = () => {
         );
     }
 
-    const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const weekDays = useMemo(() => {
+        const formatter = new Intl.DateTimeFormat(lang, { weekday: 'narrow' });
+        return [0, 1, 2, 3, 4, 5, 6].map(i => {
+            const d = new Date(2026, 0, 5 + i); // 2026-01-05 is a Monday
+            return formatter.format(d);
+        });
+    }, [lang]);
 
     return (
         <Box sx={{ width: '100%' }}>

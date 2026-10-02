@@ -15,7 +15,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['web-app-manifest-192x192.png', 'web-app-manifest-512x512.png'],
+      includeAssets: [
+        'favicon.ico',
+        'favicon.svg',
+        'favicon-96x96.png',
+        'apple-touch-icon.png',
+        'logo.webp',
+        'web-app-manifest-192x192.png',
+        'web-app-manifest-512x512.png',
+      ],
       manifest: {
         id: 'sport',
         name: 'Sport Amigo',

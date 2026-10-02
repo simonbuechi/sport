@@ -11,19 +11,22 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import { useNavigate } from 'react-router-dom';
 import type { TrainingTemplate } from '../../../types';
 
+import { useTranslation } from 'react-i18next';
+
 interface TemplatesWidgetProps {
     templates: TrainingTemplate[];
 }
 
 const TemplatesWidget = ({ templates }: TemplatesWidgetProps) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {templates.length === 0 ? (
                 <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', py: 2 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        start creating workout templates for faster journaling
+                        {t('widgets.startCreatingTemplates')}
                     </Typography>
                     <Button
                         variant="contained"
@@ -31,7 +34,7 @@ const TemplatesWidget = ({ templates }: TemplatesWidgetProps) => {
                         size="small"
                         onClick={() => { void navigate('/journal/templates'); }}
                     >
-                        Create Template
+                        {t('widgets.createTemplate')}
                     </Button>
                 </Box>
             ) : (
@@ -62,7 +65,7 @@ const TemplatesWidget = ({ templates }: TemplatesWidgetProps) => {
                                 onClick={() => { void navigate('/journal/templates'); }}
                             >
                                 <Typography variant="caption" color="primary">
-                                    View all {templates.length} templates
+                                    {t('widgets.viewAllTemplates', { count: templates.length })}
                                 </Typography>
                             </ListItemButton>
                         </ListItem>

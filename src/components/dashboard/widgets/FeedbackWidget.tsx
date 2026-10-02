@@ -4,11 +4,15 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
+import { useTranslation } from 'react-i18next';
+
 const FeedbackWidget = () => {
+    const { t } = useTranslation();
+
     return (
         <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Bugs? Feature requests? We like to hear from you.
+                {t('widgets.bugsAndFeatures')}
             </Typography>
             <Button
                 variant="outlined"
@@ -18,7 +22,7 @@ const FeedbackWidget = () => {
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                Feedback
+                {t('widgets.feedback')}
             </Button>
         </Box>
     );

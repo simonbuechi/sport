@@ -15,6 +15,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Add from '@mui/icons-material/Add';
 import HelpOutlined from '@mui/icons-material/HelpOutlined';
 import { Link as RouterLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { MeasurementEntry } from '../../types';
 import { useUserProfile } from '../../hooks/useUserProfile';
 
@@ -72,7 +73,8 @@ const MeasurementField = ({
     value: string | number, 
     onChange: (val: string) => void 
 }) => {
-    const info = MEASUREMENT_INFO[field];
+    const { t } = useTranslation();
+    const infoHow = t(`measurementInfo.${field}`, { defaultValue: MEASUREMENT_INFO[field].how });
     return (
         <TextField
             id={`measurement-${field}`}
@@ -89,7 +91,7 @@ const MeasurementField = ({
                                 title={
                                     <Box sx={{ p: 0.5 }}>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>{label}</Typography>
-                                        <Typography variant="body2">{info.how}</Typography>
+                                        <Typography variant="body2">{infoHow}</Typography>
                                     </Box>
                                 }
                                 arrow
@@ -105,6 +107,7 @@ const MeasurementField = ({
 };
 
 export default function MeasurementsSection() {
+    const { t, i18n } = useTranslation();
     const { profile, addMeasurement } = useUserProfile();
 
     const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -170,38 +173,38 @@ export default function MeasurementsSection() {
 
     const getMeasurementSummary = (entry: MeasurementEntry) => {
         const parts = [];
-        if (entry.waist) parts.push(`Waist: ${String(entry.waist)}cm`);
-        if (entry.hips) parts.push(`Hips: ${String(entry.hips)}cm`);
-        if (entry.chest) parts.push(`Chest: ${String(entry.chest)}cm`);
-        if (entry.shoulders) parts.push(`Shoulders: ${String(entry.shoulders)}cm`);
-        return parts.length > 0 ? parts.join(' • ') : 'No data recorded';
+        if (entry.waist) parts.push(`${t('measurements.waist')}: ${String(entry.waist)}cm`);
+        if (entry.hips) parts.push(`${t('measurements.hips')}: ${String(entry.hips)}cm`);
+        if (entry.chest) parts.push(`${t('measurements.chest')}: ${String(entry.chest)}cm`);
+        if (entry.shoulders) parts.push(`${t('measurements.shoulders')}: ${String(entry.shoulders)}cm`);
+        return parts.length > 0 ? parts.join(' • ') : t('common.noData', { defaultValue: 'No data recorded' });
     };
 
     return (
         <Paper sx={{ p: { xs: 2, md: 3 }, }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" component="h2">Measurements</Typography>
+                <Typography variant="h5" component="h2">{t('profile.measurements')}</Typography>
                 <Button
                     variant="text"
                     startIcon={<HelpOutlined />}
                     onClick={() => { setIsExplainOpen(true); }}
                     size="small"
                 >
-                    Explain
+                    {t('profile.explain')}
                 </Button>
             </Box>
 
             <Box sx={{ mb: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Latest Measurement</Typography>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>{t('profile.latestMeasurement')}</Typography>
                 {latestMeasurement ? (
                     <Box>
                         <Typography variant="h6" color="primary">
-                            {new Date(latestMeasurement.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            {new Date(latestMeasurement.date).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' })}
                         </Typography>
                         <Typography variant="body2">{getMeasurementSummary(latestMeasurement)}</Typography>
                     </Box>
                 ) : (
-                    <Typography variant="body2" color="text.secondary">No measurements recorded yet.</Typography>
+                    <Typography variant="body2" color="text.secondary">{t('profile.noMeasurements')}</Typography>
                 )}
             </Box>
 
@@ -213,7 +216,7 @@ export default function MeasurementsSection() {
                         onClick={handleOpenAdd}
                         fullWidth
                     >
-                        Measure now
+                        {t('profile.measureNow')}
                     </Button>
                 </Grid>
                 <Grid size={6}>
@@ -223,7 +226,7 @@ export default function MeasurementsSection() {
                         to="/profile/body/history"
                         fullWidth
                     >
-                        History
+                        {t('profile.viewHistory')}
                     </Button>
                 </Grid>
             </Grid>
@@ -237,13 +240,13 @@ export default function MeasurementsSection() {
                     }
                 }}
             >
-                <DialogTitle>Log Measurements (cm)</DialogTitle>
+                <DialogTitle>{t('profile.logMeasurements')} (cm)</DialogTitle>
                 <DialogContent dividers>
                     <Grid container spacing={2} sx={{ pt: 1 }}>
                         <Grid size={{ xs: 12 }}>
                             <TextField
                                 id="measurement-date"
-                                label="Date"
+                                label={t('journal.date')}
                                 type="date"
                                 fullWidth
                                 required
@@ -257,61 +260,61 @@ export default function MeasurementsSection() {
 
                         {/* Core body */}
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Chest" field="chest" value={formData.chest ?? ''} onChange={(val) => { handleFieldChange('chest', val); }} />
+                            <MeasurementField label={t('measurements.chest')} field="chest" value={formData.chest ?? ''} onChange={(val) => { handleFieldChange('chest', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Shoulders" field="shoulders" value={formData.shoulders ?? ''} onChange={(val) => { handleFieldChange('shoulders', val); }} />
+                            <MeasurementField label={t('measurements.shoulders')} field="shoulders" value={formData.shoulders ?? ''} onChange={(val) => { handleFieldChange('shoulders', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Neck" field="neck" value={formData.neck ?? ''} onChange={(val) => { handleFieldChange('neck', val); }} />
+                            <MeasurementField label={t('measurements.neck')} field="neck" value={formData.neck ?? ''} onChange={(val) => { handleFieldChange('neck', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Waist" field="waist" value={formData.waist ?? ''} onChange={(val) => { handleFieldChange('waist', val); }} />
+                            <MeasurementField label={t('measurements.waist')} field="waist" value={formData.waist ?? ''} onChange={(val) => { handleFieldChange('waist', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Hips" field="hips" value={formData.hips ?? ''} onChange={(val) => { handleFieldChange('hips', val); }} />
+                            <MeasurementField label={t('measurements.hips')} field="hips" value={formData.hips ?? ''} onChange={(val) => { handleFieldChange('hips', val); }} />
                         </Grid>
 
                         {/* Arms */}
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Left Bicep" field="leftBicep" value={formData.leftBicep ?? ''} onChange={(val) => { handleFieldChange('leftBicep', val); }} />
+                            <MeasurementField label={t('measurements.leftBicep')} field="leftBicep" value={formData.leftBicep ?? ''} onChange={(val) => { handleFieldChange('leftBicep', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Right Bicep" field="rightBicep" value={formData.rightBicep ?? ''} onChange={(val) => { handleFieldChange('rightBicep', val); }} />
+                            <MeasurementField label={t('measurements.rightBicep')} field="rightBicep" value={formData.rightBicep ?? ''} onChange={(val) => { handleFieldChange('rightBicep', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Left Forearm" field="leftForearm" value={formData.leftForearm ?? ''} onChange={(val) => { handleFieldChange('leftForearm', val); }} />
+                            <MeasurementField label={t('measurements.leftForearm')} field="leftForearm" value={formData.leftForearm ?? ''} onChange={(val) => { handleFieldChange('leftForearm', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Right Forearm" field="rightForearm" value={formData.rightForearm ?? ''} onChange={(val) => { handleFieldChange('rightForearm', val); }} />
+                            <MeasurementField label={t('measurements.rightForearm')} field="rightForearm" value={formData.rightForearm ?? ''} onChange={(val) => { handleFieldChange('rightForearm', val); }} />
                         </Grid>
 
                         {/* Legs */}
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Left Thigh" field="leftThigh" value={formData.leftThigh ?? ''} onChange={(val) => { handleFieldChange('leftThigh', val); }} />
+                            <MeasurementField label={t('measurements.leftThigh')} field="leftThigh" value={formData.leftThigh ?? ''} onChange={(val) => { handleFieldChange('leftThigh', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Right Thigh" field="rightThigh" value={formData.rightThigh ?? ''} onChange={(val) => { handleFieldChange('rightThigh', val); }} />
+                            <MeasurementField label={t('measurements.rightThigh')} field="rightThigh" value={formData.rightThigh ?? ''} onChange={(val) => { handleFieldChange('rightThigh', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Left Calf" field="leftCalf" value={formData.leftCalf ?? ''} onChange={(val) => { handleFieldChange('leftCalf', val); }} />
+                            <MeasurementField label={t('measurements.leftCalf')} field="leftCalf" value={formData.leftCalf ?? ''} onChange={(val) => { handleFieldChange('leftCalf', val); }} />
                         </Grid>
                         <Grid size={{ xs: 6 }}>
-                            <MeasurementField label="Right Calf" field="rightCalf" value={formData.rightCalf ?? ''} onChange={(val) => { handleFieldChange('rightCalf', val); }} />
+                            <MeasurementField label={t('measurements.rightCalf')} field="rightCalf" value={formData.rightCalf ?? ''} onChange={(val) => { handleFieldChange('rightCalf', val); }} />
                         </Grid>
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>Cancel</Button>
+                    <Button onClick={() => { setIsAddEditOpen(false); }} color="inherit" disabled={saving}>{t('common.cancel')}</Button>
                     <Button type="submit" variant="contained" disabled={saving}>
-                        {saving ? 'Saving...' : 'Save'}
+                        {saving ? t('common.saving') : t('common.save')}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* Explain Dialog */}
             <Dialog open={isExplainOpen} onClose={() => { setIsExplainOpen(false); }} maxWidth="md" fullWidth>
-                <DialogTitle>How to Measure</DialogTitle>
+                <DialogTitle>{t('profile.measurementInstructions')}</DialogTitle>
                 <DialogContent dividers>
                     <Box sx={{ mb: 4, textAlign: 'center' }}>
                         <Box 
@@ -328,36 +331,17 @@ export default function MeasurementsSection() {
                         />
                     </Box>
                     
-                    <Typography variant="body1" sx={{ mb: 4 }}>
-                        Taking consistent body measurements is a great way to track progress alongside the scale. For the most accurate results, measure at the same time of day and under the same conditions.
-                    </Typography>
-
                     <Grid container spacing={4}>
-                        {[
-                            { name: 'Waist', explanation: 'Measures the circumference of the midsection. This tracks core fat loss or hypertrophy in the abdominal and oblique muscles.', how: 'Stand upright and exhale naturally. Wrap the measuring tape horizontally around the torso directly over the belly button (umbilicus). Ensure the tape rests flat against the skin without compressing it.' },
-                            { name: 'Hips', explanation: 'Measures the circumference of the lower pelvic region. This tracks total mass across the glutes and hips.', how: 'Stand upright with feet together. Wrap the tape measure horizontally around the absolute widest part of the buttocks. Ensure the tape remains perfectly parallel to the floor all the way around.' },
-                            { name: 'Neck', explanation: 'Measures neck circumference. This is used in standardized body fat calculations and to track trapezius/neck muscle growth.', how: 'Stand upright, looking straight ahead with shoulders completely relaxed. Wrap the tape horizontally around the lower part of the neck, resting just below the Adam\'s apple.' },
-                            { name: 'Chest', explanation: 'Measures the circumference of the upper torso. This tracks overall development of the pectoral muscles and latissimus dorsi.', how: 'Stand upright and exhale to a resting lung capacity. Wrap the tape measure around the torso exactly at nipple level. Keep arms resting downward at the sides. The tape must remain perfectly horizontal across the back and chest.' },
-                            { name: 'Shoulders', explanation: 'Measures the total circumference of the shoulder girdle. This indicates lateral deltoid width and upper body structural size.', how: 'Stand upright with arms relaxed at the sides. Pass the tape measure around the body over the widest, most prominent point of the lateral deltoids. Keep the tape parallel to the floor. (Note: This typically requires a partner for accuracy).' },
-                            { name: 'Right Bicep', explanation: 'Measures the maximum circumference of the right upper arm. In bodybuilding, this is tracked in a flexed state to record peak size of the biceps brachii and triceps brachii.', how: 'Raise the right arm to shoulder height, parallel to the floor. Bend the elbow to 90 degrees and forcefully flex the arm. Wrap the tape strictly around the highest peak of the bicep and the thickest belly of the tricep.' },
-                            { name: 'Left Bicep', explanation: 'Measures the maximum circumference of the left upper arm. This tracks left-side arm mass and highlights bilateral symmetry when compared to the right bicep.', how: 'Raise the left arm to shoulder height, parallel to the floor. Bend the elbow to 90 degrees and forcefully flex the arm. Wrap the tape strictly around the highest peak of the bicep and the thickest belly of the tricep.' },
-                            { name: 'Right Forearm', explanation: 'Measures the circumference of the right lower arm. This tracks the development of the brachioradialis and wrist flexors/extensors.', how: 'Let the right arm hang at the side. Form a tight fist and flex the forearm muscles. Wrap the tape measure around the thickest, widest part of the forearm, which is located just below the elbow joint.' },
-                            { name: 'Left Forearm', explanation: 'Measures the circumference of the left lower arm. This tracks left-side grip musculature and highlights bilateral symmetry.', how: 'Let the left arm hang at the side. Form a tight fist and flex the forearm muscles. Wrap the tape measure around the thickest, widest part of the forearm, located just below the elbow joint.' },
-                            { name: 'Right Thigh', explanation: 'Measures the circumference of the right upper leg. This tracks the combined mass of the quadriceps and hamstrings.', how: 'Stand upright with weight evenly distributed on both feet. Tense the right leg muscles slightly. Wrap the tape horizontally around the absolute thickest part of the upper thigh, which is typically just below the gluteal fold (where the glute meets the hamstring).' },
-                            { name: 'Left Thigh', explanation: 'Measures the circumference of the left upper leg. This tracks left-side upper leg mass and highlights bilateral symmetry.', how: 'Stand upright with weight evenly distributed on both feet. Tense the left leg muscles slightly. Wrap the tape horizontally around the absolute thickest part of the upper thigh, directly below the gluteal fold.' },
-                            { name: 'Right Calf', explanation: 'Measures the circumference of the right lower leg. This tracks the hypertrophy of the gastrocnemius and soleus muscles.', how: 'Stand upright with weight evenly distributed flat on both feet. Flex the right calf by pressing the ball of the right foot firmly into the floor. Wrap the tape horizontally around the widest, most prominent part of the calf muscle belly.' },
-                            { name: 'Left Calf', explanation: 'Measures the circumference of the left lower leg. This tracks left-side lower leg mass and highlights bilateral symmetry.', how: 'Stand upright with weight evenly distributed flat on both feet. Flex the left calf by pressing the ball of the left foot firmly into the floor. Wrap the tape horizontally around the widest, most prominent part of the calf muscle belly.' }
-                        ].map((part) => (
-                            <Grid size={{ xs: 12, sm: 6 }} key={part.name}>
-                                <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 'bold' }}>{part.name}</Typography>
-                                <Typography variant="body2" sx={{ mb: 1 }}><strong>Explanation:</strong> {part.explanation}</Typography>
-                                <Typography variant="body2" color="text.secondary"><strong>How to Measure:</strong> {part.how}</Typography>
+                        {(['waist', 'hips', 'neck', 'chest', 'shoulders', 'rightBicep', 'leftBicep', 'rightForearm', 'leftForearm', 'rightThigh', 'leftThigh', 'rightCalf', 'leftCalf'] as const).map((key) => (
+                            <Grid size={{ xs: 12, sm: 6 }} key={key}>
+                                <Typography variant="subtitle1" color="primary" sx={{ fontWeight: 'bold' }}>{t(`measurements.${key}`)}</Typography>
+                                <Typography variant="body2" color="text.secondary"><strong>{t('profile.explain')}:</strong> {t(`measurementInfo.${key}`)}</Typography>
                             </Grid>
                         ))}
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => { setIsExplainOpen(false); }}>Close</Button>
+                    <Button onClick={() => { setIsExplainOpen(false); }}>{t('common.close')}</Button>
                 </DialogActions>
             </Dialog>
         </Paper>

@@ -4,6 +4,7 @@ import App from './App.tsx';
 
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-700.css';
+import './i18n';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

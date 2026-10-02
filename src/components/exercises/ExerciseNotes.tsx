@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import EditNote from '@mui/icons-material/EditNote';
+import { useTranslation } from 'react-i18next';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useAuth } from '../../context/AuthContext';
 
@@ -14,6 +15,7 @@ interface ExerciseNotesProps {
 }
 
 const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
+    const { t } = useTranslation();
     const { currentUser } = useAuth();
     const { profile, updateExerciseStatus } = useUserProfile();
     const [notes, setNotes] = useState(() => profile?.markedExercises?.[exerciseId]?.notes ?? '');
@@ -89,18 +91,18 @@ const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
                         <EditNote color="primary" />
                     </Grid>
                     <Grid>
-                        <Typography variant="h6">My Notes</Typography>
+                        <Typography variant="h6">{t('exercises.myNotes')}</Typography>
                     </Grid>
                 </Grid>
             </Box>
             <Divider sx={{ mb: 2 }} />
             <TextField
                 id="exercise-personal-notes"
-                aria-label="My Notes"
+                aria-label={t('exercises.myNotes')}
                 multiline
                 rows={6}
                 fullWidth
-                placeholder="Add your personal notes and details about this exercise..."
+                placeholder={t('exercises.notesPlaceholder')}
                 value={notes}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -119,7 +121,7 @@ const ExerciseNotes = ({ exerciseId }: ExerciseNotesProps) => {
                     mt: 1,
                     display: 'block'
                 }}>
-                Notes are private to you and save automatically.
+                {t('exercises.notesAutoSave')}
             </Typography>
         </Paper>
     );

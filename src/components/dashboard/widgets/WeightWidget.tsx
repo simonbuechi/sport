@@ -4,7 +4,10 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 
+import { useTranslation } from 'react-i18next';
+
 const WeightWidget = () => {
+    const { t } = useTranslation();
     const { profile } = useUserProfile();
 
     const stats = useMemo(() => {
@@ -36,19 +39,19 @@ const WeightWidget = () => {
         if (daysDiff >= 7 && latestEntry.id !== closestEntry.id) {
             const change = latestWeight - closestEntry.weightKg;
             const sign = change >= 0 ? '+' : '';
-            changeText = `${sign}${change.toFixed(1)}kg in last month`;
+            changeText = `${sign}${change.toFixed(1)} ${t('common.unitKg')} ${t('widgets.inLastMonth')}`;
         }
 
         return {
             latestWeight,
             changeText
         };
-    }, [profile?.weights]);
+    }, [profile?.weights, t]);
 
     if (!stats) {
         return (
             <Typography variant="body2" color="text.secondary">
-                No weight data yet. Add your weight in the profile section.
+                {t('widgets.noWeightData')}
             </Typography>
         );
     }

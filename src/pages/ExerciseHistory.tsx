@@ -18,8 +18,10 @@ import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { calculate1RM } from '../utils/fitness';
 import { formatWeight, formatCount } from '../utils/format';
+import { useTranslation } from 'react-i18next';
 
 const ExerciseHistory = () => {
+    const { t, i18n } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
@@ -53,13 +55,13 @@ const ExerciseHistory = () => {
                     startIcon={<ArrowBack />}
                     sx={{ mb: 2 }}
                 >
-                    Back to Details
+                    {t('exercises.backToDetails')}
                 </Button>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    {exercise.name} - Full History
+                    {t('exercises.fullHistoryTitle', { name: exercise.name })}
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                    Total workouts: {workouts.length}
+                    {t('exercises.totalWorkouts', { count: workouts.length })}
                 </Typography>
             </Box>
 
@@ -84,10 +86,10 @@ const ExerciseHistory = () => {
                                     >
                                         <TableCell component="th" scope="row" sx={{ verticalAlign: 'top', pt: 1.5 }}>
                                             <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
-                                                {new Date(workout.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                {new Date(workout.date).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" sx={{ textTransform: 'capitalize', display: 'block' }}>
-                                                {workout.sessionType ?? 'Workout'}
+                                                {workout.sessionType ? t(`exerciseTypes.${workout.sessionType}`, { defaultValue: workout.sessionType }) : t('journal.workout')}
                                             </Typography>
                                         </TableCell>
                                         <TableCell sx={{ verticalAlign: 'top', pt: 1.5 }}>
@@ -101,13 +103,13 @@ const ExerciseHistory = () => {
 
                                                 return (
                                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                        1RM: {formatWeight(Math.round(max1RM))}kg, Reps: {formatCount(totalReps)}, Volume: {formatWeight(totalVolume)}kg
+                                                        1RM: {formatWeight(Math.round(max1RM))}kg, {t('journal.reps')}: {formatCount(totalReps)}, {t('journal.volume')}: {formatWeight(totalVolume)}kg
                                                     </Typography>
                                                 );
                                             })()}
                                         </TableCell>
                                         <TableCell align="right" sx={{ verticalAlign: 'middle' }}>
-                                            <IconButton size="small" color="primary" aria-label="view workout details">
+                                            <IconButton size="small" color="primary" aria-label={t('journal.workoutDetails')}>
                                                 <ChevronRight />
                                             </IconButton>
                                         </TableCell>

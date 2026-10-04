@@ -71,6 +71,8 @@ export interface UserProfile {
         showTimer?: boolean;
         language?: string;
     };
+    deleted?: boolean;
+    deletedAt?: string;
 }
 
 export interface ExerciseSet {

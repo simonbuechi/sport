@@ -59,6 +59,13 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
     await updateDoc(doc(db, 'users', uid), data);
 };
 
+export const softDeleteUserProfile = async (uid: string): Promise<void> => {
+    await updateDoc(doc(db, 'users', uid), {
+        deleted: true,
+        deletedAt: new Date().toISOString()
+    });
+};
+
 export const addWeightEntry = async (uid: string, entry: WeightEntry): Promise<void> => {
     await updateDoc(doc(db, 'users', uid), {
         weights: arrayUnion(entry)

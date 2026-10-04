@@ -401,6 +401,28 @@ const Profile = () => {
                                     </Grid>
                                 </Paper>
                             </Grid>
+
+                            <Grid size={12}>
+                                <Paper sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'error.light' }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Box>
+                                            <Typography variant="h6" sx={{ color: 'error.main' }}>{t('deleteAccount.dangerZone')}</Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {t('deleteAccount.dangerZoneDesc')}
+                                            </Typography>
+                                        </Box>
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            size="small"
+                                            onClick={() => void navigate('/delete')}
+                                            sx={{ textTransform: 'none', ml: 2, flexShrink: 0 }}
+                                        >
+                                            {t('deleteAccount.title')}
+                                        </Button>
+                                    </Box>
+                                </Paper>
+                            </Grid>
                         </Grid>
                     </Grid>
 

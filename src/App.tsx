@@ -25,6 +25,7 @@ const WorkoutForm = lazy(() => import('./pages/WorkoutForm'));
 const WorkoutDetails = lazy(() => import('./pages/WorkoutDetails'));
 const ExerciseHistory = lazy(() => import('./pages/ExerciseHistory'));
 const WeightHistory = lazy(() => import('./pages/BodyHistory'));
+const DeleteAccount = lazy(() => import('./pages/DeleteAccount'));
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
                       <Route path="/" element={<Layout />}>
                       <Route path="login" element={<Auth />} />
                       <Route path="register" element={<Auth />} />
+                      <Route path="delete" element={<DeleteAccount />} />
                       
                       <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                         <Route index element={<Home />} />

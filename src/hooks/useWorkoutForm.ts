@@ -34,7 +34,7 @@ export const useWorkoutForm = (id?: string) => {
     const queryTemplateId = searchParams.get('templateId') ?? '';
     const { currentUser } = useAuth();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, templates, loading: sessionsLoading } = useWorkouts();
+    const { entries, templates, activeProgram, advanceActiveDay, loading: sessionsLoading } = useWorkouts();
     const { profile, loading: profileLoading } = useUserProfile();
     const isEditing = Boolean(id);
     const showTimer = profile?.settings?.showTimer ?? true;
@@ -394,6 +394,16 @@ export const useWorkoutForm = (id?: string) => {
                 await updateWorkout(currentUser.uid, id, entryData);
             } else {
                 finalId = await createWorkout(currentUser.uid, entryData);
+                if (activeProgram && activeProgram.days.length > 0) {
+                    const currentDay = activeProgram.days[activeProgram.currentDayIndex ?? 0];
+                    if (selectedTemplateId && currentDay.templateId === selectedTemplateId) {
+                        try {
+                            await advanceActiveDay();
+                        } catch (advErr) {
+                            console.warn('Failed to auto-advance active program', advErr);
+                        }
+                    }
+                }
             }
 
             try {

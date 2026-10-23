@@ -28,7 +28,7 @@ export const DEFAULT_WIDGETS: WidgetType[] = [
 
 export const useHomeState = () => {
     const { currentUser } = useAuth();
-    const { entries: allEntries, templates, loading: sessionsLoading } = useWorkouts();
+    const { entries: allEntries, templates, activeProgram, advanceActiveDay, activateProgram, loading: sessionsLoading } = useWorkouts();
     const { profile, loading: profileLoading, error: profileError } = useUserProfile();
 
     const [visibleWidgets, setVisibleWidgets] = useState<WidgetType[]>([]);
@@ -161,6 +161,9 @@ export const useHomeState = () => {
         sessionsInLast7Days,
         allEntries,
         templates,
+        activeProgram,
+        advanceActiveDay,
+        activateProgram,
         isInitialLoading,
         moveWidget,
         removeWidget,

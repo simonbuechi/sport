@@ -17,7 +17,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import DescriptionIcon from '@mui/icons-material/Description';
+import { ActiveProgramCard } from '../components/routines/ActiveProgramCard';
 import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -40,7 +40,7 @@ const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, templates, loading: sessionsLoading, loadMore, hasMore } = useWorkouts();
+    const { entries, templates, activeProgram, advanceActiveDay, activateProgram, loading: sessionsLoading, loadMore, hasMore } = useWorkouts();
 
     const templateMap = useMemo(() => {
         return templates.reduce<Record<string, string>>((acc, t) => {
@@ -144,7 +144,6 @@ const Journal = () => {
                 <Skeleton variant="text" width={150} height={60} />
                 <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
                     <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
-                    <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
                 </Stack>
             </Stack>
             <Skeleton variant="rectangular" height={56} sx={{ mb: { xs: 2, md: 3 }, borderRadius: 2 }} />
@@ -173,15 +172,6 @@ const Journal = () => {
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
                     <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<DescriptionIcon />}
-                        onClick={() => navigate('/journal/templates')}
-                        sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
-                    >
-                        {t('journal.templates')}
-                    </Button>
-                    <Button
                         variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
@@ -192,6 +182,16 @@ const Journal = () => {
                     </Button>
                 </Stack>
             </Stack>
+
+            {activeProgram && (
+                <ActiveProgramCard
+                    compact
+                    program={activeProgram}
+                    templates={templates}
+                    onAdvanceDay={advanceActiveDay}
+                    onDeactivate={() => activateProgram(null)}
+                />
+            )}
 
             {/* Filter and Sort Bar */}
             <Accordion

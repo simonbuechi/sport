@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CustomThemeProvider } from './context/ThemeContext';
 import { ExercisesProvider } from './context/ExercisesContext';
@@ -20,12 +20,13 @@ import Journal from './pages/Journal';
 const Auth = lazy(() => import('./pages/Auth'));
 const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
 const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
-const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
+
 const WorkoutForm = lazy(() => import('./pages/WorkoutForm'));
 const WorkoutDetails = lazy(() => import('./pages/WorkoutDetails'));
 const ExerciseHistory = lazy(() => import('./pages/ExerciseHistory'));
 const WeightHistory = lazy(() => import('./pages/BodyHistory'));
 const DeleteAccount = lazy(() => import('./pages/DeleteAccount'));
+const Routines = lazy(() => import('./pages/Routines'));
 
 function App() {
   return (
@@ -54,8 +55,9 @@ function App() {
                         <Route path="profile/body" element={<Profile />} />
                         <Route path="profile/body/history" element={<WeightHistory />} />
                         <Route path="profile/stats" element={<Profile />} />
+                        <Route path="routines" element={<Routines />} />
                         <Route path="journal" element={<Journal />} />
-                        <Route path="journal/templates" element={<TemplatesPage />} />
+                        <Route path="journal/templates" element={<Navigate to="/routines?tab=templates" replace />} />
                         <Route path="journal/new" element={<WorkoutForm />} />
                         <Route path="journal/:id" element={<WorkoutDetails />} />
                         <Route path="journal/:id/edit" element={<WorkoutForm />} />

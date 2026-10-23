@@ -106,6 +106,30 @@ export interface TrainingTemplate {
 
 export type SessionType = ExerciseType;
 
+export type ProgramType = 'one-time' | 'repetitive';
+
+export interface ProgramDay {
+    id: string;
+    dayNumber: number; // 1-based index (Day 1, Day 2, etc.)
+    date?: string; // Optional fixed calendar date (YYYY-MM-DD) for one-time programs
+    templateId?: string | null; // null or undefined indicates a Rest Day
+    note?: string; // Optional day note/guidance
+}
+
+export interface Program {
+    id: string;
+    userId: string;
+    name: string;
+    description?: string;
+    type: ProgramType;
+    days: ProgramDay[];
+    isActive?: boolean;
+    startDate?: string; // "YYYY-MM-DD" when program was activated
+    currentDayIndex?: number; // 0-based index pointing to current day in days array
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface Workout {
     id: string;
     userId: string;

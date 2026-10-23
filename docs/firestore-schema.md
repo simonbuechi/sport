@@ -11,7 +11,8 @@ Firestore Root
 ├── exercises/ {exerciseId}                 (Global exercise catalog)
 └── users/ {userId}                         (User profiles)
     ├── activities/ {activityId}            (Workout sessions / activities)
-    └── templates/ {templateId}             (Workout templates)
+    ├── templates/ {templateId}             (Workout templates)
+    └── programs/ {programId}               (Workout programs / cycles)
 ```
 
 ---
@@ -164,3 +165,40 @@ Cloud Functions automatically run in response to activity writes:
 - **`onActivityCreated`**: Listens on `users/{userId}/activities/{activityId}` `onCreate`.
   - Updates `lastActivityAt` on `/users/{userId}`.
   - Future: Dispatches push notifications / milestone alerts when FCM is configured.
+
+---
+
+## 6. Programs Subcollection: `/users/{userId}/programs/{programId}`
+
+Structured training programs composed of multiple days referencing templates or rest days. A program can be either repetitive (e.g. 3-day push/pull/legs repeating indefinitely) or one-time (fixed or relative day sequence).
+
+### Security Rules
+- **Read / Write**: Owner only (`request.auth.uid == userId`)
+- **Validation**: Requires `name` (`string`), `type` (`string`), and `days` (`list`)
+
+### Schema
+| Field | Type | Required | Description | Example |
+|---|---|---|---|---|
+| `id` | `string` | Yes | Document ID | `"prg_456"` |
+| `userId` | `string` | Yes | Owner UID | `"AbCdEf123456"` |
+| `name` | `string` | Yes | Program name | `"PPL Hypertrophy Cycle"` |
+| `description` | `string` | No | Program description or goal | `"6-day push-pull-legs split with active recovery"` |
+| `type` | `string` | Yes | Program mode enum | `"repetitive" \| "one-time"` |
+| `isActive` | `boolean` | No | Flag indicating if this is user's active program | `true` |
+| `startDate` | `string` | No | Activation date (ISO "YYYY-MM-DD") | `"2026-10-24"` |
+| `currentDayIndex` | `number` | No | 0-based index of the current active day | `0` |
+| `days` | `array<ProgramDay>` | Yes | Ordered list of program days | See below |
+| `createdAt` | `string` | No | Creation ISO timestamp | `"2026-10-23T12:00:00.000Z"` |
+| `updatedAt` | `string` | No | Last update ISO timestamp | `"2026-10-23T12:00:00.000Z"` |
+
+#### Sub-object: `ProgramDay`
+```typescript
+{
+  id: string;             // Unique identifier for the day item (UUID)
+  dayNumber: number;      // 1-based day index (Day 1, Day 2, etc.)
+  date?: string;          // Optional fixed ISO date string "YYYY-MM-DD" for one-time fixed programs
+  templateId?: string;    // References /users/{userId}/templates/{templateId}; omit or null for Rest Day
+  note?: string;          // Day-specific guidance or note (e.g. "Focus on depth on squats", "30min zone 2 cardio")
+}
+```
+

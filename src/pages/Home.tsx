@@ -29,6 +29,7 @@ import WeightWidget from '../components/dashboard/widgets/WeightWidget';
 import TemplatesWidget from '../components/dashboard/widgets/TemplatesWidget';
 import ProjectUpdatesWidget from '../components/dashboard/widgets/ProjectUpdatesWidget';
 import FeedbackWidget from '../components/dashboard/widgets/FeedbackWidget';
+import { ActiveProgramCard } from '../components/routines/ActiveProgramCard';
 import { useTranslation } from 'react-i18next';
 import { useHomeState, WIDGET_TYPES, type WidgetType } from '../hooks/useHomeState';
 
@@ -45,6 +46,9 @@ const Home = () => {
         error,
         sessionsInLast7Days,
         templates,
+        activeProgram,
+        advanceActiveDay,
+        activateProgram,
         isInitialLoading,
         moveWidget,
         removeWidget,
@@ -143,6 +147,16 @@ const Home = () => {
             </Stack>
 
             {error && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{error}</Alert>}
+
+            {activeProgram && (
+                <ActiveProgramCard
+                    compact
+                    program={activeProgram}
+                    templates={templates}
+                    onAdvanceDay={advanceActiveDay}
+                    onDeactivate={() => void activateProgram(null)}
+                />
+            )}
 
             <Grid container spacing={{ xs: 2, md: 3 }}>
                 {visibleWidgets.map((widget) => (

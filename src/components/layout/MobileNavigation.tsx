@@ -4,6 +4,7 @@ import Paper from '@mui/material/Paper';
 
 import Home from '@mui/icons-material/Home';
 import LibraryBooks from '@mui/icons-material/LibraryBooks';
+import CalendarMonth from '@mui/icons-material/CalendarMonth';
 import Book from '@mui/icons-material/Book';
 import Person from '@mui/icons-material/Person';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,8 +18,9 @@ const MobileNavigation = () => {
     const getNavigationValue = () => {
         if (location.pathname === '/') return 0;
         if (location.pathname.startsWith('/exercises')) return 1;
-        if (location.pathname.startsWith('/journal')) return 2;
-        if (location.pathname.startsWith('/profile')) return 3;
+        if (location.pathname.startsWith('/routines')) return 2;
+        if (location.pathname.startsWith('/journal')) return 3;
+        if (location.pathname.startsWith('/profile')) return 4;
         return 0;
     };
 
@@ -47,8 +49,9 @@ const MobileNavigation = () => {
                 onChange={(_, newValue) => {
                     if (newValue === 0) void navigate('/');
                     else if (newValue === 1) void navigate('/exercises');
-                    else if (newValue === 2) void navigate('/journal');
-                    else if (newValue === 3) void navigate('/profile');
+                    else if (newValue === 2) void navigate('/routines');
+                    else if (newValue === 3) void navigate('/journal');
+                    else if (newValue === 4) void navigate('/profile');
                 }}
                 sx={{
                     bgcolor: 'transparent',
@@ -71,6 +74,7 @@ const MobileNavigation = () => {
             >
                 <BottomNavigationAction label={t('nav.home')} icon={<Home />} />
                 <BottomNavigationAction label={t('nav.exercises')} icon={<LibraryBooks />} />
+                <BottomNavigationAction label={t('nav.routines')} icon={<CalendarMonth />} />
                 <BottomNavigationAction label={t('nav.journal')} icon={<Book />} />
                 <BottomNavigationAction label={t('nav.profile')} icon={<Person />} />
             </BottomNavigation>

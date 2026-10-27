@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -30,7 +30,9 @@ import TemplatesSection from '../components/journal/TemplatesSection';
 
 const Routines: React.FC = () => {
     const { t } = useTranslation();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { currentUser } = useAuth();
     const { exercises } = useExercises();
     const {
@@ -42,8 +44,8 @@ const Routines: React.FC = () => {
         advanceActiveDay,
     } = useWorkouts();
 
-    const initialTab = searchParams.get('tab') === 'templates' ? 1 : 0;
-    const [activeTab, setActiveTab] = useState(initialTab);
+    const isTemplatesPath = location.pathname === '/routines/templates' || searchParams.get('tab') === 'templates';
+    const activeTab = isTemplatesPath ? 1 : 0;
 
     // Dialog state for Program creation/editing
     const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
@@ -54,18 +56,20 @@ const Routines: React.FC = () => {
     const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
     const [deleting, setDeleting] = useState(false);
 
+    // Clean URL navigation and backwards compatibility for ?tab=...
     useEffect(() => {
         const tabParam = searchParams.get('tab');
         if (tabParam === 'templates') {
-            setActiveTab(1);
+            void navigate('/routines/templates', { replace: true });
         } else if (tabParam === 'programs') {
-            setActiveTab(0);
+            void navigate('/routines/programs', { replace: true });
+        } else if (location.pathname === '/routines') {
+            void navigate('/routines/programs', { replace: true });
         }
-    }, [searchParams]);
+    }, [location.pathname, searchParams, navigate]);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-        setActiveTab(newValue);
-        setSearchParams({ tab: newValue === 1 ? 'templates' : 'programs' });
+        void navigate(newValue === 1 ? '/routines/templates' : '/routines/programs');
     };
 
     const handleCreateProgram = () => {
@@ -79,7 +83,7 @@ const Routines: React.FC = () => {
     };
 
     const handleSaveProgram = async (data: ProgramFormData) => {
-        if (!currentUser) return;
+        if (!currentUser) throw new Error('User is not authenticated');
         setSaving(true);
         try {
             if (editingProgram) {

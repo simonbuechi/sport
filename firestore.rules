@@ -43,6 +43,15 @@ service cloud.firestore {
         allow create, update: if request.resource.data.name is string
                              && request.resource.data.exercises is list;
       }
+
+      // Training programs
+      match /programs/{programId} {
+        allow read, write: if isOwner(userId);
+        
+        allow create, update: if request.resource.data.name is string
+                             && request.resource.data.type is string
+                             && request.resource.data.days is list;
+      }
     }
     
     // Default deny for everything else

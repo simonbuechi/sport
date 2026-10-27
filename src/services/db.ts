@@ -202,13 +202,21 @@ export const updateExerciseStatusInProfile = async (uid: string, exerciseId: str
 
 export const subscribeToPrograms = (
     userId: string,
-    callback: (programs: Program[]) => void
+    callback: (programs: Program[]) => void,
+    onError?: (error: Error) => void
 ): Unsubscribe => {
     const programsRef = collection(db, 'users', userId, 'programs');
-    return onSnapshot(programsRef, (snapshot) => {
-        const programs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Program));
-        callback(programs);
-    });
+    return onSnapshot(
+        programsRef,
+        (snapshot) => {
+            const programs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Program));
+            callback(programs);
+        },
+        (error) => {
+            console.error('Error subscribing to programs:', error);
+            if (onError) onError(error);
+        }
+    );
 };
 
 export const createProgram = async (userId: string, program: Omit<Program, 'id' | 'userId'>): Promise<string> => {

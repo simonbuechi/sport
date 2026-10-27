@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { alpha } from '@mui/material/styles';
@@ -398,6 +399,110 @@ const Profile = () => {
                                                 }
                                             />
                                         </Grid>
+
+                                        <Grid size={12}>
+                                            <Divider sx={{ my: 0.5 }} />
+                                        </Grid>
+
+                                        <Grid size={12}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={profile.settings?.enableSupersets ?? true}
+                                                        onChange={handleSettingChange('enableSupersets')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <Box>
+                                                        <Typography variant="body1">{t('supersets.settingTitle')}</Typography>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            {t('supersets.settingDesc')}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </Grid>
+
+                                        <Grid size={12}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={profile.settings?.enableExertionTracking ?? false}
+                                                        onChange={handleSettingChange('enableExertionTracking')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <Box>
+                                                        <Typography variant="body1">{t('exertion.title')}</Typography>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            {t('exertion.description')}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                        </Grid>
+
+                                        {(profile.settings?.enableExertionTracking ?? false) && (
+                                            <>
+                                                <Grid size={12}>
+                                                    <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+                                                        {t('exertion.modeTitle')}
+                                                    </Typography>
+                                                    <ToggleButtonGroup
+                                                        value={profile.settings?.exertionMode ?? 'rpe'}
+                                                        exclusive
+                                                        onChange={(_, newMode: 'rpe' | 'rir' | null) => {
+                                                            if (newMode) {
+                                                                void updateProfile({
+                                                                    settings: {
+                                                                        ...profile.settings,
+                                                                        exertionMode: newMode
+                                                                    }
+                                                                });
+                                                            }
+                                                        }}
+                                                        aria-label="exertion mode"
+                                                        size="small"
+                                                        color="primary"
+                                                        fullWidth
+                                                    >
+                                                        <ToggleButton value="rpe" aria-label="RPE">
+                                                            {t('exertion.rpe')}
+                                                        </ToggleButton>
+                                                        <ToggleButton value="rir" aria-label="RIR">
+                                                            {t('exertion.rir')}
+                                                        </ToggleButton>
+                                                    </ToggleButtonGroup>
+                                                </Grid>
+
+                                                <Grid size={12}>
+                                                    <Box
+                                                        sx={{
+                                                            p: 2,
+                                                            bgcolor: 'action.hover',
+                                                            borderRadius: 2,
+                                                            border: '1px solid',
+                                                            borderColor: 'divider'
+                                                        }}
+                                                    >
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                                            {t('exertion.explanationTitle')}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                            {t('exertion.explanationRpe')}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                            {t('exertion.explanationRir')}
+                                                        </Typography>
+                                                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main', display: 'block' }}>
+                                                            {t('exertion.formula')}
+                                                        </Typography>
+                                                    </Box>
+                                                </Grid>
+                                            </>
+                                        )}
                                     </Grid>
                                 </Paper>
                             </Grid>

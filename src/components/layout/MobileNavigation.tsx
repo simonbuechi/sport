@@ -49,7 +49,7 @@ const MobileNavigation = () => {
                 onChange={(_, newValue) => {
                     if (newValue === 0) void navigate('/');
                     else if (newValue === 1) void navigate('/exercises');
-                    else if (newValue === 2) void navigate('/routines');
+                    else if (newValue === 2) void navigate('/routines/programs');
                     else if (newValue === 3) void navigate('/journal');
                     else if (newValue === 4) void navigate('/profile');
                 }}

@@ -70,6 +70,9 @@ export interface UserProfile {
         autoFillSets?: boolean;
         showTimer?: boolean;
         language?: string;
+        enableExertionTracking?: boolean;
+        exertionMode?: 'rpe' | 'rir';
+        enableSupersets?: boolean;
     };
     deleted?: boolean;
     deletedAt?: string;
@@ -79,6 +82,8 @@ export interface ExerciseSet {
     id: string; // Internal management ID
     weight?: number;
     reps?: number;
+    rpe?: number;
+    rir?: number;
     notes?: string;
 }
 
@@ -86,12 +91,16 @@ export interface WorkoutExercise {
     exerciseId: string;
     sets: ExerciseSet[];
     note?: string;
+    supersetId?: string;
+    supersetNote?: string;
 }
 
 export interface TemplateExercise {
     exerciseId: string;
     note?: string;
     sets?: ExerciseSet[];
+    supersetId?: string;
+    supersetNote?: string;
 }
 
 export interface TrainingTemplate {

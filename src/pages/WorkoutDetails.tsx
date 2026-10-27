@@ -21,6 +21,8 @@ import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DescriptionIcon from '@mui/icons-material/Description';
+import LinkIcon from '@mui/icons-material/Link';
+import Stack from '@mui/material/Stack';
 
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
@@ -28,9 +30,16 @@ import { useWorkouts } from '../context/WorkoutsContext';
 import { formatWeight, formatCount, formatNumber } from '../utils/format';
 import { calculate1RM } from '../utils/fitness';
 import { useTranslation } from 'react-i18next';
+import type { WorkoutExercise } from '../types';
+import { groupExercisesIntoBlocks, type SupersetGroup } from '../utils/supersetUtils';
+import { useUserProfile } from '../hooks/useUserProfile';
+import { getDisplayedExertion } from '../utils/exertionUtils';
 
 const WorkoutDetails = () => {
     const { t, i18n } = useTranslation();
+    const { profile } = useUserProfile();
+    const isExertionEnabled = Boolean(profile?.settings?.enableExertionTracking);
+    const exertionMode = profile?.settings?.exertionMode ?? 'rpe';
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -38,6 +47,10 @@ const WorkoutDetails = () => {
     const { entries, templates, loading: sessionsLoading } = useWorkouts();
 
     const workout = useMemo(() => entries.find(e => e.id === id) ?? null, [entries, id]);
+    const exerciseBlocks = useMemo<SupersetGroup<WorkoutExercise>[]>(() => {
+        if (!workout) return [];
+        return groupExercisesIntoBlocks<WorkoutExercise>(workout.exercises);
+    }, [workout]);
     const referencedTemplate = useMemo(() => {
         if (!workout?.templateId) return null;
         return templates.find(t => t.id === workout.templateId) ?? null;
@@ -52,7 +65,6 @@ const WorkoutDetails = () => {
     const stats = useMemo(() => {
         if (!workout) return null;
         const workoutExercises = workout.exercises;
-        
         const totals = workoutExercises.reduce((acc, we) => {
             const exerciseStats = we.sets.reduce((eAcc, set) => {
                 const w = set.weight ?? 0;
@@ -110,7 +122,138 @@ const WorkoutDetails = () => {
         );
     }
 
-    const workoutExercises = workout.exercises;
+    const renderExerciseCard = (we: WorkoutExercise, tag?: string) => {
+        const exercise = exercises.find(ex => ex.id === we.exerciseId);
+        const exStats = we.sets.reduce((acc, s) => ({
+            volume: acc.volume + ((s.weight ?? 0) * (s.reps ?? 0)),
+            reps: acc.reps + (s.reps ?? 0)
+        }), { volume: 0, reps: 0 });
+
+        return (
+            <Paper key={we.exerciseId} sx={{ p: 0, mb: tag ? 1.5 : 0 }}>
+                <List sx={{ p: 0 }}>
+                    <ListItem 
+                        component={RouterLink} 
+                        to={`/exercises/${we.exerciseId}`}
+                        sx={{ 
+                            textDecoration: 'none', 
+                            color: 'inherit',
+                            '&:hover': { bgcolor: 'action.hover' },
+                            p: 2
+                        }}
+                    >
+                        <ListItemAvatar sx={{ mr: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {tag && (
+                                <Chip
+                                    label={tag}
+                                    size="small"
+                                    color="primary"
+                                    sx={{ height: 24, fontWeight: 700, fontSize: '0.8rem' }}
+                                />
+                            )}
+                            <Avatar
+                                src={exercise?.icon_url ? `${import.meta.env.BASE_URL}exercises/${exercise.icon_url ?? ''}` : undefined}
+                                sx={{ width: 48, height: 48 }}
+                            >
+                                {exercise?.name.charAt(0)}
+                            </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText 
+                            primary={<Typography variant="h6">{exercise?.name ?? t('journal.unknownExercise')}</Typography>}
+                            secondary={`${t('journal.totalVolume')}: ${formatNumber(exStats.volume)} kg • ${t('journal.reps')}: ${String(exStats.reps)}`}
+                        />
+                    </ListItem>
+                </List>
+                
+                <Box sx={{ p: 2, pt: 0 }}>
+                    {we.note && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1, borderLeft: '2px solid', borderColor: 'primary.main' }}>
+                            {we.note}
+                        </Typography>
+                    )}
+
+                    <Box sx={{ pl: { xs: 0, sm: 1 } }}>
+                        <Grid container spacing={2} sx={{ fontWeight: 'bold', mb: 1, color: 'text.secondary', display: { xs: 'none', sm: 'flex' } }}>
+                            <Grid size={1}>{t('journal.set')}</Grid>
+                            <Grid size={isExertionEnabled ? 2 : 2.5}>{t('journal.weight')}</Grid>
+                            <Grid size={isExertionEnabled ? 2 : 2.5}>{t('journal.reps')}</Grid>
+                            {isExertionEnabled && (
+                                <Grid size={2}>{exertionMode === 'rpe' ? t('exertion.labelRpe') : t('exertion.labelRir')}</Grid>
+                            )}
+                            <Grid size={isExertionEnabled ? 2.5 : 3}>{t('exercises.estimated1RM')}</Grid>
+                            <Grid size={isExertionEnabled ? 2.5 : 3}>{t('journal.notes')}</Grid>
+                        </Grid>
+                        {we.sets.map((set, idx) => {
+                            const oneRM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
+                            const isPR = oneRM > 0 && oneRM > stats.prs[we.exerciseId];
+                            
+                            return (
+                                <Box key={set.id}>
+                                    <Divider sx={{ my: 1, display: { xs: 'block', sm: 'none' } }} />
+                                    <Grid container spacing={2} sx={{ alignItems: 'center', py: 0.5 }}>
+                                        <Grid size={{ xs: 12, sm: 1 }}>
+                                            <Typography variant="body2" sx={{ fontWeight: { xs: 'bold', sm: 'normal' } }}>
+                                                {idx + 1}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid size={{ xs: isExertionEnabled ? 4 : 6, sm: isExertionEnabled ? 2 : 2.5 }}>
+                                            <Typography variant="body1">
+                                                <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('journal.weight')}:</Box>
+                                                {formatWeight(set.weight ?? 0)}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid size={{ xs: isExertionEnabled ? 4 : 6, sm: isExertionEnabled ? 2 : 2.5 }}>
+                                            <Typography variant="body1">
+                                                <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('journal.reps')}:</Box>
+                                                {formatCount(set.reps ?? 0)}
+                                            </Typography>
+                                        </Grid>
+                                        {isExertionEnabled && (
+                                            <Grid size={{ xs: 4, sm: 2 }}>
+                                                <Typography variant="body1">
+                                                    <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>
+                                                        {exertionMode === 'rpe' ? t('exertion.labelRpe') : t('exertion.labelRir')}:
+                                                    </Box>
+                                                    {getDisplayedExertion(set, exertionMode) !== undefined ? getDisplayedExertion(set, exertionMode) : '-'}
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                        <Grid size={{ xs: 12, sm: isExertionEnabled ? 2.5 : 3 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Typography variant="body1">
+                                                    <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('exercises.estimated1RM')}:</Box>
+                                                    {oneRM > 0 ? `${formatWeight(oneRM)} kg` : '-'}
+                                                </Typography>
+                                                {isPR && (
+                                                    <Tooltip title={t('journal.personalRecordTooltip')} arrow>
+                                                        <Chip 
+                                                            label={t('journal.personalRecordBadge')} 
+                                                            size="small" 
+                                                            color="primary" 
+                                                            icon={<TrendingUpIcon />} 
+                                                            sx={{ height: 20, '& .MuiChip-label': { px: 1, fontSize: '0.65rem' } }} 
+                                                        />
+                                                    </Tooltip>
+                                                )}
+                                            </Box>
+                                        </Grid>
+                                        <Grid size={{ xs: 12, sm: isExertionEnabled ? 2.5 : 3 }}>
+                                            {set.notes && (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    <Box component="span" sx={{ display: { sm: 'none' }, fontWeight: 'bold', mr: 1 }}>{t('journal.notes')}:</Box>
+                                                    {set.notes}
+                                                </Typography>
+                                            )}
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+                            );
+                        })}
+                    </Box>
+                </Box>
+            </Paper>
+        );
+    };
 
     return (
         <Container maxWidth="lg">
@@ -233,116 +376,50 @@ const WorkoutDetails = () => {
                     <Grid size={12}>
                         <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>{t('nav.exercises')}</Typography>
                         <Grid container spacing={2}>
-                            {workoutExercises.map((we) => {
-                                const exercise = exercises.find(ex => ex.id === we.exerciseId);
-                                const exStats = we.sets.reduce((acc, s) => ({
-                                    volume: acc.volume + ((s.weight ?? 0) * (s.reps ?? 0)),
-                                    reps: acc.reps + (s.reps ?? 0)
-                                }), { volume: 0, reps: 0 });
-                                
-                                return (
-                                    <Grid size={12} key={we.exerciseId}>
-                                        <Paper sx={{ p: 0 }}>
-                                            <List sx={{ p: 0 }}>
-                                                <ListItem 
-                                                    component={RouterLink} 
-                                                    to={`/exercises/${we.exerciseId}`}
-                                                    sx={{ 
-                                                        textDecoration: 'none', 
-                                                        color: 'inherit',
-                                                        '&:hover': { bgcolor: 'action.hover' },
-                                                        p: 2
-                                                    }}
-                                                >
-                                                    <ListItemAvatar sx={{ mr: 1 }}>
-                                                        <Avatar
-                                                            src={exercise?.icon_url ? `${import.meta.env.BASE_URL}exercises/${exercise.icon_url ?? ''}` : undefined}
-                                                            sx={{ width: 48, height: 48 }}
-                                                        >
-                                                            {exercise?.name.charAt(0)}
-                                                        </Avatar>
-                                                    </ListItemAvatar>
-                                                    <ListItemText 
-                                                        primary={<Typography variant="h6">{exercise?.name ?? t('journal.unknownExercise')}</Typography>}
-                                                        secondary={`${t('journal.totalVolume')}: ${formatNumber(exStats.volume)} kg • ${t('journal.reps')}: ${String(exStats.reps)}`}
-                                                    />
-                                                </ListItem>
-                                            </List>
-                                            
-                                            <Box sx={{ p: 2, pt: 0 }}>
-                                                {we.note && (
-                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1, borderLeft: '2px solid', borderColor: 'primary.main' }}>
-                                                        {we.note}
-                                                    </Typography>
-                                                )}
-
-                                                <Box sx={{ pl: { xs: 0, sm: 1 } }}>
-                                                    <Grid container spacing={2} sx={{ fontWeight: 'bold', mb: 1, color: 'text.secondary', display: { xs: 'none', sm: 'flex' } }}>
-                                                        <Grid size={1}>{t('journal.set')}</Grid>
-                                                        <Grid size={2.5}>{t('journal.weight')}</Grid>
-                                                        <Grid size={2.5}>{t('journal.reps')}</Grid>
-                                                        <Grid size={3}>{t('exercises.estimated1RM')}</Grid>
-                                                        <Grid size={3}>{t('journal.notes')}</Grid>
-                                                    </Grid>
-                                                    {we.sets.map((set, idx) => {
-                                                        const oneRM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
-                                                        const isPR = oneRM > 0 && oneRM > stats.prs[we.exerciseId];
-                                                        
-                                                        return (
-                                                            <Box key={set.id}>
-                                                                <Divider sx={{ my: 1, display: { xs: 'block', sm: 'none' } }} />
-                                                                <Grid container spacing={2} sx={{ alignItems: 'center', py: 0.5 }}>
-                                                                    <Grid size={{ xs: 12, sm: 1 }}>
-                                                                        <Typography variant="body2" sx={{ fontWeight: { xs: 'bold', sm: 'normal' } }}>
-                                                                            {idx + 1}
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                    <Grid size={{ xs: 6, sm: 2.5 }}>
-                                                                        <Typography variant="body1">
-                                                                            <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('journal.weight')}:</Box>
-                                                                            {formatWeight(set.weight ?? 0)}
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                    <Grid size={{ xs: 6, sm: 2.5 }}>
-                                                                        <Typography variant="body1">
-                                                                            <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('journal.reps')}:</Box>
-                                                                            {formatCount(set.reps ?? 0)}
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                    <Grid size={{ xs: 12, sm: 3 }}>
-                                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                            <Typography variant="body1" sx={{ fontWeight: isPR ? 'bold' : 'normal', color: isPR ? 'primary.main' : 'inherit' }}>
-                                                                                <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>{t('exercises.estimated1RM')}:</Box>
-                                                                                {oneRM > 0 ? `${formatNumber(oneRM, 1)} kg` : '-'}
-                                                                            </Typography>
-                                                                            {isPR && (
-                                                                                <Tooltip title={t('journal.newPersonalRecord')}>
-                                                                                    <Chip 
-                                                                                        label={t('journal.personalRecordBadge')} 
-                                                                                        size="small" 
-                                                                                        color="primary" 
-                                                                                        icon={<TrendingUpIcon />} 
-                                                                                        sx={{ height: 20, '& .MuiChip-label': { px: 1, fontSize: '0.65rem' } }} 
-                                                                                    />
-                                                                                </Tooltip>
-                                                                            )}
-                                                                        </Box>
-                                                                    </Grid>
-                                                                    <Grid size={{ xs: 12, sm: 3 }}>
-                                                                        {set.notes && (
-                                                                            <Typography variant="body2" color="text.secondary">
-                                                                                <Box component="span" sx={{ display: { sm: 'none' }, fontWeight: 'bold', mr: 1 }}>{t('journal.notes')}:</Box>
-                                                                                {set.notes}
-                                                                            </Typography>
-                                                                        )}
-                                                                    </Grid>
-                                                                </Grid>
-                                                            </Box>
-                                                        );
-                                                    })}
+                            {exerciseBlocks.map((block: SupersetGroup<WorkoutExercise>, blockIdx: number) => {
+                                if (block.isSuperset) {
+                                    return (
+                                        <Grid size={12} key={`superset-${block.supersetId ?? String(blockIdx)}`}>
+                                            <Paper
+                                                variant="outlined"
+                                                sx={{
+                                                    p: { xs: 1.5, sm: 2 },
+                                                    borderLeft: '4px solid',
+                                                    borderColor: 'primary.main',
+                                                    bgcolor: 'action.hover',
+                                                    borderRadius: 2
+                                                }}
+                                            >
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                                                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                                                        <Chip
+                                                            icon={<LinkIcon fontSize="small" />}
+                                                            label={t('supersets.supersetTitle', { letter: block.letter })}
+                                                            size="small"
+                                                            color="primary"
+                                                            sx={{ fontWeight: 'bold' }}
+                                                        />
+                                                        {block.note && (
+                                                            <Typography
+                                                                variant="body2"
+                                                                sx={{ color: 'text.secondary', fontStyle: 'italic' }}
+                                                            >
+                                                                &ldquo;{block.note}&rdquo;
+                                                            </Typography>
+                                                        )}
+                                                    </Stack>
                                                 </Box>
-                                            </Box>
-                                        </Paper>
+
+                                                {block.items.map(({ item, tag }) => renderExerciseCard(item, tag))}
+                                            </Paper>
+                                        </Grid>
+                                    );
+                                }
+
+                                const { item } = block.items[0];
+                                return (
+                                    <Grid size={12} key={item.exerciseId}>
+                                        {renderExerciseCard(item)}
                                     </Grid>
                                 );
                             })}

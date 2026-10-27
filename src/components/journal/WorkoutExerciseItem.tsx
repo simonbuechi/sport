@@ -12,6 +12,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Tooltip from '@mui/material/Tooltip';
+import Chip from '@mui/material/Chip';
 
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -19,6 +20,8 @@ import CommentIcon from '@mui/icons-material/Comment';
 import CommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import LinkIcon from '@mui/icons-material/Link';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
 import WorkoutSetItem from './WorkoutSetItem';
 import { useTranslation } from 'react-i18next';
 
@@ -37,6 +40,10 @@ interface WorkoutExerciseItemProps {
     isFirst?: boolean;
     isLast?: boolean;
     previousExercise?: WorkoutExercise;
+    supersetTag?: string;
+    isInsideSuperset?: boolean;
+    onLinkWithNext?: () => void;
+    onUnlinkSuperset?: () => void;
 }
 
 const WorkoutExerciseItem = ({
@@ -51,7 +58,11 @@ const WorkoutExerciseItem = ({
     onMoveDown,
     isFirst,
     isLast,
-    previousExercise
+    previousExercise,
+    supersetTag,
+    isInsideSuperset,
+    onLinkWithNext,
+    onUnlinkSuperset
 }: WorkoutExerciseItemProps) => {
     const { t } = useTranslation();
     const [noteEditingSetId, setNoteEditingSetId] = useState<string | null>(null);
@@ -77,6 +88,14 @@ const WorkoutExerciseItem = ({
                             }
                         }}
                     >
+{supersetTag && (
+                            <Chip
+                                label={supersetTag}
+                                size="small"
+                                color="primary"
+                                sx={{ height: 24, fontWeight: 700, fontSize: "0.8rem", mr: 0.5 }}
+                            />
+                        )}
                         <Avatar
                             src={exercise?.icon_url ?
                                 `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
@@ -126,6 +145,19 @@ const WorkoutExerciseItem = ({
                             </IconButton>
                         </span>
                     </Tooltip>
+{isInsideSuperset ? (
+                        <Tooltip title={t("supersets.unlink")} arrow>
+                            <IconButton size="small" onClick={onUnlinkSuperset} sx={{ ml: 0.5 }}>
+                                <LinkOffIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    ) : onLinkWithNext ? (
+                        <Tooltip title={t("supersets.groupWithNext")} arrow>
+                            <IconButton size="small" onClick={onLinkWithNext} color="primary" sx={{ ml: 0.5 }}>
+                                <LinkIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    ) : null}
                     <Tooltip title={t('journal.removeExercise')} arrow>
                         <IconButton 
                             size="small" 

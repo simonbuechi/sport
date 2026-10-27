@@ -39,8 +39,8 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const [entries, setEntries] = useState<Workout[]>([]);
     const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
     const [programs, setPrograms] = useState<Program[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [programsLoading, setProgramsLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(currentUser));
+    const [programsLoading, setProgramsLoading] = useState(Boolean(currentUser));
     const [currentLimit, setCurrentLimit] = useState(10);
     const [hasMore, setHasMore] = useState(true);
 
@@ -100,6 +100,9 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             uid,
             (data) => {
                 setPrograms(data);
+                setProgramsLoading(false);
+            },
+            () => {
                 setProgramsLoading(false);
             }
         );

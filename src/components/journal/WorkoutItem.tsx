@@ -8,8 +8,11 @@ import Chip from '@mui/material/Chip';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DescriptionIcon from '@mui/icons-material/Description';
+import LinkIcon from '@mui/icons-material/Link';
 import { useNavigate } from 'react-router-dom';
 import { formatWeight } from '../../utils/format';
+import { groupExercisesIntoBlocks, type SupersetGroup } from '../../utils/supersetUtils';
+import type { WorkoutExercise } from '../../types';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Workout, Exercise } from '../../types';
@@ -52,12 +55,27 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
         return filteredParts.length > 0 ? filteredParts.join(', ') : t('journal.workout');
     }, [entry.exercises, exerciseMap, t]);
 
+    const exerciseBlocks = useMemo<SupersetGroup<WorkoutExercise>[]>(() => groupExercisesIntoBlocks<WorkoutExercise>(entry.exercises), [entry.exercises]);
+
+    const numSupersets = useMemo(() => {
+        return exerciseBlocks.filter(b => b.isSuperset).length;
+    }, [exerciseBlocks]);
+
     const exerciseNames = useMemo(() => {
-        return entry.exercises
-            .map(ex => exerciseMap[ex.exerciseId]?.name)
+        return exerciseBlocks
+            .map((b: SupersetGroup<WorkoutExercise>) => {
+                if (b.isSuperset) {
+                    const names = b.items
+                        .map(item => exerciseMap[item.item.exerciseId]?.name)
+                        .filter(Boolean)
+                        .join(' + ');
+                    return `[${b.label ?? 'Superset'}: ${names}]`;
+                }
+                return exerciseMap[b.items[0].item.exerciseId]?.name;
+            })
             .filter(Boolean)
             .join(' • ');
-    }, [entry.exercises, exerciseMap]);
+    }, [exerciseBlocks, exerciseMap]);
 
 
     return (
@@ -120,6 +138,15 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
 
             {entry.exercises.length > 0 && (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mt: 1 }}>
+                    {numSupersets > 0 && (
+                        <Chip
+                            size="small"
+                            icon={<LinkIcon sx={{ fontSize: '13px !important' }} />}
+                            label={`${String(numSupersets)} ${t('supersets.superset')}`}
+                            variant="outlined"
+                            color="secondary"
+                        />
+                    )}
                     <Chip size="small" label={t('journal.exercisesCount', { count: stats.numEx })} variant="outlined" color="primary" />
                     <Chip size="small" label={t('journal.setsCount', { count: stats.totalSets })} variant="outlined" color="primary" />
                     <Chip size="small" label={t('journal.repsCount', { count: stats.totalReps })} variant="outlined" color="primary" />

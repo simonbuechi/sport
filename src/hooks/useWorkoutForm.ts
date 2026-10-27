@@ -7,6 +7,7 @@ import { useUserProfile } from './useUserProfile';
 import { createWorkout, updateWorkout } from '../services/db';
 import type { Workout, Exercise, SessionType, WorkoutExercise, ExerciseSet } from '../types';
 import { getDefaultDateTime } from '../utils/format';
+import { linkWithNext, unlinkFromSuperset, updateSupersetNote } from '../utils/supersetUtils';
 
 interface WorkoutFormDraft {
     date: string;
@@ -136,10 +137,14 @@ export const useWorkoutForm = (id?: string) => {
             const initialExercises: WorkoutExercise[] = queryTemplate?.exercises ? queryTemplate.exercises.map(te => ({
                 exerciseId: te.exerciseId,
                 note: te.note,
+                supersetId: te.supersetId,
+                supersetNote: te.supersetNote,
                 sets: te.sets?.map(s => ({
                     id: crypto.randomUUID(),
                     weight: s.weight ?? undefined,
                     reps: s.reps ?? undefined,
+                    rpe: s.rpe ?? undefined,
+                    rir: s.rir ?? undefined,
                     notes: s.notes ?? ''
                 })) ?? []
             })) : [];
@@ -267,7 +272,9 @@ export const useWorkoutForm = (id?: string) => {
                 initialSets = [{
                     id: crypto.randomUUID(),
                     weight: prevEx.sets[0].weight,
-                    reps: prevEx.sets[0].reps
+                    reps: prevEx.sets[0].reps,
+                    rpe: prevEx.sets[0].rpe,
+                    rir: prevEx.sets[0].rir
                 }];
             }
         }
@@ -279,7 +286,12 @@ export const useWorkoutForm = (id?: string) => {
     }, [sessionExercises, autoFillFromLast, previousExercisesMap]);
 
     const handleRemoveExercise = useCallback((exerciseId: string) => {
-        setWorkoutExercises(prev => prev.filter(se => se.exerciseId !== exerciseId));
+        setWorkoutExercises(prev => {
+            const idx = prev.findIndex(se => se.exerciseId === exerciseId);
+            if (idx === -1) return prev;
+            const unlinked = unlinkFromSuperset(prev, idx);
+            return unlinked.filter(se => se.exerciseId !== exerciseId);
+        });
     }, []);
 
     const handleAddSet = useCallback((exerciseId: string) => {
@@ -296,7 +308,9 @@ export const useWorkoutForm = (id?: string) => {
                         newSet = {
                             ...newSet,
                             weight: prevSet.weight,
-                            reps: prevSet.reps
+                            reps: prevSet.reps,
+                            rpe: prevSet.rpe,
+                            rir: prevSet.rir
                         };
                     }
                 }
@@ -353,16 +367,32 @@ export const useWorkoutForm = (id?: string) => {
             const mappedExercises: WorkoutExercise[] = template.exercises.map(te => ({
                 exerciseId: te.exerciseId,
                 note: te.note,
+                supersetId: te.supersetId,
+                supersetNote: te.supersetNote,
                 sets: te.sets?.map(s => ({
                     id: crypto.randomUUID(),
                     weight: s.weight ?? undefined,
                     reps: s.reps ?? undefined,
+                    rpe: s.rpe ?? undefined,
+                    rir: s.rir ?? undefined,
                     notes: s.notes ?? ''
                 })) ?? []
             }));
             setWorkoutExercises(mappedExercises);
         }
     };
+
+    const handleLinkWithNext = useCallback((index: number) => {
+        setWorkoutExercises(prev => linkWithNext(prev, index));
+    }, []);
+
+    const handleUnlinkSuperset = useCallback((index: number) => {
+        setWorkoutExercises(prev => unlinkFromSuperset(prev, index));
+    }, []);
+
+    const handleUpdateSupersetNote = useCallback((supersetId: string, note: string) => {
+        setWorkoutExercises(prev => updateSupersetNote(prev, supersetId, note));
+    }, []);
 
     const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -374,7 +404,7 @@ export const useWorkoutForm = (id?: string) => {
 
             const filteredExercises = sessionExercises.map(se => ({
                 ...se,
-                sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || (s.notes && s.notes.trim() !== ''))
+                sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || s.rpe !== undefined || s.rir !== undefined || (s.notes && s.notes.trim() !== ''))
             }));
 
             const entryData: Omit<Workout, 'id' | 'userId'> = {
@@ -445,6 +475,9 @@ export const useWorkoutForm = (id?: string) => {
         handleUpdateSet,
         handleUpdateExerciseNote,
         handleMoveExercise,
+        handleLinkWithNext,
+        handleUnlinkSuperset,
+        handleUpdateSupersetNote,
         handleTemplateChange,
         handleSubmit,
         previousExercisesMap,

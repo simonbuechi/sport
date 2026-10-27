@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CustomThemeProvider } from './context/ThemeContext';
 import { ExercisesProvider } from './context/ExercisesContext';
@@ -37,7 +37,7 @@ function App() {
             <CustomThemeProvider>
               <ExercisesProvider>
                 <WorkoutsProvider>
-                  <Router basename="/">
+                  <Router>
                     <Routes>
                       <Route path="/" element={<Layout />}>
                       <Route path="login" element={<Auth />} />
@@ -56,8 +56,10 @@ function App() {
                         <Route path="profile/body/history" element={<WeightHistory />} />
                         <Route path="profile/stats" element={<Profile />} />
                         <Route path="routines" element={<Routines />} />
+                        <Route path="routines/programs" element={<Routines />} />
+                        <Route path="routines/templates" element={<Routines />} />
                         <Route path="journal" element={<Journal />} />
-                        <Route path="journal/templates" element={<Navigate to="/routines?tab=templates" replace />} />
+                        <Route path="journal/templates" element={<Navigate to="/routines/templates" replace />} />
                         <Route path="journal/new" element={<WorkoutForm />} />
                         <Route path="journal/:id" element={<WorkoutDetails />} />
                         <Route path="journal/:id/edit" element={<WorkoutForm />} />

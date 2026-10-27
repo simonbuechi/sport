@@ -28,7 +28,7 @@ const Navbar = () => {
 
     const pages = [
         { title: t('nav.exercises'), path: '/exercises' },
-        { title: t('nav.routines'), path: '/routines' },
+        { title: t('nav.routines'), path: '/routines/programs' },
         { title: t('nav.journal'), path: '/journal' },
         { title: t('nav.profile'), path: '/profile' }
     ];

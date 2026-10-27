@@ -59,7 +59,7 @@ Top-level document representing the user's profile and body metrics.
 | `weights` | `array<WeightEntry>` | No | Historical weight records (sorted by date) | See below |
 | `measurements` | `array<MeasurementEntry>`| No | Body circumference measurements | See below |
 | `markedExercises` | `map<string, MarkedStatus>` | No | Favorites / notes keyed by `exerciseId` | `{"bench-press": {"favorite": true}}` |
-| `settings` | `map` | No | User app preferences | `{"theme": "system", "autoFillSets": true}` |
+| `settings` | `map` | No | User app preferences | `{"theme": "system", "autoFillSets": true, "enableExertionTracking": true, "exertionMode": "rpe", "enableSupersets": true}` |
 | `updatedAt` | `string` | No | ISO timestamp of last update | `"2026-09-29T18:00:00.000Z"` |
 
 #### Sub-object: `WeightEntry`
@@ -127,11 +127,31 @@ Represents completed workout sessions logged by either Web or Android app.
 {
   exerciseId: string;     // References /exercises/{exerciseId}
   note?: string;          // Exercise-specific note
+  supersetId?: string;    // Optional UUID grouping exercises into a superset
+  supersetNote?: string;  // Optional guidance/note for the superset group
   sets: Array<{
     id: string;           // Set identifier (UUID)
     weight?: number;      // in kg
     reps?: number;        // repetition count
-    notes?: string;       // set notes (e.g. "RPE 8")
+    notes?: string;       // set notes
+    rpe?: number;         // Rate of perceived exertion (e.g. 8.5)
+    rir?: number;         // Reps in reserve (e.g. 1.5)
+  }>;
+}
+```
+
+#### Sub-object: `TemplateExercise`
+```typescript
+{
+  exerciseId: string;     // References /exercises/{exerciseId}
+  note?: string;          // Exercise-specific note
+  supersetId?: string;    // Optional UUID grouping exercises into a superset
+  supersetNote?: string;  // Optional guidance/note for the superset group
+  sets?: Array<{
+    id: string;
+    weight?: number;
+    reps?: number;
+    notes?: string;
   }>;
 }
 ```

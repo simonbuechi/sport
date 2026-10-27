@@ -6,6 +6,9 @@ import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from 'react-i18next';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { calculateExertionValues, getDisplayedExertion } from '../../utils/exertionUtils';
 
 export interface SetDialogData {
     tid: string;
@@ -13,6 +16,8 @@ export interface SetDialogData {
     setIdx?: number;
     weight: number | undefined;
     reps: number | undefined;
+    rpe?: number;
+    rir?: number;
     count: number;
 }
 
@@ -33,6 +38,12 @@ const TemplateSetDialog = ({
     data,
     setData
 }: TemplateSetDialogProps) => {
+    const { t } = useTranslation();
+    const { profile } = useUserProfile();
+    const isExertionEnabled = Boolean(profile?.settings?.enableExertionTracking);
+    const exertionMode = profile?.settings?.exertionMode ?? 'rpe';
+    const exertionValue = data ? (getDisplayedExertion(data, exertionMode) ?? '') : '';
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
             <DialogTitle>{data?.setIdx !== undefined ? 'Edit Set' : 'Add Set(s)'}</DialogTitle>
@@ -52,6 +63,27 @@ const TemplateSetDialog = ({
                         value={data?.reps ?? ''}
                         onChange={(e) => { setData(prev => prev ? { ...prev, reps: e.target.value === '' ? undefined : Number(e.target.value) } : null); }}
                     />
+                    {isExertionEnabled && (
+                        <TextField
+                            label={exertionMode === 'rpe' ? t('exertion.labelRpe') : t('exertion.labelRir')}
+                            type="number"
+                            slotProps={{ htmlInput: { step: 0.5, min: 0, max: 10 } }}
+                            placeholder={exertionMode === 'rpe' ? t('exertion.placeholderRpe') : t('exertion.placeholderRir')}
+                            helperText={exertionMode === 'rpe' ? t('exertion.rpeFull') : t('exertion.rirFull')}
+                            fullWidth
+                            value={exertionValue}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                const num = val === '' || Number.isNaN(Number(val)) ? undefined : Number(val);
+                                const calculated = calculateExertionValues(num, exertionMode);
+                                setData(prev => prev ? {
+                                    ...prev,
+                                    rpe: calculated.rpe,
+                                    rir: calculated.rir
+                                } : null);
+                            }}
+                        />
+                    )}
                     {data?.setIdx === undefined && (
                         <TextField
                             label="Number of Sets"

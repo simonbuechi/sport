@@ -14,6 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import { createTemplate, updateTemplate, deleteTemplate } from '../../services/db';
+import { linkWithNext, unlinkFromSuperset, updateSupersetNote } from '../../utils/supersetUtils';
 import type { TrainingTemplate, Exercise } from '../../types';
 import TemplateDialog, { type TemplateFormData } from './TemplateDialog';
 import TemplateSetDialog, { type SetDialogData } from './TemplateSetDialog';
@@ -101,7 +102,8 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         const template = templatesRef.current.find(t => t.id === templateId);
         if (!template) return;
 
-        const newExercises = template.exercises.filter((_, i) => i !== index);
+        const unlinked = unlinkFromSuperset(template.exercises, index);
+        const newExercises = unlinked.filter((_, i) => i !== index);
         const updatedTemplate = { ...template, exercises: newExercises };
 
 
@@ -126,6 +128,42 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
             await updateTemplate(userId, templateId, updatedTemplate);
         } catch (err) {
             console.error('Failed to update note:', err);
+        }
+    }, [userId]);
+
+    const handleLinkSuperset = useCallback(async (templateId: string, index: number) => {
+        const template = templatesRef.current.find(t => t.id === templateId);
+        if (!template) return;
+        const newExercises = linkWithNext(template.exercises, index);
+        const updatedTemplate = { ...template, exercises: newExercises };
+        try {
+            await updateTemplate(userId, templateId, updatedTemplate);
+        } catch (err) {
+            console.error("Failed to link superset:", err);
+        }
+    }, [userId]);
+
+    const handleUnlinkSuperset = useCallback(async (templateId: string, index: number) => {
+        const template = templatesRef.current.find(t => t.id === templateId);
+        if (!template) return;
+        const newExercises = unlinkFromSuperset(template.exercises, index);
+        const updatedTemplate = { ...template, exercises: newExercises };
+        try {
+            await updateTemplate(userId, templateId, updatedTemplate);
+        } catch (err) {
+            console.error("Failed to unlink superset:", err);
+        }
+    }, [userId]);
+
+    const handleUpdateSupersetNote = useCallback(async (templateId: string, supersetId: string, note: string) => {
+        const template = templatesRef.current.find(t => t.id === templateId);
+        if (!template) return;
+        const newExercises = updateSupersetNote(template.exercises, supersetId, note);
+        const updatedTemplate = { ...template, exercises: newExercises };
+        try {
+            await updateTemplate(userId, templateId, updatedTemplate);
+        } catch (err) {
+            console.error("Failed to update superset note:", err);
         }
     }, [userId]);
 
@@ -156,6 +194,8 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
             setIdx,
             weight: existingSet?.weight,
             reps: existingSet?.reps,
+            rpe: existingSet?.rpe,
+            rir: existingSet?.rir,
             count: 1
         });
         setIsSetDialogOpen(true);
@@ -163,7 +203,7 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
 
     const handleSaveSet = async () => {
         if (!setDialogData) return;
-        const { tid, exerciseIdx, setIdx, weight, reps, count } = setDialogData;
+        const { tid, exerciseIdx, setIdx, weight, reps, rpe, rir, count } = setDialogData;
 
         const template = templatesRef.current.find(t => t.id === tid);
         if (!template) return;
@@ -173,13 +213,15 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
         const newSets = [...(exercise.sets ?? [])];
 
         if (setIdx !== undefined) {
-            newSets[setIdx] = { ...newSets[setIdx], weight, reps };
+            newSets[setIdx] = { ...newSets[setIdx], weight, reps, rpe, rir };
         } else {
             for (let i = 0; i < count; i++) {
                 newSets.push({
                     id: crypto.randomUUID(),
                     weight,
-                    reps
+                    reps,
+                    rpe,
+                    rir
                 });
             }
         }
@@ -377,6 +419,9 @@ const TemplatesSection = ({ userId, exercises, onBack }: TemplatesSectionProps) 
                                 onInlineUpdateNote={handleInlineUpdateNote}
                                 onMoveExercise={handleMoveExercise}
                                 onOpenSetDialog={handleOpenSetDialog}
+                                onLinkSuperset={handleLinkSuperset}
+                                onUnlinkSuperset={handleUnlinkSuperset}
+                                onUpdateSupersetNote={handleUpdateSupersetNote}
                             />
                         </Grid>
                     ))}

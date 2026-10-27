@@ -1,5 +1,7 @@
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
@@ -12,22 +14,31 @@ import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Stack from '@mui/material/Stack';
+import LinkIcon from '@mui/icons-material/Link';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { SessionType } from '../types';
+import type { SessionType, WorkoutExercise } from '../types';
+import { groupExercisesIntoBlocks, type SupersetGroup } from '../utils/supersetUtils';
 import WorkoutExerciseItem from '../components/journal/WorkoutExerciseItem';
 import PageLoader from '../components/common/PageLoader';
 import { sortTemplates } from '../utils/workoutUtils';
 import { useWorkoutForm } from '../hooks/useWorkoutForm';
+import { useUserProfile } from '../hooks/useUserProfile';
 import { useTranslation } from 'react-i18next';
 
 const SESSION_TYPES: SessionType[] = ['strength', 'cardio', 'flexibility', 'other'];
 
 const WorkoutForm = () => {
     const { t } = useTranslation();
+    const { profile } = useUserProfile();
+    const isSupersetsEnabled = profile?.settings?.enableSupersets ?? true;
+
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
@@ -55,11 +66,23 @@ const WorkoutForm = () => {
         handleUpdateSet,
         handleUpdateExerciseNote,
         handleMoveExercise,
+        handleLinkWithNext,
+        handleUnlinkSuperset,
+        handleUpdateSupersetNote,
         handleTemplateChange,
         handleSubmit,
         previousExercisesMap,
         DRAFT_KEY
     } = useWorkoutForm(id);
+
+    const [editingSupersetId, setEditingSupersetId] = useState<string | null>(null);
+    const [tempSupersetNote, setTempSupersetNote] = useState('');
+
+    const exerciseBlocks = useMemo<SupersetGroup<WorkoutExercise>[]>(
+        () => groupExercisesIntoBlocks<WorkoutExercise>(sessionExercises),
+        [sessionExercises]
+    );
+
 
     if (loading || (exercisesLoading && exercises.length === 0) || profileLoading) return (
         <PageLoader />
@@ -221,7 +244,128 @@ const WorkoutForm = () => {
                                     </Grid>
                                 </Grid>
 
-                                {sessionExercises.map((se, index) => {
+                                {exerciseBlocks.map((block: SupersetGroup<WorkoutExercise>, blockIdx: number) => {
+                                    if (block.isSuperset) {
+                                        return (
+                                            <Paper
+                                                key={`superset-${block.supersetId ?? String(blockIdx)}`}
+                                                variant="outlined"
+                                                sx={{
+                                                    p: { xs: 1.5, sm: 2 },
+                                                    mb: { xs: 2, sm: 3 },
+                                                    borderLeft: '4px solid',
+                                                    borderColor: 'primary.main',
+                                                    bgcolor: 'action.hover',
+                                                    borderRadius: 2
+                                                }}
+                                            >
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                                                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                                                        <Chip
+                                                            icon={<LinkIcon fontSize="small" />}
+                                                            label={t('supersets.supersetTitle', { letter: block.letter })}
+                                                            size="small"
+                                                            color="primary"
+                                                            sx={{ fontWeight: 'bold' }}
+                                                        />
+                                                        {block.note && editingSupersetId !== block.supersetId && (
+                                                            <Typography
+                                                                variant="body2"
+                                                                sx={{ color: 'text.secondary', fontStyle: 'italic', cursor: 'pointer' }}
+                                                                onClick={() => {
+                                                                    setEditingSupersetId(block.supersetId ?? null);
+                                                                    setTempSupersetNote(block.note ?? '');
+                                                                }}
+                                                            >
+                                                                &ldquo;{block.note}&rdquo;
+                                                            </Typography>
+                                                        )}
+                                                    </Stack>
+                                                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                                                        <Tooltip title={block.note ? t('supersets.editNote') : t('supersets.addNote')}>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => {
+                                                                    setEditingSupersetId(block.supersetId ?? null);
+                                                                    setTempSupersetNote(block.note ?? '');
+                                                                }}
+                                                            >
+                                                                <NoteAddIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title={t('supersets.unlink')}>
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => {
+                                                                    block.items.forEach(item => {
+                                                                        handleUnlinkSuperset(item.originalIndex);
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <LinkOffIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Stack>
+                                                </Box>
+
+                                                {editingSupersetId === block.supersetId && (
+                                                    <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+                                                        <TextField
+                                                            size="small"
+                                                            fullWidth
+                                                            placeholder={t('supersets.notePlaceholder')}
+                                                            value={tempSupersetNote}
+                                                            onChange={(e) => { setTempSupersetNote(e.target.value); }}
+                                                        />
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => {
+                                                                if (block.supersetId) {
+                                                                    handleUpdateSupersetNote(block.supersetId, tempSupersetNote);
+                                                                }
+                                                                setEditingSupersetId(null);
+                                                            }}
+                                                        >
+                                                            {t('common.save')}
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            onClick={() => { setEditingSupersetId(null); }}
+                                                        >
+                                                            {t('common.cancel')}
+                                                        </Button>
+                                                    </Box>
+                                                )}
+
+                                                {block.items.map(({ item: se, originalIndex, tag }) => {
+                                                    const exercise = exercises.find(ex => ex.id === se.exerciseId);
+                                                    return (
+                                                        <WorkoutExerciseItem
+                                                            key={se.exerciseId}
+                                                            sessionExercise={se}
+                                                            exercise={exercise}
+                                                            onRemoveExercise={handleRemoveExercise}
+                                                            onAddSet={handleAddSet}
+                                                            onUpdateSet={handleUpdateSet}
+                                                            onRemoveSet={handleRemoveSet}
+                                                            onUpdateExerciseNote={handleUpdateExerciseNote}
+                                                            onMoveUp={() => { handleMoveExercise(originalIndex, 'up'); }}
+                                                            onMoveDown={() => { handleMoveExercise(originalIndex, 'down'); }}
+                                                            isFirst={originalIndex === 0}
+                                                            isLast={originalIndex === sessionExercises.length - 1}
+                                                            previousExercise={previousExercisesMap[se.exerciseId]}
+                                                            supersetTag={tag}
+                                                            isInsideSuperset={true}
+                                                            onUnlinkSuperset={() => { handleUnlinkSuperset(originalIndex); }}
+                                                        />
+                                                    );
+                                                })}
+                                            </Paper>
+                                        );
+                                    }
+
+                                    const { item: se, originalIndex } = block.items[0];
                                     const exercise = exercises.find(ex => ex.id === se.exerciseId);
                                     return (
                                         <WorkoutExerciseItem
@@ -233,15 +377,16 @@ const WorkoutForm = () => {
                                             onUpdateSet={handleUpdateSet}
                                             onRemoveSet={handleRemoveSet}
                                             onUpdateExerciseNote={handleUpdateExerciseNote}
-                                            onMoveUp={() => { handleMoveExercise(index, 'up'); }}
-                                            onMoveDown={() => { handleMoveExercise(index, 'down'); }}
-                                            isFirst={index === 0}
-                                            isLast={index === sessionExercises.length - 1}
+                                            onMoveUp={() => { handleMoveExercise(originalIndex, 'up'); }}
+                                            onMoveDown={() => { handleMoveExercise(originalIndex, 'down'); }}
+                                            isFirst={originalIndex === 0}
+                                            isLast={originalIndex === sessionExercises.length - 1}
                                             previousExercise={previousExercisesMap[se.exerciseId]}
+                                            isInsideSuperset={false}
+                                            onLinkWithNext={isSupersetsEnabled && originalIndex < sessionExercises.length - 1 ? () => { handleLinkWithNext(originalIndex); } : undefined}
                                         />
                                     );
                                 })}
-
                                 <Box sx={{ mt: 2 }}>
                                     <Autocomplete
                                         key={sessionExercises.length}

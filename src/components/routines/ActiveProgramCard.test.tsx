@@ -123,6 +123,7 @@ describe('ActiveProgramCard', () => {
         const nextBtn = screen.getByRole('button', { name: /Next Day/i });
         await act(async () => {
             fireEvent.click(nextBtn);
+            await Promise.resolve();
         });
 
         expect(mockAdvance).toHaveBeenCalledWith(1);

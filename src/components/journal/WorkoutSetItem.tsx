@@ -104,7 +104,7 @@ const WorkoutSetItem = ({
         <Box>
             <Grid container spacing={1} sx={{ alignItems: "center", mb: 1.5, flexWrap: "nowrap" }}>
                 <Grid size="auto" sx={{ minWidth: { xs: 20, sm: 24 } }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>{index + 1}</Typography>
+                    <Typography variant="body2" color="text.secondary">{index + 1}</Typography>
                 </Grid>
                 <Grid size={isExertionEnabled ? 3 : 4}>
                     <TextField
@@ -113,13 +113,14 @@ const WorkoutSetItem = ({
                         label={index === 0 ? t('journal.weight') : ""}
                         placeholder={t('common.unitKg')}
                         type="number"
+                        slotProps={{ htmlInput: { inputMode: 'decimal', step: 'any', min: 0 } }}
                         size="small"
                         fullWidth
                         value={localWeight}
                         onChange={(e) => { setLocalWeight(e.target.value); }}
                         sx={{ 
                             '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' },
-                            '& .MuiInputBase-input': { px: { xs: 1, sm: 1.5 } }
+                            '& .MuiInputBase-input': { px: { xs: 0.75, sm: 1.5 } }
                         }}
                     />
                 </Grid>
@@ -130,13 +131,14 @@ const WorkoutSetItem = ({
                         label={index === 0 ? t('journal.reps') : ""}
                         placeholder={t('journal.reps')}
                         type="number"
+                        slotProps={{ htmlInput: { inputMode: 'numeric', min: 0 } }}
                         size="small"
                         fullWidth
                         value={localReps}
                         onChange={(e) => { setLocalReps(e.target.value); }}
                         sx={{ 
                             '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' },
-                            '& .MuiInputBase-input': { px: { xs: 1, sm: 1.5 } }
+                            '& .MuiInputBase-input': { px: { xs: 0.75, sm: 1.5 } }
                         }}
                     />
                 </Grid>
@@ -148,14 +150,14 @@ const WorkoutSetItem = ({
                             label={index === 0 ? (exertionMode === 'rpe' ? t('exertion.labelRpe') : t('exertion.labelRir')) : ""}
                             placeholder={exertionMode === 'rpe' ? t('exertion.labelRpe') : t('exertion.labelRir')}
                             type="number"
-                            slotProps={{ htmlInput: { step: 0.5, min: 0, max: 10 } }}
+                            slotProps={{ htmlInput: { inputMode: 'decimal', step: 0.5, min: 0, max: 10 } }}
                             size="small"
                             fullWidth
                             value={localExertion}
                             onChange={(e) => { setLocalExertion(e.target.value); }}
                             sx={{
                                 '& .MuiInputLabel-root': { display: index === 0 ? 'block' : 'none' },
-                                '& .MuiInputBase-input': { px: { xs: 1, sm: 1.5 } }
+                                '& .MuiInputBase-input': { px: { xs: 0.75, sm: 1.5 } }
                             }}
                         />
                     </Grid>

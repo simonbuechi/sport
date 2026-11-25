@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Container from '@mui/material/Container';
 import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -23,33 +23,40 @@ import Skeleton from '@mui/material/Skeleton';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import Search from '@mui/icons-material/Search';
 import Add from '@mui/icons-material/Add';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import { Link as RouterLink } from 'react-router-dom';
 import type { ExerciseType, ExerciseCategory, BodyPart } from '../types';
 import MarkerIcons from '../components/exercises/MarkerIcons';
+import PageHeader from '../components/common/PageHeader';
+import EmptyState from '../components/common/EmptyState';
+import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { useUserProfile } from '../context/UserProfileContext';
+import { isAdminUser } from '../constants/admin';
 import { EXERCISE_TYPES, BODY_PARTS, CATEGORIES } from '../constants/exercises';
 import { useTranslation } from 'react-i18next';
 
 const Exercises = () => {
     const { t } = useTranslation();
-    const { exercises, loading: exercisesLoading } = useExercises();
+    const { currentUser } = useAuth();
+    const isAdmin = isAdminUser(currentUser?.uid);
+    const { exercises, loading: exercisesLoading, error: exercisesError } = useExercises();
     const { profile } = useUserProfile();
     const [filter, setFilter] = useState<ExerciseType | 'all'>('all');
     const [bodypartFilter, setBodypartFilter] = useState<BodyPart | 'all'>('all');
     const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Intersection Observer for Infinite Scroll
     const observer = useRef<IntersectionObserver | null>(null);
     const [displayCount, setDisplayCount] = useState(30);
 
-    // Adjust display count when filters change (React recommendation for derived state reset)
     const [prevFilters, setPrevFilters] = useState({ filter, bodypartFilter, categoryFilter, searchTerm });
-    if (prevFilters.filter !== filter || 
-        prevFilters.bodypartFilter !== bodypartFilter || 
-        prevFilters.categoryFilter !== categoryFilter || 
-        prevFilters.searchTerm !== searchTerm) {
+    if (
+        prevFilters.filter !== filter ||
+        prevFilters.bodypartFilter !== bodypartFilter ||
+        prevFilters.categoryFilter !== categoryFilter ||
+        prevFilters.searchTerm !== searchTerm
+    ) {
         setDisplayCount(30);
         setPrevFilters({ filter, bodypartFilter, categoryFilter, searchTerm });
     }
@@ -58,28 +65,18 @@ const Exercises = () => {
         try {
             return exercises
                 .filter(exe => {
-                    // filter by type
                     if (filter !== 'all' && exe.type !== filter) return false;
-
-                    // filter by bodypart
                     if (bodypartFilter !== 'all' && exe.bodypart !== bodypartFilter) return false;
-
-                    // filter by category
                     if (categoryFilter !== 'all' && exe.category !== categoryFilter) return false;
-
-                    // filter by search term
                     if (searchTerm && !exe.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-
                     return true;
                 })
                 .sort((a, b) => {
-                    // Popular status first (desc)
                     if (a.popular && !b.popular) return -1;
                     if (!a.popular && b.popular) return 1;
-                    // Then by name (asc)
                     return a.name.localeCompare(b.name);
                 });
-        } catch (_err) {
+        } catch {
             return [];
         }
     }, [exercises, filter, bodypartFilter, categoryFilter, searchTerm]);
@@ -88,8 +85,8 @@ const Exercises = () => {
         if (exercisesLoading) return;
         if (observer.current) observer.current.disconnect();
 
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && displayCount < filteredExercises.length) {
+        observer.current = new IntersectionObserver(obsEntries => {
+            if (obsEntries[0].isIntersecting && displayCount < filteredExercises.length) {
                 setDisplayCount(prev => prev + 30);
             }
         });
@@ -101,75 +98,74 @@ const Exercises = () => {
         return filteredExercises.slice(0, displayCount);
     }, [filteredExercises, displayCount]);
 
-
-    // Profile is now handled by useUserProfile hook
-
     const loading = exercisesLoading && exercises.length === 0;
-
-
-    const renderSkeletons = () => (
-        <Stack spacing={1.5}>
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Skeleton key={i} variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
-            ))}
-        </Stack>
-    );
 
     if (loading) {
         return (
-            <Container maxWidth="lg" sx={{ mt: 4 }}>
-                <Stack spacing={2} sx={{ mb: 4 }}>
-                    <Skeleton variant="text" width="40%" height={60} />
-                    <Skeleton variant="rectangular" height={100} />
+            <Container maxWidth="lg">
+                <Skeleton variant="text" width={200} height={48} sx={{ mb: 2 }} />
+                <Skeleton variant="rectangular" height={64} sx={{ mb: 3, borderRadius: 2 }} />
+                <Stack spacing={1.5}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Skeleton key={i} variant="rectangular" height={68} sx={{ borderRadius: 2 }} />
+                    ))}
                 </Stack>
-                {renderSkeletons()}
             </Container>
         );
     }
 
+    const hasFilters = filter !== 'all' || bodypartFilter !== 'all' || categoryFilter !== 'all' || Boolean(searchTerm);
+
     return (
         <Container maxWidth="lg">
-            <Stack direction="column" spacing={{ xs: 0.5, md: 2 }} sx={{ mt: { xs: 0.5, md: 2 }, mb: { xs: 1.5, md: 4 } }}>
-                <Stack sx={{ justifyContent: "space-between" }}>
-                    <Typography variant="h4" component="h1">
-                        {t('exercises.title')}
-                    </Typography>
-                </Stack>
+            <PageHeader
+                title={t('exercises.title')}
+                actions={
+                    isAdmin ? (
+                        <Button
+                            variant="contained"
+                            startIcon={<Add />}
+                            component={RouterLink}
+                            to="/exercises/new"
+                        >
+                            {t('exercises.newExercise')}
+                        </Button>
+                    ) : undefined
+                }
+            />
 
-                <Box 
-                    sx={{ 
-                        display: 'flex', 
-                        flexDirection: { xs: 'column', sm: 'row' }, 
+            {/* Unified Filter Toolbar */}
+            <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
                         flexWrap: { xs: 'wrap', md: 'nowrap' },
-                        alignItems: { xs: 'stretch', sm: 'flex-end' }, 
-                        gap: 2 
+                        alignItems: { xs: 'stretch', sm: 'center' },
+                        gap: 1.5,
                     }}
                 >
                     <TextField
                         id="search-exercises"
                         fullWidth
                         size="small"
-                        variant="standard"
                         label={t('common.search')}
                         placeholder={t('exercises.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => { setSearchTerm(e.target.value); }}
-                        sx={{
-                            flex: { xs: '1 1 100%', sm: '1 1 200px', md: '1 1 300px' },
-                            maxWidth: { sm: '400px' }
-                        }}
+                        sx={{ flex: { xs: '1 1 100%', sm: '1 1 220px', md: '1 1 320px' } }}
                         slotProps={{
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <Search color="action" />
+                                        <Search color="action" fontSize="small" />
                                     </InputAdornment>
                                 ),
                             }
                         }}
                     />
 
-                    <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
+                    <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 6px)', sm: '1 1 140px', md: '0 0 150px' } }}>
                         <InputLabel id="type-filter-label" htmlFor="type-filter-input">{t('exercises.type')}</InputLabel>
                         <Select
                             labelId="type-filter-label"
@@ -189,7 +185,7 @@ const Exercises = () => {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
+                    <FormControl size="small" sx={{ flex: { xs: '1 1 calc(50% - 6px)', sm: '1 1 140px', md: '0 0 160px' } }}>
                         <InputLabel id="bodypart-filter-label" htmlFor="bodypart-filter-input">{t('exercises.bodyPart')}</InputLabel>
                         <Select
                             labelId="bodypart-filter-label"
@@ -206,7 +202,7 @@ const Exercises = () => {
                         </Select>
                     </FormControl>
 
-                    <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px', md: '0 0 auto' }, minWidth: 120 }}>
+                    <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '1 1 140px', md: '0 0 160px' } }}>
                         <InputLabel id="category-filter-label" htmlFor="category-filter-input">{t('exercises.category')}</InputLabel>
                         <Select
                             labelId="category-filter-label"
@@ -223,51 +219,56 @@ const Exercises = () => {
                         </Select>
                     </FormControl>
                 </Box>
-            </Stack>
+            </Paper>
+
+            {exercisesError && (
+                <Alert severity="error" sx={{ mb: 2.5 }}>
+                    {exercisesError}
+                </Alert>
+            )}
+
             {exercises.length === 0 ? (
-                <Alert 
-                    severity="info" 
-                    sx={{ mt: 4 }}
-                    action={
-                        <IconButton
-                            color="inherit"
-                            size="small"
-                            component={RouterLink}
-                            to="/exercises/new"
-                            aria-label={t('exercises.newExercise')}
-                        >
-                            <Add />
-                        </IconButton>
+                <EmptyState
+                    icon={<FitnessCenterIcon />}
+                    title={t('exercises.noExercisesInDb')}
+                    actions={
+                        isAdmin ? (
+                            <Button variant="contained" startIcon={<Add />} component={RouterLink} to="/exercises/new">
+                                {t('exercises.createFirst')}
+                            </Button>
+                        ) : undefined
                     }
-                >
-                    {t('exercises.noExercisesInDb')}{' '}
-                    <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>
-                        {t('exercises.createFirst')}
-                    </RouterLink>
-                </Alert>
+                />
             ) : displayedExercises.length === 0 ? (
-                <Alert 
-                    severity="info" 
-                    sx={{ mt: 2 }}
-                    action={
-                        <IconButton
-                            color="inherit"
-                            size="small"
-                            component={RouterLink}
-                            to="/exercises/new"
-                            aria-label={t('exercises.newExercise')}
-                        >
-                            <Add />
-                        </IconButton>
+                <EmptyState
+                    icon={<Search />}
+                    title={t('exercises.noExercisesMatch')}
+                    actions={
+                        <>
+                            {hasFilters && (
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => {
+                                        setFilter('all');
+                                        setBodypartFilter('all');
+                                        setCategoryFilter('all');
+                                        setSearchTerm('');
+                                    }}
+                                >
+                                    {t('common.clearFilters', { defaultValue: 'Clear Filters' })}
+                                </Button>
+                            )}
+                            {isAdmin && (
+                                <Button variant="contained" size="small" startIcon={<Add />} component={RouterLink} to="/exercises/new">
+                                    {t('exercises.createNewPrompt')}
+                                </Button>
+                            )}
+                        </>
                     }
-                >
-                    {t('exercises.noExercisesMatch')}{' '}
-                    <RouterLink to="/exercises/new" style={{ color: 'inherit' }}>
-                        {t('exercises.createNewPrompt')}
-                    </RouterLink>
-                </Alert>
+                />
             ) : (
-                <Paper variant="outlined">
+                <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
                     <List disablePadding>
                         {displayedExercises.map((exercise, index) => (
                             <ListItem
@@ -280,14 +281,13 @@ const Exercises = () => {
                                     textDecoration: 'none',
                                     color: 'inherit',
                                     '&:hover': { bgcolor: 'action.hover' },
-                                    py: { xs: 1.5, md: 2 }
+                                    py: 1.5,
+                                    px: { xs: 2, sm: 2.5 },
                                 }}
                             >
                                 <ListItemAvatar>
                                     <Avatar
-                                        src={exercise.icon_url ?
-                                            `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
-                                            : undefined}
+                                        src={exercise.icon_url ? `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}` : undefined}
                                         alt={exercise.name}
                                     >
                                         {exercise.name.charAt(0)}
@@ -295,7 +295,7 @@ const Exercises = () => {
                                 </ListItemAvatar>
                                 <ListItemText
                                     primary={
-                                        <Stack sx={{ flexWrap: "wrap" }} spacing={1}>
+                                        <Stack direction="row" sx={{ flexWrap: 'wrap', alignItems: 'center' }} spacing={1}>
                                             <Typography variant="body1">
                                                 {exercise.name}
                                             </Typography>
@@ -321,9 +321,7 @@ const Exercises = () => {
                                                 sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
                                             />
                                             {profile?.markedExercises?.[exercise.id] && (
-                                                <Box sx={{ ml: 1 }}>
-                                                    <MarkerIcons status={profile.markedExercises[exercise.id]} />
-                                                </Box>
+                                                <MarkerIcons status={profile.markedExercises[exercise.id]} />
                                             )}
                                         </Stack>
                                     }
@@ -334,19 +332,14 @@ const Exercises = () => {
                     </List>
                 </Paper>
             )}
+
             {displayCount < filteredExercises.length && (
-                <Stack sx={{ my: 4 }}>
-                        <CircularProgress size={32} />
-                    </Stack>
+                <Stack sx={{ my: 4, alignItems: 'center' }}>
+                    <CircularProgress size={32} />
+                </Stack>
             )}
             {displayCount >= filteredExercises.length && filteredExercises.length > 0 && (
-                <Typography
-                    variant="body2"
-                    align="center"
-                    sx={{
-                        color: "text.secondary",
-                        my: 4
-                    }}>
+                <Typography variant="body2" align="center" sx={{ color: 'text.secondary', my: 4 }}>
                     {t('exercises.endOfList')}
                 </Typography>
             )}

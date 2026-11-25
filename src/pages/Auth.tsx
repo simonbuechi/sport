@@ -88,22 +88,35 @@ const Auth = () => {
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: { xs: 4, md: 8 }, px: 2 }}>
-            <Box sx={{ mb: 4, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', px: 2 }}>
+            <Box sx={{ mb: 3.5, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1.75 }}>
                 <Box
                     component="img"
                     src={`${import.meta.env.BASE_URL}logo.webp`}
                     alt="Sport Amigo Logo"
                     sx={{
-                        width: { xs: 60, md: 80 },
-                        height: { xs: 60, md: 80 },
+                        width: { xs: 52, md: 64 },
+                        height: { xs: 52, md: 64 },
+                        objectFit: 'contain',
                     }}
                 />
-                <Typography variant="h2" component="div" sx={{ fontWeight: 900, color: 'primary.main', letterSpacing: -2, fontSize: '2.5rem' }}>
+                <Typography
+                    variant="h2"
+                    component="div"
+                    sx={{
+                        fontWeight: 700,
+                        letterSpacing: '-0.03em',
+                        fontSize: { xs: '2rem', md: '2.4rem' },
+                        background: (theme) =>
+                            `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                    }}
+                >
                     Sport Amigo
                 </Typography>
             </Box>
-            <Paper key={isLogin ? 'login' : 'register'} elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400, borderRadius: 2 }}>
+            <Paper key={isLogin ? 'login' : 'register'} sx={{ p: { xs: 3, sm: 4 }, width: '100%', maxWidth: 420 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center">
                     {isLogin ? t('auth.login') : t('auth.register')}
                 </Typography>

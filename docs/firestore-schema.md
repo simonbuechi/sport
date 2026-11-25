@@ -222,3 +222,55 @@ Structured training programs composed of multiple days referencing templates or 
 }
 ```
 
+---
+
+## 7. Global Program Library: `/program_library/{programId}`
+
+Public library of curated workout programs available for any user to browse and copy into their personal programs collection.
+
+### Security Rules
+- **Read**: Authenticated users (`request.auth != null`)
+- **Write**: Admin only (`request.auth.uid == 'Ib3y7vFU94QZbgbXB7flrrHGbtk1'`)
+
+### Schema
+| Field | Type | Required | Description | Example |
+|---|---|---|---|---|
+| `id` | `string` | Yes | Document identifier | `"ppl_hypertrophy_6day"` |
+| `name` | `string` | Yes | Display title | `"Push / Pull / Legs (PPL)"` |
+| `description` | `string` | No | Full program description | `"Classic 6-day hypertrophy routine split by movement patterns."` |
+| `type` | `string` | Yes | Program cycle type | `"repetitive" \| "one-time"` |
+| `difficulty` | `string` | No | Target experience level | `"beginner" \| "intermediate" \| "advanced"` |
+| `goal` | `string` | No | Primary training goal | `"strength" \| "hypertrophy" \| "endurance" \| "fitness" \| "mobility"` |
+| `daysPerWeek` | `number` | No | Typical workout days per week | `6` |
+| `durationDays` | `number` | No | Length of cycle / days count | `7` |
+| `days` | `array<ProgramLibraryDay>` | Yes | List of day definitions | See below |
+| `templates` | `map<string, ProgramLibraryTemplate>` | No | Template definitions keyed by templateKey | See below |
+| `author` | `string` | No | Author or creator attribution | `"Sport Amigo Team"` |
+| `createdAt` | `string` | No | Creation ISO timestamp | `"2026-11-25T10:00:00.000Z"` |
+| `updatedAt` | `string` | No | Update ISO timestamp | `"2026-11-25T10:00:00.000Z"` |
+
+#### Sub-object: `ProgramLibraryDay`
+```typescript
+{
+  id: string;             // Day UUID
+  dayNumber: number;      // 1-based index (1, 2, 3...)
+  templateKey?: string;   // Key referencing an entry in `templates` map, or omit/null for Rest Day
+  note?: string;          // Optional day note or recovery instructions
+}
+```
+
+#### Sub-object: `ProgramLibraryTemplate`
+```typescript
+{
+  name: string;           // Template name (e.g. "Push Day (Chest, Shoulders, Triceps)")
+  notes?: string;         // Optional template notes or instructions
+  exercises: Array<{
+    exerciseId?: string;  // Known exercise ID if matched
+    exerciseName?: string;// Fallback name for fuzzy/name matching
+    note?: string;
+    sets?: ExerciseSet[]; // Array of suggested sets (reps, weight, RPE/RIR)
+    supersetId?: string;
+    supersetNote?: string;
+  }>;
+}
+```

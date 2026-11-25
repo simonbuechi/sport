@@ -30,7 +30,7 @@ export function getAlphabeticalLabel(index: number): string {
  * Generates a unique superset ID.
  */
 export function generateSupersetId(): string {
-    return `ss_${String(Date.now())}_${Math.random().toString(36).substring(2, 7)}`;
+    return `ss_${crypto.randomUUID()}`;
 }
 
 /**
@@ -193,6 +193,25 @@ export function unlinkFromSuperset<T extends { supersetId?: string; supersetNote
     }
 
     return result;
+}
+
+/**
+ * Unlinks all exercises belonging to the given supersetId in a single atomic pass.
+ */
+export function unlinkEntireSuperset<T extends { supersetId?: string; supersetNote?: string }>(
+    exercises: T[],
+    supersetId: string
+): T[] {
+    if (!supersetId) return [...exercises];
+    return exercises.map(ex => {
+        if (ex.supersetId === supersetId) {
+            const copy = { ...ex };
+            delete copy.supersetId;
+            delete copy.supersetNote;
+            return copy;
+        }
+        return { ...ex };
+    });
 }
 
 /**

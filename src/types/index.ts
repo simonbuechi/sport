@@ -153,3 +153,44 @@ export interface Workout {
     exercises: WorkoutExercise[];
     templateId?: string; // Reference to /users/{userId}/templates/{templateId}
 }
+
+export type ProgramDifficulty = 'beginner' | 'intermediate' | 'advanced';
+export type ProgramGoal = 'strength' | 'hypertrophy' | 'endurance' | 'fitness' | 'mobility';
+
+export interface ProgramLibraryExercise {
+    exerciseId?: string;
+    exerciseName?: string;
+    note?: string;
+    sets?: ExerciseSet[];
+    supersetId?: string;
+    supersetNote?: string;
+}
+
+export interface ProgramLibraryTemplate {
+    name: string;
+    notes?: string;
+    exercises: ProgramLibraryExercise[];
+}
+
+export interface ProgramLibraryDay {
+    id: string;
+    dayNumber: number;
+    templateKey?: string | null;
+    note?: string;
+}
+
+export interface ProgramLibraryItem {
+    id: string;
+    name: string;
+    description?: string;
+    type: ProgramType; // 'repetitive' | 'one-time'
+    difficulty?: ProgramDifficulty;
+    goal?: ProgramGoal;
+    daysPerWeek?: number;
+    durationDays?: number;
+    days: ProgramLibraryDay[];
+    templates?: Record<string, ProgramLibraryTemplate>;
+    author?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}

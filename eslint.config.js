@@ -8,9 +8,9 @@ import jsxA11y from 'eslint-plugin-jsx-a11y'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'functions']),
+  globalIgnores(['dist', 'functions/lib', 'functions/node_modules']),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}', '*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       ...tseslint.configs.strictTypeChecked,
@@ -56,14 +56,39 @@ export default defineConfig([
         'error',
         {
           checksVoidReturn: {
-            attributes: false, // Prevents errors in React components for async handlers
+            attributes: false,
           },
         },
       ],
-      // Professional rules
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'error',
       'react-hooks/set-state-in-effect': 'warn'
+    },
+  },
+  {
+    files: ['functions/src/**/*.ts'],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.node,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 ])

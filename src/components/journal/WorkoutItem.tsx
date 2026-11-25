@@ -1,4 +1,4 @@
-import { memo, forwardRef } from 'react';
+import { memo, forwardRef, useMemo } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -10,12 +10,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DescriptionIcon from '@mui/icons-material/Description';
 import LinkIcon from '@mui/icons-material/Link';
 import { useNavigate } from 'react-router-dom';
-import { formatWeight } from '../../utils/format';
+import { formatWeight, parseLocalDate } from '../../utils/format';
+import { summarizeExerciseSets } from '../../utils/fitness';
 import { groupExercisesIntoBlocks, type SupersetGroup } from '../../utils/supersetUtils';
-import type { WorkoutExercise } from '../../types';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Workout, Exercise } from '../../types';
+import type { Workout, Exercise, WorkoutExercise } from '../../types';
 
 interface WorkoutItemProps {
     entry: Workout;
@@ -37,9 +36,16 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
 
     const stats = useMemo(() => {
         const numEx = entry.exercises.length;
-        const totalSets = entry.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-        const totalReps = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + (s.reps ?? 0), 0), 0);
-        const totalVolume = entry.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + ((s.weight ?? 0) * (s.reps ?? 0)), 0), 0);
+        let totalSets = 0;
+        let totalReps = 0;
+        let totalVolume = 0;
+
+        for (const ex of entry.exercises) {
+            totalSets += ex.sets.length;
+            const summary = summarizeExerciseSets(ex.sets);
+            totalReps += summary.totalReps;
+            totalVolume += summary.totalVolume;
+        }
 
         return { numEx, totalSets, totalReps, totalVolume };
     }, [entry.exercises]);
@@ -48,14 +54,17 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
         const bodyParts = entry.exercises.map(ex => {
             const bp = exerciseMap[ex.exerciseId]?.bodypart;
             return bp ? t(`bodyParts.${bp}`, { defaultValue: bp }) : null;
-        }).filter((p): p is string => !!p);
+        }).filter((p): p is string => Boolean(p));
         const uniqueParts = Array.from(new Set(bodyParts));
         const wholeBodyLabel = t('bodyParts.Whole Body', { defaultValue: 'Whole Body' });
         const filteredParts = uniqueParts.length > 1 ? uniqueParts.filter(p => p !== wholeBodyLabel) : uniqueParts;
         return filteredParts.length > 0 ? filteredParts.join(', ') : t('journal.workout');
     }, [entry.exercises, exerciseMap, t]);
 
-    const exerciseBlocks = useMemo<SupersetGroup<WorkoutExercise>[]>(() => groupExercisesIntoBlocks<WorkoutExercise>(entry.exercises), [entry.exercises]);
+    const exerciseBlocks = useMemo<SupersetGroup<WorkoutExercise>[]>(
+        () => groupExercisesIntoBlocks<WorkoutExercise>(entry.exercises),
+        [entry.exercises]
+    );
 
     const numSupersets = useMemo(() => {
         return exerciseBlocks.filter(b => b.isSuperset).length;
@@ -77,7 +86,6 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
             .join(' • ');
     }, [exerciseBlocks, exerciseMap]);
 
-
     return (
         <Paper
             ref={ref}
@@ -87,8 +95,8 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
             <Stack
                 direction="row"
                 sx={{
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
                     mb: 1,
                     gap: 1
                 }}
@@ -102,8 +110,8 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
                     onClick={() => { void navigate(`/journal/${entry.id}`); }}
                 >
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.25 }}>
-                        <Typography variant="body1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                            {new Date(entry.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                        <Typography variant="body1" sx={{ fontWeight: 500, lineHeight: 1.3 }}>
+                            {parseLocalDate(entry.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                             {entry.time && ` • ${entry.time}`}
                             {` • ${bodyPartsSummary}`}
                         </Typography>
@@ -137,7 +145,7 @@ const WorkoutItem = memo(forwardRef<HTMLDivElement, WorkoutItemProps>(({
             </Stack>
 
             {entry.exercises.length > 0 && (
-                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mt: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 1 }}>
                     {numSupersets > 0 && (
                         <Chip
                             size="small"

@@ -200,7 +200,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2, px: { xs: 2, sm: 3 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <CalendarMonthIcon color="primary" />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h6">
                         {editingProgram ? t('programs.editProgram') : t('programs.createProgram')}
                     </Typography>
                 </Box>
@@ -251,7 +251,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                         <ToggleButton
                                             value="repetitive"
                                             aria-label={t('programs.repetitive')}
-                                            sx={{ px: { xs: 1.5, sm: 2 }, height: '100%', textTransform: 'none', fontWeight: 600 }}
+                                            sx={{ px: { xs: 1.5, sm: 2 }, height: '100%', textTransform: 'none' }}
                                         >
                                             <RepeatIcon sx={{ mr: 0.75 }} fontSize="small" />
                                             {t('programs.repetitive')}
@@ -261,7 +261,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                         <ToggleButton
                                             value="one-time"
                                             aria-label={t('programs.oneTime')}
-                                            sx={{ px: { xs: 1.5, sm: 2 }, height: '100%', textTransform: 'none', fontWeight: 600 }}
+                                            sx={{ px: { xs: 1.5, sm: 2 }, height: '100%', textTransform: 'none' }}
                                         >
                                             <CalendarMonthIcon sx={{ mr: 0.75 }} fontSize="small" />
                                             {t('programs.oneTime')}
@@ -273,7 +273,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
 
                         {type === 'one-time' && (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 0.5 }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
                                     Schedule mode:
                                 </Typography>
                                 <ToggleButtonGroup
@@ -321,7 +321,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                                     {t('programs.programDays')} ({days.length})
                                 </Typography>
                                 <Chip
@@ -329,14 +329,14 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                     color="primary"
                                     variant="outlined"
                                     label={`${String(workoutDaysCount)} ${t('programs.workoutsCount', 'workouts')}`}
-                                    sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                                    sx={{ fontSize: '0.75rem' }}
                                 />
                                 {restDaysCount > 0 && (
                                     <Chip
                                         size="small"
                                         variant="outlined"
                                         label={`${String(restDaysCount)} ${t('programs.restDaysCount', 'rest')}`}
-                                        sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                                        sx={{ fontSize: '0.75rem' }}
                                     />
                                 )}
                             </Box>
@@ -344,7 +344,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
                                 {/* Field to enter number value of days (1 to 30) */}
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
                                         {t('programs.programLength', 'Length (1–30 days)')}:
                                     </Typography>
                                     <TextField
@@ -377,7 +377,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                             htmlInput: {
                                                 min: 1,
                                                 max: 30,
-                                                style: { textAlign: 'center', fontWeight: 700, width: 44, padding: '6px 4px' },
+                                                style: { textAlign: 'center', fontWeight: 500, width: 44, padding: '6px 4px' },
                                             },
                                         }}
                                         disabled={saving}
@@ -394,7 +394,6 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                     size="small"
                                     variant="contained"
                                     disabled={saving || days.length >= 30}
-                                    sx={{ textTransform: 'none', fontWeight: 600 }}
                                 >
                                     {t('programs.addDay')}
                                 </Button>
@@ -405,7 +404,6 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                     variant="outlined"
                                     color="inherit"
                                     disabled={saving || days.length >= 30}
-                                    sx={{ textTransform: 'none', fontWeight: 600 }}
                                 >
                                     {t('programs.addRestDay', '+ Rest Day')}
                                 </Button>
@@ -458,7 +456,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                                 color={isRest ? 'default' : 'primary'}
                                                 variant={isRest ? 'outlined' : 'filled'}
                                                 sx={{
-                                                    fontWeight: 700,
+                                                    fontWeight: 500,
                                                     fontSize: '0.8rem',
                                                     height: 32,
                                                     minWidth: 70,
@@ -601,7 +599,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                                                     color={isRest ? 'default' : 'primary'}
                                                     variant={isRest ? 'outlined' : 'filled'}
                                                     sx={{
-                                                        fontWeight: 700,
+                                                        fontWeight: 500,
                                                         fontSize: '0.8rem',
                                                         height: 28,
                                                     }}
@@ -720,7 +718,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                 </Box>
             </DialogContent>
 
-            <DialogActions sx={{ p: { xs: 2, sm: 2.5 }, justifyContent: 'space-between', bgcolor: 'grey.50' }}>
+            <DialogActions sx={{ p: { xs: 2, sm: 2.5 }, justifyContent: 'space-between', bgcolor: 'action.hover' }}>
                 <Button onClick={onClose} disabled={saving} color="inherit">
                     {t('common.cancel')}
                 </Button>
@@ -729,7 +727,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                     variant="contained"
                     color="primary"
                     disabled={saving}
-                    sx={{ px: 3, fontWeight: 700 }}
+                    sx={{ px: 3 }}
                 >
                     {saving ? t('common.saving') : t('common.save')}
                 </Button>

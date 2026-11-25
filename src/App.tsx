@@ -8,15 +8,16 @@ import { UserProfileProvider } from './context/UserProfileContext';
 import { PwaProvider } from './context/PwaContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminRoute from './components/auth/AdminRoute';
 import ReloadPrompt from './components/common/ReloadPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
 import Home from './pages/Home';
-import Exercises from './pages/Exercises';
-import Profile from './pages/Profile';
-import Journal from './pages/Journal';
 
-// Lazy load sub-pages
+// Lazy load routes to keep initial bundle lean
+const Exercises = lazy(() => import('./pages/Exercises'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Journal = lazy(() => import('./pages/Journal'));
 const Auth = lazy(() => import('./pages/Auth'));
 const ExerciseDetails = lazy(() => import('./pages/ExerciseDetails'));
 const ExerciseForm = lazy(() => import('./pages/ExerciseForm'));
@@ -27,6 +28,7 @@ const ExerciseHistory = lazy(() => import('./pages/ExerciseHistory'));
 const WeightHistory = lazy(() => import('./pages/BodyHistory'));
 const DeleteAccount = lazy(() => import('./pages/DeleteAccount'));
 const Routines = lazy(() => import('./pages/Routines'));
+const ProgramLibraryDetails = lazy(() => import('./pages/ProgramLibraryDetails'));
 
 function App() {
   return (
@@ -49,8 +51,8 @@ function App() {
                         <Route path="exercises" element={<Exercises />} />
                         <Route path="exercises/:id" element={<ExerciseDetails />} />
                         <Route path="exercises/:id/history" element={<ExerciseHistory />} />
-                        <Route path="exercises/new" element={<ExerciseForm />} />
-                        <Route path="exercises/:id/edit" element={<ExerciseForm />} />
+                        <Route path="exercises/new" element={<AdminRoute><ExerciseForm /></AdminRoute>} />
+                        <Route path="exercises/:id/edit" element={<AdminRoute><ExerciseForm /></AdminRoute>} />
                         <Route path="profile" element={<Profile />} />
                         <Route path="profile/body" element={<Profile />} />
                         <Route path="profile/body/history" element={<WeightHistory />} />
@@ -58,6 +60,8 @@ function App() {
                         <Route path="routines" element={<Routines />} />
                         <Route path="routines/programs" element={<Routines />} />
                         <Route path="routines/templates" element={<Routines />} />
+                        <Route path="routines/library" element={<Routines />} />
+                        <Route path="routines/library/:id" element={<ProgramLibraryDetails />} />
                         <Route path="journal" element={<Journal />} />
                         <Route path="journal/templates" element={<Navigate to="/routines/templates" replace />} />
                         <Route path="journal/new" element={<WorkoutForm />} />

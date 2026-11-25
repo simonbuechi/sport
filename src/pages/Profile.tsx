@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -17,7 +16,6 @@ import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import { alpha } from '@mui/material/styles';
 
 import Star from '@mui/icons-material/Star';
 import Close from '@mui/icons-material/Close';
@@ -33,6 +31,8 @@ import { useWorkouts } from '../context/WorkoutsContext';
 import { lazy, Suspense } from 'react';
 import type { UserProfile, Exercise } from '../types';
 import ExerciseListSection from '../components/exercises/ExerciseListSection';
+import PageHeader from '../components/common/PageHeader';
+import PageLoader from '../components/common/PageLoader';
 import HistoryIcon from '@mui/icons-material/History';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from '../components/common/LanguageSelector';
@@ -171,7 +171,7 @@ const Profile = () => {
 
 
     if (profileLoading || (exercisesLoading && exercises.length === 0) || !profile) return (
-        <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>
+        <PageLoader />
     );
 
     const getMarkedExercises = (statusKey: 'favorite') => {
@@ -189,48 +189,18 @@ const Profile = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: { xs: 1, md: 2 } }}>
+            <PageHeader title={t('nav.profile')} />
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
                     value={activeTab}
                     onChange={handleTabChange}
-                    variant="fullWidth"
+                    variant="scrollable"
+                    scrollButtons="auto"
                     aria-label="profile tabs"
-                    indicatorColor="primary"
-                    textColor="primary"
                 >
-                    <Tab
-                        label={t('profile.overview')}
-                        sx={{
-                            minHeight: 48,
-                            textTransform: 'none',
-                            '&.Mui-selected': {
-                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
-                                borderRadius: '8px 8px 0 0',
-                            }
-                        }}
-                    />
-                    <Tab
-                        label={t('profile.bodyAndWeight')}
-                        sx={{
-                            minHeight: 48,
-                            textTransform: 'none',
-                            '&.Mui-selected': {
-                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
-                                borderRadius: '8px 8px 0 0',
-                            }
-                        }}
-                    />
-                    <Tab
-                        label={t('profile.stats')}
-                        sx={{
-                            minHeight: 48,
-                            textTransform: 'none',
-                            '&.Mui-selected': {
-                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
-                                borderRadius: '8px 8px 0 0',
-                            }
-                        }}
-                    />
+                    <Tab label={t('profile.overview')} />
+                    <Tab label={t('profile.bodyAndWeight')} />
+                    <Tab label={t('profile.stats')} />
                 </Tabs>
             </Box>
             {error && <Alert severity="error" sx={{ mt: 3, mb: 0 }}>{error}</Alert>}
@@ -241,8 +211,8 @@ const Profile = () => {
                         <Grid container spacing={3}>
                             <Grid size={12}>
                                 <Paper sx={{ p: { xs: 2, md: 3 }, }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('profile.title')}</Typography>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5, mb: 3 }}>
+                                        <Typography variant="h5">{t('profile.title')}</Typography>
                                         <Grid container spacing={1} sx={{ width: 'auto' }}>
 
                                             <Grid>
@@ -271,7 +241,7 @@ const Profile = () => {
                                     <Grid container spacing={3}>
                                         <Grid size={{ xs: 12 }}>
                                             <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>{t('profile.name')}</Typography>
-                                            <Typography variant="body1" sx={{ fontWeight: 600 }}>{profile.name}</Typography>
+                                            <Typography variant="body1" sx={{ fontWeight: 500 }}>{profile.name}</Typography>
                                         </Grid>
 
                                         <Grid size={{ xs: 12, sm: 6 }}>
@@ -356,7 +326,6 @@ const Profile = () => {
                                         </Grid>
 
                                         <Grid size={12}>
-                                            <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>{t('profile.language')}</Typography>
                                             <LanguageSelector variant="select" size="small" />
                                         </Grid>
 
@@ -487,7 +456,7 @@ const Profile = () => {
                                                             borderColor: 'divider'
                                                         }}
                                                     >
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                                                             {t('exertion.explanationTitle')}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -496,7 +465,7 @@ const Profile = () => {
                                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                                             {t('exertion.explanationRir')}
                                                         </Typography>
-                                                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main', display: 'block' }}>
+                                                        <Typography variant="caption" sx={{ fontWeight: 500, color: 'primary.main', display: 'block' }}>
                                                             {t('exertion.formula')}
                                                         </Typography>
                                                     </Box>
@@ -509,7 +478,15 @@ const Profile = () => {
 
                             <Grid size={12}>
                                 <Paper sx={{ p: { xs: 2, md: 3 }, border: 1, borderColor: 'error.light' }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: { xs: 'column', sm: 'row' },
+                                            justifyContent: 'space-between',
+                                            alignItems: { xs: 'flex-start', sm: 'center' },
+                                            gap: 2,
+                                        }}
+                                    >
                                         <Box>
                                             <Typography variant="h6" sx={{ color: 'error.main' }}>{t('deleteAccount.dangerZone')}</Typography>
                                             <Typography variant="caption" color="text.secondary">
@@ -521,7 +498,7 @@ const Profile = () => {
                                             color="error"
                                             size="small"
                                             onClick={() => void navigate('/delete')}
-                                            sx={{ textTransform: 'none', ml: 2, flexShrink: 0 }}
+                                            sx={{ flexShrink: 0 }}
                                         >
                                             {t('deleteAccount.title')}
                                         </Button>

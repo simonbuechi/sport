@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Fab from '@mui/material/Fab';
 import Tooltip from '@mui/material/Tooltip';
-import runningAnim from '../../assets/animation-benchpress.png';
+import benchpressAnim from '../../assets/animation-benchpress.png';
 import Box from '@mui/material/Box';
 import { useAuth } from '../../context/AuthContext';
 import { getWorkoutDraftKey } from '../../hooks/useWorkoutForm';
@@ -30,20 +30,15 @@ const WorkoutDraftFab = () => {
         if (!currentUser) return null;
         try {
             const userKey = getWorkoutDraftKey(currentUser.uid, 'new');
-            let draftStr = localStorage.getItem(userKey);
-            let activeKey = userKey;
-            if (!draftStr) {
-                draftStr = localStorage.getItem('workout_draft_new');
-                activeKey = 'workout_draft_new';
-            }
+            const draftStr = localStorage.getItem(userKey);
             if (draftStr) {
                 const draft = JSON.parse(draftStr) as DraftData;
                 const hasExercises = (draft.exercises?.length ?? 0) > 0;
                 const hasComment = (draft.comment?.trim() ?? '') !== '';
-                if (hasExercises || hasComment) return activeKey;
+                if (hasExercises || hasComment) return userKey;
             }
         } catch (e) {
-            console.error("Error parsing workout draft", e);
+            console.error('Error parsing workout draft', e);
         }
         return null;
     }, [currentUser]);
@@ -68,7 +63,7 @@ const WorkoutDraftFab = () => {
                 onClick={handleClick}
                 sx={{
                     position: 'fixed',
-                    bottom: { xs: 80, md: 24 },
+                    bottom: { xs: 'calc(72px + env(safe-area-inset-bottom, 0px))', md: 24 },
                     right: { xs: 16, md: 24 },
                     width: { xs: 48, md: 56 },
                     height: { xs: 48, md: 56 },
@@ -94,8 +89,8 @@ const WorkoutDraftFab = () => {
                 >
                     <Box
                         component="img"
-                        src={runningAnim}
-                        alt="Running"
+                        src={benchpressAnim}
+                        alt="Active workout draft"
                         sx={{
                             width: '70%',
                             height: '70%',

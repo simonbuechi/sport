@@ -60,7 +60,7 @@ const WeightWidget = () => {
         <Grid container spacing={1}>
             <Grid size={12}>
                 <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
-                    <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    <Typography variant="h3" component="div" sx={{ fontWeight: 600, color: 'primary.main' }}>
                         {stats.latestWeight}
                     </Typography>
                     <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>

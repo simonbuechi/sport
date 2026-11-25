@@ -11,46 +11,60 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Allow authenticated users to read exercises, but only the admin can modify them
+    function isAdmin() {
+      return isAuthenticated()
+             && (request.auth.uid == 'Ib3y7vFU94QZbgbXB7flrrHGbtk1'
+                 || request.auth.token.admin == true);
+    }
+
+    // Allow authenticated users to read exercises, but only admins can modify them
     match /exercises/{exerciseId} {
       allow read: if isAuthenticated();
-      allow write: if request.auth.uid == 'Ib3y7vFU94QZbgbXB7flrrHGbtk1';
-      
-      // Basic validation for admin writes
-      allow create, update: if request.resource.data.name is string
-                           && request.resource.data.type is string;
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin()
+                            && request.resource.data.name is string
+                            && request.resource.data.type is string;
+    }
+
+    // Program library (publicly readable for authenticated users, writable by admins)
+    match /program_library/{programId} {
+      allow read: if isAuthenticated();
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin()
+                            && request.resource.data.name is string
+                            && request.resource.data.type is string
+                            && request.resource.data.days is list;
     }
     
     // User profile and subcollections
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
-      
-      // Validation for profile
-      allow create, update: if request.resource.data.name is string;
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+                            && (!('name' in request.resource.data) || request.resource.data.name is string);
       
       // Workout activities
       match /activities/{activityId} {
-        allow read, write: if isOwner(userId);
-        
-        allow create, update: if request.resource.data.date is string
-                             && request.resource.data.exercises is list;
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+                              && request.resource.data.date is string
+                              && request.resource.data.exercises is list;
       }
 
       // Training templates
       match /templates/{templateId} {
-        allow read, write: if isOwner(userId);
-        
-        allow create, update: if request.resource.data.name is string
-                             && request.resource.data.exercises is list;
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+                              && request.resource.data.name is string
+                              && request.resource.data.exercises is list;
       }
 
       // Training programs
       match /programs/{programId} {
-        allow read, write: if isOwner(userId);
-        
-        allow create, update: if request.resource.data.name is string
-                             && request.resource.data.type is string
-                             && request.resource.data.days is list;
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+                              && request.resource.data.name is string
+                              && request.resource.data.type is string
+                              && request.resource.data.days is list;
       }
     }
     

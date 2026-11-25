@@ -37,9 +37,10 @@ import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 import type { TrainingTemplate, Exercise, Workout, TemplateExercise } from '../../types';
 import { subscribeToWorkoutsByTemplate } from '../../services/db';
-import { formatWeight } from '../../utils/format';
+import { formatWeight, parseLocalDate } from '../../utils/format';
+import { calculateSetVolume } from '../../utils/fitness';
 import { groupExercisesIntoBlocks, type SupersetGroup } from '../../utils/supersetUtils';
-import { useUserProfile } from '../../hooks/useUserProfile';
+import { useUserProfile } from '../../context/UserProfileContext';
 import { formatExertionLabel } from '../../utils/exertionUtils';
 
 interface TemplateAccordionProps {
@@ -59,6 +60,7 @@ interface TemplateAccordionProps {
     onOpenSetDialog: (tid: string, exerciseIdx: number, setIdx?: number) => void;
     onLinkSuperset?: (templateId: string, index: number) => void;
     onUnlinkSuperset?: (templateId: string, index: number) => void;
+    onUnlinkEntireSuperset?: (templateId: string, supersetId: string) => void;
     onUpdateSupersetNote?: (templateId: string, supersetId: string, note: string) => void;
 }
 
@@ -79,19 +81,23 @@ const TemplateAccordion = ({
     onOpenSetDialog,
     onLinkSuperset,
     onUnlinkSuperset,
+    onUnlinkEntireSuperset,
     onUpdateSupersetNote
 }: TemplateAccordionProps) => {
 
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { profile } = useUserProfile();
     const isExertionEnabled = Boolean(profile?.settings?.enableExertionTracking);
     const exertionMode = profile?.settings?.exertionMode ?? 'rpe';
     const isSupersetsEnabled = profile?.settings?.enableSupersets ?? true;
     const [editingSupersetId, setEditingSupersetId] = useState<string | null>(null);
-    const [tempSupersetNote, setTempSupersetNote] = useState("");
+    const [tempSupersetNote, setTempSupersetNote] = useState('');
 
-    const exerciseBlocks = useMemo<SupersetGroup<TemplateExercise>[]>(() => groupExercisesIntoBlocks<TemplateExercise>(template.exercises), [template.exercises]);
+    const exerciseBlocks = useMemo<SupersetGroup<TemplateExercise>[]>(
+        () => groupExercisesIntoBlocks<TemplateExercise>(template.exercises),
+        [template.exercises]
+    );
 
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [loadingWorkouts, setLoadingWorkouts] = useState(true);
@@ -100,16 +106,27 @@ const TemplateAccordion = ({
     useEffect(() => {
         if (!userId || !template.id || !isExpanded) return;
 
-        const unsubscribe = subscribeToWorkoutsByTemplate(userId, template.id, (data) => {
-            setWorkouts(data);
-            setLoadingWorkouts(false);
-        });
+        const unsubscribe = subscribeToWorkoutsByTemplate(
+            userId,
+            template.id,
+            (data) => {
+                setWorkouts(data);
+                setLoadingWorkouts(false);
+            },
+            () => {
+                setLoadingWorkouts(false);
+            }
+        );
 
         return () => {
             unsubscribe();
         };
     }, [userId, template.id, isExpanded]);
 
+    const getExercise = (id: string) => exerciseMap[id];
+
+    const getExerciseName = (id: string) =>
+        getExercise(id)?.name ?? t('journal.unknownExercise', { defaultValue: 'Unknown Exercise' });
 
     const renderExerciseRow = (
         ex: TemplateExercise,
@@ -122,40 +139,42 @@ const TemplateAccordion = ({
             key={`${template.id}-${String(idx)}`}
             sx={{
                 display: 'flex',
-                alignItems: 'flex-start',
-                gap: 1.5,
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'flex-start' },
+                gap: { xs: 1, sm: 1.5 },
                 py: 1.5,
-                px: 1,
+                px: { xs: 0.5, sm: 1 },
                 '&:hover': { bgcolor: 'action.hover' },
                 borderBottom: isLastInGroup ? 'none' : '1px dashed',
                 borderColor: 'divider',
                 position: 'relative'
             }}
         >
-            <Box sx={{ flexGrow: 1 }}>
-                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                     {tag && (
                         <Chip
                             label={tag}
                             size="small"
                             color="primary"
-                            sx={{ height: 22, fontWeight: 700, fontSize: '0.75rem' }}
+                            sx={{ height: 22, fontWeight: 500, fontSize: '0.75rem', flexShrink: 0 }}
                         />
                     )}
                     <Avatar
-                        src={getExercise(ex.exerciseId)?.icon_url ?
-                            `${import.meta.env.BASE_URL}exercises/${getExercise(ex.exerciseId)?.icon_url ?? ''}`
+                        src={getExercise(ex.exerciseId)?.icon_url
+                            ? `${import.meta.env.BASE_URL}exercises/${getExercise(ex.exerciseId)?.icon_url ?? ''}`
                             : undefined}
                         alt={getExerciseName(ex.exerciseId)}
                         sx={{
                             width: 32,
                             height: 32,
-                            fontSize: '0.875rem'
+                            fontSize: '0.875rem',
+                            flexShrink: 0,
                         }}
                     >
                         {getExerciseName(ex.exerciseId).charAt(0)}
                     </Avatar>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>
                         {getExerciseName(ex.exerciseId)}
                     </Typography>
                 </Stack>
@@ -165,7 +184,10 @@ const TemplateAccordion = ({
                     <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                         {ex.sets.map((set, sIdx) => {
                             const exertionTag = isExertionEnabled ? formatExertionLabel(set, exertionMode) : '';
-                            const label = `${String(set.weight)}kg x ${String(set.reps)}${exertionTag ? ` ${exertionTag}` : ''}`;
+                            const baseLabel = set.weight != null
+                                ? `${String(set.weight)}kg × ${String(set.reps ?? 0)}`
+                                : `${String(set.reps ?? 0)} ${t('journal.reps', { defaultValue: 'Reps' })}`;
+                            const label = `${baseLabel}${exertionTag ? ` ${exertionTag}` : ''}`;
                             return (
                                 <Chip
                                     key={set.id}
@@ -188,7 +210,7 @@ const TemplateAccordion = ({
                         defaultValue={ex.note}
                         onBlur={(e) => { onInlineUpdateNote(template.id, idx, e.target.value); }}
                         sx={{ mt: 1 }}
-                        placeholder="Add sets/reps notes..."
+                        placeholder={t('templates.notePlaceholder', { defaultValue: 'Add sets/reps notes...' })}
                     />
                 ) : ex.note ? (
                     <Typography
@@ -199,14 +221,15 @@ const TemplateAccordion = ({
                             display: 'block',
                             cursor: 'pointer',
                             mt: 0.5
-                        }}>
+                        }}
+                    >
                         {ex.note}
                     </Typography>
                 ) : null}
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                <Tooltip title="Move Up" arrow>
+            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', justifyContent: { xs: 'flex-end', sm: 'flex-start' }, flexShrink: 0 }}>
+                <Tooltip title={t('common.moveUp', { defaultValue: 'Move Up' })} arrow>
                     <span>
                         <IconButton
                             size="small"
@@ -218,7 +241,7 @@ const TemplateAccordion = ({
                         </IconButton>
                     </span>
                 </Tooltip>
-                <Tooltip title="Move Down" arrow>
+                <Tooltip title={t('common.moveDown', { defaultValue: 'Move Down' })} arrow>
                     <span>
                         <IconButton
                             size="small"
@@ -236,10 +259,10 @@ const TemplateAccordion = ({
                     onClick={() => { onOpenSetDialog(template.id, idx); }}
                     sx={{ whiteSpace: 'nowrap', ml: 1 }}
                 >
-                    Set
+                    {t('journal.set', { defaultValue: 'Set' })}
                 </Button>
                 {!ex.note && (
-                    <Tooltip title="Add notes">
+                    <Tooltip title={t('journal.notes', { defaultValue: 'Add notes' })}>
                         <IconButton size="small" onClick={() => { setEditingNotePath({ tid: template.id, idx }); }}>
                             <NoteAddIcon fontSize="small" />
                         </IconButton>
@@ -267,7 +290,7 @@ const TemplateAccordion = ({
                     </Tooltip>
                 ) : null}
 
-                <Tooltip title="Remove Exercise">
+                <Tooltip title={t('common.delete')}>
                     <IconButton
                         size="small"
                         onClick={() => { onInlineRemove(template.id, idx); }}
@@ -278,14 +301,6 @@ const TemplateAccordion = ({
             </Box>
         </Box>
     );
-
-    const getExercise = (id: string) => {
-        return exerciseMap[id];
-    };
-
-    const getExerciseName = (id: string) => {
-        return getExercise(id)?.name ?? 'Unknown Exercise';
-    };
 
     return (
         <Accordion
@@ -308,31 +323,31 @@ const TemplateAccordion = ({
             <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 sx={{
-                    px: 3,
+                    px: { xs: 2, sm: 3 },
                     py: 1,
                     '& .MuiAccordionSummary-content': {
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        gap: 1,
+                        minWidth: 0,
                     }
                 }}
             >
-                <Box>
-                    <Stack spacing={1}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                         {template.isFavorite && <StarIcon color="warning" fontSize="small" />}
-                        <Typography variant="h6">
+                        <Typography variant="h6" sx={{ wordBreak: 'break-word' }}>
                             {template.name}
-                            {template.isArchived && " (Archived)"}
+                            {template.isArchived && ` (${t('templates.archived', { defaultValue: 'Archived' })})`}
                         </Typography>
                     </Stack>
-                    <Typography variant="body2" sx={{
-                        color: "text.secondary"
-                    }}>
-                        {template.exercises.length} exercises
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
+                        {t('journal.exercisesCount', { count: template.exercises.length })}
                         {template.notes && ` • ${template.notes}`}
                     </Typography>
                 </Box>
-                <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', gap: 1 }} onClick={(e) => { e.stopPropagation(); }}>
+                <Box sx={{ mr: 0.5, display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); }}>
                     <Button
                         size="small"
                         variant="outlined"
@@ -341,9 +356,9 @@ const TemplateAccordion = ({
                         onClick={() => { void navigate(`/journal/new?templateId=${template.id}`); }}
                         sx={{ textTransform: 'none', py: 0.25, px: 1.25, borderRadius: 2 }}
                     >
-                        Use
+                        {t('programs.start', { defaultValue: 'Use' })}
                     </Button>
-                    <Tooltip title="Edit Template">
+                    <Tooltip title={t('common.edit')}>
                         <Box
                             component="span"
                             onClick={() => { onEdit(template); }}
@@ -364,7 +379,7 @@ const TemplateAccordion = ({
                 </Box>
             </AccordionSummary>
 
-            <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
+            <AccordionDetails sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, pt: 0 }}>
                 <Box sx={{ mt: 1 }}>
                     {template.exercises.length > 0 ? (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -389,7 +404,7 @@ const TemplateAccordion = ({
                                                         label={t('supersets.supersetTitle', { letter: block.letter })}
                                                         size="small"
                                                         color="primary"
-                                                        sx={{ fontWeight: 'bold' }}
+                                                        sx={{ fontWeight: 500 }}
                                                     />
                                                     {block.note && editingSupersetId !== block.supersetId && (
                                                         <Typography
@@ -420,9 +435,13 @@ const TemplateAccordion = ({
                                                         <IconButton
                                                             size="small"
                                                             onClick={() => {
-                                                                block.items.forEach(item => {
-                                                                    onUnlinkSuperset?.(template.id, item.originalIndex);
-                                                                });
+                                                                if (block.supersetId && onUnlinkEntireSuperset) {
+                                                                    onUnlinkEntireSuperset(template.id, block.supersetId);
+                                                                } else {
+                                                                    block.items.forEach(item => {
+                                                                        onUnlinkSuperset?.(template.id, item.originalIndex);
+                                                                    });
+                                                                }
                                                             }}
                                                         >
                                                             <LinkOffIcon fontSize="small" />
@@ -439,7 +458,7 @@ const TemplateAccordion = ({
                                                         placeholder={t('supersets.notePlaceholder')}
                                                         value={tempSupersetNote}
                                                         onChange={(e) => { setTempSupersetNote(e.target.value); }}
-                                                        />
+                                                    />
                                                     <Button
                                                         size="small"
                                                         variant="contained"
@@ -462,9 +481,9 @@ const TemplateAccordion = ({
                                             )}
 
                                             <List sx={{ p: 0 }}>
-                                                {block.items.map(({ item, originalIndex, tag }, itemIdx) => (
+                                                {block.items.map(({ item, originalIndex, tag }, itemIdx) =>
                                                     renderExerciseRow(item, originalIndex, tag, true, itemIdx === block.items.length - 1)
-                                                ))}
+                                                )}
                                             </List>
                                         </Paper>
                                     );
@@ -479,28 +498,24 @@ const TemplateAccordion = ({
                             })}
                         </Box>
                     ) : (
-                        <Typography
-                            variant="body1"
-                            sx={{
-                                color: "text.secondary",
-                                py: 2
-                            }}>
-                            No exercises. Start by adding one below.
+                        <Typography variant="body1" sx={{ color: 'text.secondary', py: 2 }}>
+                            {t('templates.noExercisesYet', { defaultValue: 'No exercises. Start by adding one below.' })}
                         </Typography>
                     )}
 
                     <Box sx={{ mt: 2 }}>
                         {activeSearchId === template.id ? (
-                            <Box sx={{ p: 2, bgcolor: 'action.selected', }}>
+                            <Box sx={{ p: 2, bgcolor: 'action.selected' }}>
                                 <Box
                                     sx={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
                                         mb: 1
-                                    }}>
-                                    <Typography variant="body2">Search Exercise</Typography>
-                                    <Tooltip title="Close Search">
+                                    }}
+                                >
+                                    <Typography variant="body2">{t('journal.searchExercises')}</Typography>
+                                    <Tooltip title={t('common.close')}>
                                         <IconButton size="small" onClick={() => { setActiveSearchId(null); }}>
                                             <CloseIcon fontSize="small" />
                                         </IconButton>
@@ -511,10 +526,15 @@ const TemplateAccordion = ({
                                     getOptionLabel={(option) => option.name}
                                     onChange={(_, newValue) => { onInlineAdd(template.id, newValue); }}
                                     renderInput={(params) => (
-                                        <TextField {...params} placeholder="Bench Press, Squats..."
+                                        <TextField
+                                            {...params}
+                                            placeholder={t('exercises.searchPlaceholder')}
                                             slotProps={{
                                                 ...params.slotProps,
-                                                input: { ...params.slotProps.input, startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} /> }
+                                                input: {
+                                                    ...params.slotProps.input,
+                                                    startAdornment: <SearchIcon color="action" sx={{ mr: 1, fontSize: 18 }} />
+                                                }
                                             }}
                                         />
                                     )}
@@ -529,7 +549,7 @@ const TemplateAccordion = ({
                                 variant="text"
                                 color="primary"
                             >
-                                Add Exercise
+                                {t('journal.addExercise')}
                             </Button>
                         )}
                     </Box>
@@ -537,16 +557,16 @@ const TemplateAccordion = ({
                     <Divider sx={{ my: 2.5 }} />
 
                     <Box sx={{ mt: 1 }}>
-                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                                 <HistoryIcon color="primary" fontSize="small" />
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                    Workouts with this Template
+                                <Typography variant="subtitle2">
+                                    {t('templates.workoutsWithTemplate', { defaultValue: 'Workouts with this Template' })}
                                 </Typography>
                                 <Chip
                                     size="small"
                                     label={loadingWorkouts ? '...' : workouts.length}
-                                    color={workouts.length > 0 ? "primary" : "default"}
+                                    color={workouts.length > 0 ? 'primary' : 'default'}
                                     variant="outlined"
                                     sx={{ height: 20, fontSize: '0.75rem' }}
                                 />
@@ -559,7 +579,7 @@ const TemplateAccordion = ({
                                 onClick={() => { void navigate(`/journal/new?templateId=${template.id}`); }}
                                 sx={{ textTransform: 'none' }}
                             >
-                                Start Workout
+                                {t('programs.startWorkout')}
                             </Button>
                         </Stack>
 
@@ -567,13 +587,13 @@ const TemplateAccordion = ({
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5 }}>
                                 <CircularProgress size={18} />
                                 <Typography variant="body2" color="text.secondary">
-                                    Loading workout history...
+                                    {t('common.loading')}
                                 </Typography>
                             </Box>
                         ) : workouts.length === 0 ? (
                             <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'action.hover', borderRadius: 2 }}>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                    No workouts have been logged with this template yet.
+                                    {t('templates.noWorkoutsLoggedYet', { defaultValue: 'No workouts have been logged with this template yet.' })}
                                 </Typography>
                                 <Button
                                     size="small"
@@ -583,14 +603,17 @@ const TemplateAccordion = ({
                                     onClick={() => { void navigate(`/journal/new?templateId=${template.id}`); }}
                                     sx={{ textTransform: 'none' }}
                                 >
-                                    Log First Workout
+                                    {t('programs.startWorkout')}
                                 </Button>
                             </Box>
                         ) : (
                             <List disablePadding>
                                 {workouts.map((w) => {
                                     const totalSets = w.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-                                    const totalVolume = w.exercises.reduce((sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + ((s.weight ?? 0) * (s.reps ?? 0)), 0), 0);
+                                    const totalVolume = w.exercises.reduce(
+                                        (sum, ex) => sum + ex.sets.reduce((sSum, s) => sSum + calculateSetVolume(s.weight, s.reps), 0),
+                                        0
+                                    );
                                     const exerciseNames = w.exercises
                                         .map(ex => getExerciseName(ex.exerciseId))
                                         .filter(Boolean)
@@ -610,10 +633,10 @@ const TemplateAccordion = ({
                                             }}
                                             onClick={() => { void navigate(`/journal/${w.id}`); }}
                                         >
-                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <Box sx={{ minWidth: 0 }}>
-                                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                                        {new Date(w.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                        {parseLocalDate(w.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                                         {w.time && ` • ${w.time}`}
                                                     </Typography>
                                                     <Typography
@@ -629,11 +652,11 @@ const TemplateAccordion = ({
                                                         {exerciseNames}
                                                     </Typography>
                                                     <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 0.25 }}>
-                                                        {w.exercises.length} exercises • {totalSets} sets • {formatWeight(totalVolume)} kg
-                                                        {w.length ? ` • ${String(w.length)} min` : ''}
+                                                        {t('journal.exercisesCount', { count: w.exercises.length })} • {t('journal.setsCount', { count: totalSets })} • {formatWeight(totalVolume)} kg
+                                                        {w.length !== undefined ? ` • ${String(w.length)} ${t('common.unitMin')}` : ''}
                                                     </Typography>
                                                 </Box>
-                                                <IconButton size="small" color="primary" aria-label="view workout details">
+                                                <IconButton size="small" color="primary" aria-label={t('journal.workoutDetails')}>
                                                     <ChevronRightIcon fontSize="small" />
                                                 </IconButton>
                                             </Stack>

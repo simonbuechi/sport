@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/common/PageLoader';
+import PageHeader from '../components/common/PageHeader';
 import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import List from '@mui/material/List';
@@ -14,7 +14,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
@@ -27,12 +26,13 @@ import Stack from '@mui/material/Stack';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
-import { formatWeight, formatCount, formatNumber } from '../utils/format';
-import { calculate1RM } from '../utils/fitness';
+import { useUserProfile } from '../context/UserProfileContext';
+import { getWorkoutById } from '../services/db';
+import { formatWeight, formatCount, formatNumber, parseLocalDate } from '../utils/format';
+import { calculate1RM, summarizeExerciseSets } from '../utils/fitness';
 import { useTranslation } from 'react-i18next';
-import type { WorkoutExercise } from '../types';
+import type { Exercise, Workout, WorkoutExercise } from '../types';
 import { groupExercisesIntoBlocks, type SupersetGroup } from '../utils/supersetUtils';
-import { useUserProfile } from '../hooks/useUserProfile';
 import { getDisplayedExertion } from '../utils/exertionUtils';
 
 const WorkoutDetails = () => {
@@ -46,61 +46,85 @@ const WorkoutDetails = () => {
     const { exercises, loading: exercisesLoading } = useExercises();
     const { entries, templates, loading: sessionsLoading } = useWorkouts();
 
-    const workout = useMemo(() => entries.find(e => e.id === id) ?? null, [entries, id]);
+    const contextWorkout = useMemo(() => entries.find(e => e.id === id) ?? null, [entries, id]);
+    const [fetchedWorkout, setFetchedWorkout] = useState<{ id: string; data: Workout | null } | null>(null);
+
+    const needsDirectFetch = Boolean(
+        currentUser && id && !sessionsLoading && !contextWorkout && fetchedWorkout?.id !== id
+    );
+
+    useEffect(() => {
+        if (!currentUser || !id || sessionsLoading || contextWorkout) return;
+        let cancelled = false;
+        void getWorkoutById(currentUser.uid, id)
+            .then((result) => {
+                if (!cancelled) setFetchedWorkout({ id, data: result });
+            })
+            .catch(() => {
+                if (!cancelled) setFetchedWorkout({ id, data: null });
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [currentUser, id, sessionsLoading, contextWorkout]);
+
+    const workout = contextWorkout ?? (fetchedWorkout && fetchedWorkout.id === id ? fetchedWorkout.data : null);
+    const loading = sessionsLoading || needsDirectFetch;
+
+    const exerciseMap = useMemo<Record<string, Exercise | undefined>>(() => {
+        const map: Record<string, Exercise> = {};
+        for (const ex of exercises) {
+            map[ex.id] = ex;
+        }
+        return map;
+    }, [exercises]);
+
     const exerciseBlocks = useMemo<SupersetGroup<WorkoutExercise>[]>(() => {
         if (!workout) return [];
         return groupExercisesIntoBlocks<WorkoutExercise>(workout.exercises);
     }, [workout]);
+
     const referencedTemplate = useMemo(() => {
         if (!workout?.templateId) return null;
-        return templates.find(t => t.id === workout.templateId) ?? null;
+        return templates.find(tpl => tpl.id === workout.templateId) ?? null;
     }, [workout, templates]);
 
     const error = useMemo(() => {
-        if (!currentUser || sessionsLoading) return '';
+        if (!currentUser || loading) return '';
         return !workout ? t('journal.workoutNotFound') : '';
-    }, [currentUser, sessionsLoading, workout, t]);
-    const loading = sessionsLoading;
+    }, [currentUser, loading, workout, t]);
 
     const stats = useMemo(() => {
         if (!workout) return null;
         const workoutExercises = workout.exercises;
+
         const totals = workoutExercises.reduce((acc, we) => {
-            const exerciseStats = we.sets.reduce((eAcc, set) => {
-                const w = set.weight ?? 0;
-                const r = set.reps ?? 0;
-                return {
-                    volume: eAcc.volume + (w * r),
-                    reps: eAcc.reps + r,
-                    sets: eAcc.sets + 1
-                };
-            }, { volume: 0, reps: 0, sets: 0 });
-            
+            const { totalVolume, totalReps } = summarizeExerciseSets(we.sets);
             return {
-                volume: acc.volume + exerciseStats.volume,
-                reps: acc.reps + exerciseStats.reps,
-                sets: acc.sets + exerciseStats.sets,
+                volume: acc.volume + totalVolume,
+                reps: acc.reps + totalReps,
+                sets: acc.sets + we.sets.length,
                 exercises: acc.exercises + 1
             };
         }, { volume: 0, reps: 0, sets: 0, exercises: 0 });
 
-        // PR detection
-        const prs: Record<string, number> = {}; // exerciseId -> max 1RM from other workouts
-        workoutExercises.forEach(we => {
-            let maxOther = 0;
-            entries.forEach(entry => {
-                if (entry.id === id) return; // Skip current workout
-                entry.exercises.forEach(ewe => {
-                    if (ewe.exerciseId === we.exerciseId) {
-                        ewe.sets.forEach(s => {
-                            const oneRM = calculate1RM(s.weight ?? 0, s.reps ?? 0);
-                            if (oneRM > maxOther) maxOther = oneRM;
-                        });
-                    }
-                });
-            });
-            prs[we.exerciseId] = maxOther;
-        });
+        // Single-pass historical max 1RM calculation across loaded entries
+        const targetIds = new Set(workoutExercises.map(we => we.exerciseId));
+        const prs: Record<string, number> = {};
+        for (const exId of targetIds) {
+            prs[exId] = 0;
+        }
+
+        for (const entry of entries) {
+            if (entry.id === id) continue;
+            for (const ewe of entry.exercises) {
+                if (!targetIds.has(ewe.exerciseId)) continue;
+                const { max1RM } = summarizeExerciseSets(ewe.sets);
+                if (max1RM > prs[ewe.exerciseId]) {
+                    prs[ewe.exerciseId] = max1RM;
+                }
+            }
+        }
 
         return { totals, prs };
     }, [workout, entries, id]);
@@ -112,31 +136,24 @@ const WorkoutDetails = () => {
     if (error || !workout || !stats) {
         return (
             <Container maxWidth="lg">
-                <Box sx={{ py: 3 }}>
-                    <IconButton onClick={() => navigate('/journal')} sx={{ mb: 2 }} aria-label={t('common.back')}>
-                        <ArrowBackIcon />
-                    </IconButton>
-                    <Alert severity="error">{error || t('journal.workoutNotFound')}</Alert>
-                </Box>
+                <PageHeader title={t('journal.workoutDetails')} backTo="/journal" />
+                <Alert severity="error">{error || t('journal.workoutNotFound')}</Alert>
             </Container>
         );
     }
 
     const renderExerciseCard = (we: WorkoutExercise, tag?: string) => {
-        const exercise = exercises.find(ex => ex.id === we.exerciseId);
-        const exStats = we.sets.reduce((acc, s) => ({
-            volume: acc.volume + ((s.weight ?? 0) * (s.reps ?? 0)),
-            reps: acc.reps + (s.reps ?? 0)
-        }), { volume: 0, reps: 0 });
+        const exercise = exerciseMap[we.exerciseId];
+        const { totalVolume, totalReps } = summarizeExerciseSets(we.sets);
 
         return (
             <Paper key={we.exerciseId} sx={{ p: 0, mb: tag ? 1.5 : 0 }}>
                 <List sx={{ p: 0 }}>
-                    <ListItem 
-                        component={RouterLink} 
+                    <ListItem
+                        component={RouterLink}
                         to={`/exercises/${we.exerciseId}`}
-                        sx={{ 
-                            textDecoration: 'none', 
+                        sx={{
+                            textDecoration: 'none',
                             color: 'inherit',
                             '&:hover': { bgcolor: 'action.hover' },
                             p: 2
@@ -148,23 +165,23 @@ const WorkoutDetails = () => {
                                     label={tag}
                                     size="small"
                                     color="primary"
-                                    sx={{ height: 24, fontWeight: 700, fontSize: '0.8rem' }}
+                                    sx={{ height: 24, fontWeight: 500, fontSize: '0.8rem' }}
                                 />
                             )}
                             <Avatar
-                                src={exercise?.icon_url ? `${import.meta.env.BASE_URL}exercises/${exercise.icon_url ?? ''}` : undefined}
+                                src={exercise?.icon_url ? `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}` : undefined}
                                 sx={{ width: 48, height: 48 }}
                             >
                                 {exercise?.name.charAt(0)}
                             </Avatar>
                         </ListItemAvatar>
-                        <ListItemText 
+                        <ListItemText
                             primary={<Typography variant="h6">{exercise?.name ?? t('journal.unknownExercise')}</Typography>}
-                            secondary={`${t('journal.totalVolume')}: ${formatNumber(exStats.volume)} kg • ${t('journal.reps')}: ${String(exStats.reps)}`}
+                            secondary={`${t('journal.totalVolume')}: ${formatNumber(totalVolume)} kg • ${t('journal.reps')}: ${String(totalReps)}`}
                         />
                     </ListItem>
                 </List>
-                
+
                 <Box sx={{ p: 2, pt: 0 }}>
                     {we.note && (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1, borderLeft: '2px solid', borderColor: 'primary.main' }}>
@@ -173,7 +190,7 @@ const WorkoutDetails = () => {
                     )}
 
                     <Box sx={{ pl: { xs: 0, sm: 1 } }}>
-                        <Grid container spacing={2} sx={{ fontWeight: 'bold', mb: 1, color: 'text.secondary', display: { xs: 'none', sm: 'flex' } }}>
+                        <Grid container spacing={2} sx={{ fontWeight: 500, mb: 1, color: 'text.secondary', display: { xs: 'none', sm: 'flex' } }}>
                             <Grid size={1}>{t('journal.set')}</Grid>
                             <Grid size={isExertionEnabled ? 2 : 2.5}>{t('journal.weight')}</Grid>
                             <Grid size={isExertionEnabled ? 2 : 2.5}>{t('journal.reps')}</Grid>
@@ -186,13 +203,13 @@ const WorkoutDetails = () => {
                         {we.sets.map((set, idx) => {
                             const oneRM = calculate1RM(set.weight ?? 0, set.reps ?? 0);
                             const isPR = oneRM > 0 && oneRM > stats.prs[we.exerciseId];
-                            
+
                             return (
                                 <Box key={set.id}>
                                     <Divider sx={{ my: 1, display: { xs: 'block', sm: 'none' } }} />
                                     <Grid container spacing={2} sx={{ alignItems: 'center', py: 0.5 }}>
                                         <Grid size={{ xs: 12, sm: 1 }}>
-                                            <Typography variant="body2" sx={{ fontWeight: { xs: 'bold', sm: 'normal' } }}>
+                                            <Typography variant="body2" sx={{ fontWeight: { xs: 500, sm: 400 } }}>
                                                 {idx + 1}
                                             </Typography>
                                         </Grid>
@@ -214,7 +231,7 @@ const WorkoutDetails = () => {
                                                     <Box component="span" sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}>
                                                         {exertionMode === 'rpe' ? t('exertion.labelRpe') : t('exertion.labelRir')}:
                                                     </Box>
-                                                    {getDisplayedExertion(set, exertionMode) !== undefined ? getDisplayedExertion(set, exertionMode) : '-'}
+                                                    {getDisplayedExertion(set, exertionMode) ?? '-'}
                                                 </Typography>
                                             </Grid>
                                         )}
@@ -226,12 +243,12 @@ const WorkoutDetails = () => {
                                                 </Typography>
                                                 {isPR && (
                                                     <Tooltip title={t('journal.personalRecordTooltip')} arrow>
-                                                        <Chip 
-                                                            label={t('journal.personalRecordBadge')} 
-                                                            size="small" 
-                                                            color="primary" 
-                                                            icon={<TrendingUpIcon />} 
-                                                            sx={{ height: 20, '& .MuiChip-label': { px: 1, fontSize: '0.65rem' } }} 
+                                                        <Chip
+                                                            label={t('journal.personalRecordBadge')}
+                                                            size="small"
+                                                            color="primary"
+                                                            icon={<TrendingUpIcon />}
+                                                            sx={{ height: 20, '& .MuiChip-label': { px: 1, fontSize: '0.65rem' } }}
                                                         />
                                                     </Tooltip>
                                                 )}
@@ -240,7 +257,7 @@ const WorkoutDetails = () => {
                                         <Grid size={{ xs: 12, sm: isExertionEnabled ? 2.5 : 3 }}>
                                             {set.notes && (
                                                 <Typography variant="body2" color="text.secondary">
-                                                    <Box component="span" sx={{ display: { sm: 'none' }, fontWeight: 'bold', mr: 1 }}>{t('journal.notes')}:</Box>
+                                                    <Box component="span" sx={{ display: { sm: 'none' }, fontWeight: 500, mr: 1 }}>{t('journal.notes')}:</Box>
                                                     {set.notes}
                                                 </Typography>
                                             )}
@@ -257,30 +274,21 @@ const WorkoutDetails = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box sx={{ py: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                    <Grid container spacing={1} sx={{ alignItems: 'center', width: 'auto' }}>
-                        <Grid>
-                            <IconButton onClick={() => navigate('/journal')} aria-label={t('common.back')}>
-                                <ArrowBackIcon />
-                            </IconButton>
-                        </Grid>
-                        <Grid>
-                            <Typography variant="h4" component="h1">
-                                {t('journal.workoutDetails')}
-                            </Typography>
-                        </Grid>
-                    </Grid>
+            <PageHeader
+                title={t('journal.workoutDetails')}
+                backTo="/journal"
+                actions={
                     <Button
                         variant="contained"
                         startIcon={<EditIcon />}
-                        onClick={() => navigate(`/journal/${id ?? ''}/edit`)}
+                        onClick={() => { void navigate(`/journal/${id ?? ''}/edit`); }}
                     >
                         {t('common.edit')}
                     </Button>
-                </Box>
+                }
+            />
 
-                <Grid container spacing={3}>
+            <Grid container spacing={3}>
                     {/* Summary Card */}
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Paper sx={{ p: 3, height: '100%' }}>
@@ -289,8 +297,8 @@ const WorkoutDetails = () => {
                                 <Grid size={12}>
                                     <Typography variant="caption" color="text.secondary">{t('journal.dateTime')}</Typography>
                                     <Typography variant="body1">
-                                        {new Date(workout.date).toLocaleDateString(i18n.language, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                        {workout.time && ` at ${workout.time ?? ''}`}
+                                        {parseLocalDate(workout.date).toLocaleDateString(i18n.language, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                        {workout.time && ` • ${workout.time}`}
                                     </Typography>
                                 </Grid>
                                 <Grid size={12}>
@@ -299,13 +307,13 @@ const WorkoutDetails = () => {
                                         {workout.sessionType ? t(`exerciseTypes.${workout.sessionType}`, { defaultValue: workout.sessionType }) : '-'}
                                     </Typography>
                                 </Grid>
-                                {workout.length && (
+                                {workout.length !== undefined && (
                                     <Grid size={12}>
                                         <Typography variant="caption" color="text.secondary">{t('journal.duration')}</Typography>
                                         <Typography variant="body1">{workout.length} {t('common.unitMin')}</Typography>
                                     </Grid>
                                 )}
-                                {workout.maxPulse && (
+                                {workout.maxPulse !== undefined && (
                                     <Grid size={12}>
                                         <Typography variant="caption" color="text.secondary">{t('journal.maxPulse')}</Typography>
                                         <Typography variant="body1">{workout.maxPulse} {t('journal.bpm')}</Typography>
@@ -327,7 +335,7 @@ const WorkoutDetails = () => {
                                                 variant="outlined"
                                                 color="primary"
                                                 clickable
-                                                onClick={() => { void navigate('/journal/templates'); }}
+                                                onClick={() => { void navigate('/routines/templates'); }}
                                             />
                                         </Box>
                                     </Grid>
@@ -343,30 +351,30 @@ const WorkoutDetails = () => {
                             <Grid container spacing={2}>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{formatNumber(stats.totals.volume)}</Typography>
+                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>{formatNumber(stats.totals.volume)}</Typography>
                                         <Typography variant="caption" color="text.secondary">{t('journal.totalVolume')} (kg)</Typography>
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{stats.totals.sets}</Typography>
+                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>{stats.totals.sets}</Typography>
                                         <Typography variant="caption" color="text.secondary">{t('journal.totalSets')}</Typography>
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{stats.totals.reps}</Typography>
+                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>{stats.totals.reps}</Typography>
                                         <Typography variant="caption" color="text.secondary">{t('journal.totalReps')}</Typography>
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                     <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>{stats.totals.exercises}</Typography>
+                                        <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>{stats.totals.exercises}</Typography>
                                         <Typography variant="caption" color="text.secondary">{t('journal.totalExercises')}</Typography>
                                     </Box>
                                 </Grid>
                             </Grid>
-                            <Box sx={{ mt: 4, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.50', border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
+                            <Box sx={{ mt: 4, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover', border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
                                 <Typography variant="body2" color="text.secondary">{t('journal.intensityChartsComingSoon')}</Typography>
                             </Box>
                         </Paper>
@@ -397,7 +405,7 @@ const WorkoutDetails = () => {
                                                             label={t('supersets.supersetTitle', { letter: block.letter })}
                                                             size="small"
                                                             color="primary"
-                                                            sx={{ fontWeight: 'bold' }}
+                                                            sx={{ fontWeight: 500 }}
                                                         />
                                                         {block.note && (
                                                             <Typography
@@ -426,7 +434,6 @@ const WorkoutDetails = () => {
                         </Grid>
                     </Grid>
                 </Grid>
-            </Box>
         </Container>
     );
 };

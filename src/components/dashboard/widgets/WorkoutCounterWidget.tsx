@@ -15,7 +15,7 @@ const WorkoutCounterWidget = ({ sessionsInLast7Days }: WorkoutCounterWidgetProps
     return (
         <Stack spacing={1}>
             <Box sx={{ display: 'flex', alignItems: 'baseline' }}>
-                <Typography variant="h3" component="div" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                <Typography variant="h3" component="div" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     {sessionsInLast7Days}
                 </Typography>
                 <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>

@@ -20,6 +20,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { alpha } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Program, TrainingTemplate } from '../../types';
@@ -89,15 +90,12 @@ export const ActiveProgramCard = ({
 
     return (
         <Card
-            elevation={2}
+            elevation={0}
             sx={{
-                borderRadius: 3,
-                border: 1,
-                borderColor: 'primary.main',
+                border: '1px solid',
+                borderColor: (theme) => alpha(theme.palette.primary.main, 0.45),
                 background: (theme) =>
-                    theme.palette.mode === 'dark'
-                        ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.4) 100%)'
-                        : 'linear-gradient(135deg, rgba(239, 246, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%)',
+                    `linear-gradient(135deg, ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.16 : 0.07)} 0%, ${alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.1 : 0.03)} 100%)`,
                 mb: 3,
             }}
         >
@@ -109,9 +107,8 @@ export const ActiveProgramCard = ({
                             label={t('programs.activeProgram')}
                             color="primary"
                             size="small"
-                            sx={{ fontWeight: 700 }}
                         />
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
                             {program.name}
                         </Typography>
                         <Chip
@@ -154,7 +151,7 @@ export const ActiveProgramCard = ({
                     >
                         <Box>
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                                <Typography variant="subtitle2" color="primary.main" sx={{ fontWeight: 700 }}>
+                                <Typography variant="subtitle2" color="primary.main">
                                     {t('programs.day')} {currentDayNumberStr} {progressStr}
                                 </Typography>
                                 {Boolean(currentDay.date) && (
@@ -166,14 +163,14 @@ export const ActiveProgramCard = ({
                                 {isRestDay ? (
                                     <>
                                         <HotelIcon color="action" />
-                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                        <Typography variant="h6">
                                             {t('programs.restDay')}
                                         </Typography>
                                     </>
                                 ) : (
                                     <>
                                         <FitnessCenterIcon color="primary" />
-                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                        <Typography variant="h6">
                                             {currentTemplate?.name ?? t('programs.workout')}
                                         </Typography>
                                     </>
@@ -221,7 +218,6 @@ export const ActiveProgramCard = ({
                                     color="primary"
                                     startIcon={<PlayArrowIcon />}
                                     onClick={handleStartWorkout}
-                                    sx={{ textTransform: 'none', fontWeight: 700 }}
                                 >
                                     {t('programs.startWorkout')}
                                 </Button>
@@ -248,7 +244,7 @@ export const ActiveProgramCard = ({
                                     onClick={() => { void onAdvanceDay(idx); }}
                                     sx={{
                                         cursor: 'pointer',
-                                        fontWeight: isCurrent ? 700 : 500,
+                                        fontWeight: isCurrent ? 600 : 400,
                                         '&:hover': { opacity: 0.85 },
                                     }}
                                 />
@@ -261,7 +257,7 @@ export const ActiveProgramCard = ({
                                 color="inherit"
                                 endIcon={showAllDays ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                                 onClick={() => { setShowAllDays(!showAllDays); }}
-                                sx={{ ml: 'auto', textTransform: 'none', fontSize: '0.75rem' }}
+                                sx={{ ml: 'auto', fontSize: '0.75rem' }}
                             >
                                 {showAllDays ? t('programs.hideOverview') : t('programs.viewAllDays')}
                             </Button>
@@ -272,7 +268,7 @@ export const ActiveProgramCard = ({
                 {/* Collapsible Overview */}
                 <Collapse in={showAllDays && !compact}>
                     <Box sx={{ mt: 2, pt: 1, borderTop: 1, borderColor: 'divider' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             {t('programs.scheduleOverview')}
                         </Typography>
                         <Stack spacing={1}>
@@ -294,7 +290,7 @@ export const ActiveProgramCard = ({
                                         }}
                                     >
                                         <Box>
-                                            <Typography variant="body2" sx={{ fontWeight: isCurrent ? 700 : 500 }}>
+                                            <Typography variant="body2" sx={{ fontWeight: isCurrent ? 600 : 400 }}>
                                                 {t('programs.day')} {String(day.dayNumber)}: {tpl ? tpl.name : t('programs.restDay')}
                                                 {day.date && ` (${day.date})`}
                                             </Typography>

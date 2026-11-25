@@ -3,11 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
-import { useUserProfile } from './useUserProfile';
-import { createWorkout, updateWorkout } from '../services/db';
-import type { Workout, Exercise, SessionType, WorkoutExercise, ExerciseSet } from '../types';
+import { useUserProfile } from '../context/UserProfileContext';
+import { createWorkout, updateWorkout, getWorkoutById } from '../services/db';
+import type { Workout, Exercise, SessionType, WorkoutExercise, ExerciseSet, TemplateExercise } from '../types';
 import { getDefaultDateTime } from '../utils/format';
-import { linkWithNext, unlinkFromSuperset, updateSupersetNote } from '../utils/supersetUtils';
+import { linkWithNext, unlinkFromSuperset, unlinkEntireSuperset, updateSupersetNote } from '../utils/supersetUtils';
 
 interface WorkoutFormDraft {
     date: string;
@@ -27,6 +27,24 @@ export const getWorkoutDraftKey = (userId?: string | null, workoutId?: string) =
         return `workout_draft_${userId}_${workoutId ?? 'new'}`;
     }
     return `workout_draft_${workoutId ?? 'new'}`;
+};
+
+const mapTemplateExercisesToWorkout = (templateExercises?: TemplateExercise[]): WorkoutExercise[] => {
+    if (!templateExercises) return [];
+    return templateExercises.map(te => ({
+        exerciseId: te.exerciseId,
+        note: te.note,
+        supersetId: te.supersetId,
+        supersetNote: te.supersetNote,
+        sets: te.sets?.map(s => ({
+            id: crypto.randomUUID(),
+            weight: s.weight ?? undefined,
+            reps: s.reps ?? undefined,
+            rpe: s.rpe ?? undefined,
+            rir: s.rir ?? undefined,
+            notes: s.notes ?? ''
+        })) ?? []
+    }));
 };
 
 export const useWorkoutForm = (id?: string) => {
@@ -70,111 +88,112 @@ export const useWorkoutForm = (id?: string) => {
     const lastSavedDataRef = useRef<string>('');
     const DRAFT_KEY = useMemo(() => getWorkoutDraftKey(currentUser?.uid, id), [currentUser?.uid, id]);
 
-    // Load initial data and drafts
+    // Load initial data and drafts (including fallback fetch for older workouts beyond current context slice)
     useEffect(() => {
         if (!currentUser || sessionsLoading || profileLoading || !loading) return;
 
-        let baseData: WorkoutFormDraft | null = null;
+        let cancelled = false;
 
-        if (isEditing && id) {
-            const entry = entries.find(e => e.id === id);
+        const initForm = async () => {
+            let baseData: WorkoutFormDraft | null = null;
 
-            if (entry) {
-                baseData = {
-                    date: entry.date,
-                    time: entry.time ?? '',
-                    length: entry.length ?? '',
-                    sessionType: entry.sessionType ?? 'strength',
-                    maxPulse: entry.maxPulse ?? '',
-                    comment: entry.comment,
-                    exercises: entry.exercises,
-                    templateId: entry.templateId ?? ''
-                };
-            } else {
-                setError('Workout not found');
-                setLoading(false);
-                return;
-            }
-        }
-
-        // Load draft from local storage
-        const savedDraft = localStorage.getItem(DRAFT_KEY) ?? (!isEditing ? localStorage.getItem('workout_draft_new') : null);
-        if (savedDraft) {
-            try {
-                const draft = JSON.parse(savedDraft) as WorkoutFormDraft;
-                if (baseData) {
-                    baseData = { ...baseData, ...draft };
-                } else {
-                    baseData = draft;
+            if (isEditing && id) {
+                let entry = entries.find(e => e.id === id) ?? null;
+                if (!entry) {
+                    try {
+                        entry = await getWorkoutById(currentUser.uid, id);
+                    } catch {
+                        entry = null;
+                    }
                 }
-            } catch (_e) {
-                // console.error("Failed to parse draft", _e);
+                if (cancelled) return;
+
+                if (entry) {
+                    baseData = {
+                        date: entry.date,
+                        time: entry.time ?? '',
+                        length: entry.length ?? '',
+                        sessionType: entry.sessionType ?? 'strength',
+                        maxPulse: entry.maxPulse ?? '',
+                        comment: entry.comment,
+                        exercises: entry.exercises,
+                        templateId: entry.templateId ?? ''
+                    };
+                } else {
+                    setError('Workout not found');
+                    setLoading(false);
+                    return;
+                }
             }
-        }
 
-        if (baseData) {
-            setDate(baseData.date);
-            setTime(baseData.time);
-            setLength(baseData.length);
-            setSessionType(baseData.sessionType);
-            setMaxPulse(baseData.maxPulse);
-            setComment(baseData.comment);
-            setLocalComment(baseData.comment);
-            setWorkoutExercises(baseData.exercises);
-            if (baseData.templateId !== undefined) {
-                setSelectedTemplateId(baseData.templateId);
+            // Load UID-scoped draft from local storage
+            const savedDraft = localStorage.getItem(DRAFT_KEY);
+            if (savedDraft) {
+                try {
+                    const draft = JSON.parse(savedDraft) as WorkoutFormDraft;
+                    baseData = baseData ? { ...baseData, ...draft } : draft;
+                } catch {
+                    // Ignore malformed draft
+                }
             }
-            if (baseData.startTime) setStartTime(baseData.startTime);
-            if (baseData.autoFillFromLast !== undefined) setAutoFillFromLast(baseData.autoFillFromLast);
 
-            lastSavedDataRef.current = JSON.stringify(baseData);
-        } else if (!isEditing) {
-            const now = Date.now();
-            setStartTime(now);
-            const { date: d, time: t } = getDefaultDateTime();
+            if (baseData) {
+                setDate(baseData.date);
+                setTime(baseData.time);
+                setLength(baseData.length);
+                setSessionType(baseData.sessionType);
+                setMaxPulse(baseData.maxPulse);
+                setComment(baseData.comment);
+                setLocalComment(baseData.comment);
+                setWorkoutExercises(baseData.exercises);
+                if (baseData.templateId !== undefined) {
+                    setSelectedTemplateId(baseData.templateId);
+                }
+                if (baseData.startTime) setStartTime(baseData.startTime);
+                if (baseData.autoFillFromLast !== undefined) setAutoFillFromLast(baseData.autoFillFromLast);
 
-            const queryTemplate = queryTemplateId ? templates.find(t => t.id === queryTemplateId) : null;
-            const initialExercises: WorkoutExercise[] = queryTemplate?.exercises ? queryTemplate.exercises.map(te => ({
-                exerciseId: te.exerciseId,
-                note: te.note,
-                supersetId: te.supersetId,
-                supersetNote: te.supersetNote,
-                sets: te.sets?.map(s => ({
-                    id: crypto.randomUUID(),
-                    weight: s.weight ?? undefined,
-                    reps: s.reps ?? undefined,
-                    rpe: s.rpe ?? undefined,
-                    rir: s.rir ?? undefined,
-                    notes: s.notes ?? ''
-                })) ?? []
-            })) : [];
+                lastSavedDataRef.current = JSON.stringify(baseData);
+            } else if (!isEditing) {
+                const now = Date.now();
+                setStartTime(now);
+                const { date: d, time: t } = getDefaultDateTime();
 
-            const initialNewData: WorkoutFormDraft = {
-                date: d,
-                time: t,
-                length: '',
-                sessionType: 'strength',
-                maxPulse: '',
-                comment: '',
-                exercises: initialExercises,
-                startTime: now,
-                templateId: queryTemplateId || undefined
-            };
+                const queryTemplate = queryTemplateId ? templates.find(tpl => tpl.id === queryTemplateId) : null;
+                const initialExercises = mapTemplateExercisesToWorkout(queryTemplate?.exercises);
 
-            setDate(d);
-            setTime(t);
-            setWorkoutExercises(initialExercises);
-            if (queryTemplateId) {
-                setSelectedTemplateId(queryTemplateId);
+                const initialNewData: WorkoutFormDraft = {
+                    date: d,
+                    time: t,
+                    length: '',
+                    sessionType: 'strength',
+                    maxPulse: '',
+                    comment: '',
+                    exercises: initialExercises,
+                    startTime: now,
+                    templateId: queryTemplateId || undefined
+                };
+
+                setDate(d);
+                setTime(t);
+                setWorkoutExercises(initialExercises);
+                if (queryTemplateId) {
+                    setSelectedTemplateId(queryTemplateId);
+                }
+                lastSavedDataRef.current = JSON.stringify(initialNewData);
+
+                if (profile?.settings?.autoFillSets) {
+                    setAutoFillFromLast(true);
+                }
             }
-            lastSavedDataRef.current = JSON.stringify(initialNewData);
 
-            if (profile?.settings?.autoFillSets) {
-                setAutoFillFromLast(true);
-            }
-        }
+            setLoading(false);
+        };
 
-        setLoading(false);
+        void initForm();
+
+        return () => {
+            cancelled = true;
+        };
     }, [currentUser, id, isEditing, entries, sessionsLoading, loading, DRAFT_KEY, profileLoading, profile, queryTemplateId, templates]);
 
     // Timer effect
@@ -217,7 +236,7 @@ export const useWorkoutForm = (id?: string) => {
                 window.dispatchEvent(new Event('draft-updated'));
                 lastSavedDataRef.current = dataStr;
                 setAutoSaveState({ isSaving: false, lastSaved: new Date(), error: '' });
-            } catch (_err) {
+            } catch {
                 setAutoSaveState(prev => ({ ...prev, isSaving: false, error: 'Local save failed' }));
             }
         }, 1000);
@@ -234,56 +253,61 @@ export const useWorkoutForm = (id?: string) => {
         return () => { clearTimeout(timer); };
     }, [localComment, comment]);
 
-    // Optimized previous exercises map
+    // Precomputed map of each exercise's most recent performance prior to `date` + `time`.
+    // Independent of `sessionExercises` so set keystrokes never trigger O(W * E) re-scans!
     const previousExercisesMap = useMemo<Record<string, WorkoutExercise | undefined>>(() => {
         if (sessionsLoading || !entries.length) return {};
 
         const map: Record<string, WorkoutExercise> = {};
-        const currentDateTime = new Date(`${date}T${time || '00:00'}`).getTime();
+        const currentKey = `${date}T${time || '00:00'}`;
 
-        sessionExercises.forEach(se => {
-            const exerciseId = se.exerciseId;
-            const prevWorkout = entries.find(e =>
-                e.id !== id &&
-                e.exerciseIds.includes(exerciseId) &&
-                new Date(`${e.date}T${e.time ?? '00:00'}`).getTime() < currentDateTime
-            );
-
-            if (prevWorkout) {
-                const prevEx = prevWorkout.exercises.find(ex => ex.exerciseId === exerciseId);
-                if (prevEx) {
-                    map[exerciseId] = prevEx;
-                }
-            }
+        // `entries` is ordered by date desc; sort ties by time desc once
+        const sorted = [...entries].sort((a, b) => {
+            const keyA = `${a.date}T${a.time ?? '00:00'}`;
+            const keyB = `${b.date}T${b.time ?? '00:00'}`;
+            return keyB.localeCompare(keyA);
         });
 
-        return map;
-    }, [entries, sessionsLoading, date, time, id, sessionExercises]);
+        for (const workout of sorted) {
+            if (workout.id === id) continue;
+            const workoutKey = `${workout.date}T${workout.time ?? '00:00'}`;
+            if (workoutKey >= currentKey) continue;
 
-    const handleAddExercise = useCallback((exercise: Exercise | null) => {
-        if (!exercise) return;
-        if (sessionExercises.find(se => se.exerciseId === exercise.id)) return;
-
-        let initialSets: ExerciseSet[] = [{ id: crypto.randomUUID() }];
-
-        if (autoFillFromLast) {
-            const prevEx = previousExercisesMap[exercise.id];
-            if (prevEx && prevEx.sets.length > 0) {
-                initialSets = [{
-                    id: crypto.randomUUID(),
-                    weight: prevEx.sets[0].weight,
-                    reps: prevEx.sets[0].reps,
-                    rpe: prevEx.sets[0].rpe,
-                    rir: prevEx.sets[0].rir
-                }];
+            for (const ex of workout.exercises) {
+                if (!(ex.exerciseId in map)) {
+                    map[ex.exerciseId] = ex;
+                }
             }
         }
 
-        setWorkoutExercises(prev => [...prev, {
-            exerciseId: exercise.id,
-            sets: initialSets
-        }]);
-    }, [sessionExercises, autoFillFromLast, previousExercisesMap]);
+        return map;
+    }, [entries, sessionsLoading, date, time, id]);
+
+    const handleAddExercise = useCallback((exercise: Exercise | null) => {
+        if (!exercise) return;
+        setWorkoutExercises(prev => {
+            if (prev.some(se => se.exerciseId === exercise.id)) return prev;
+
+            let initialSets: ExerciseSet[] = [{ id: crypto.randomUUID() }];
+            if (autoFillFromLast) {
+                const prevEx = previousExercisesMap[exercise.id];
+                if (prevEx && prevEx.sets.length > 0) {
+                    initialSets = [{
+                        id: crypto.randomUUID(),
+                        weight: prevEx.sets[0].weight,
+                        reps: prevEx.sets[0].reps,
+                        rpe: prevEx.sets[0].rpe,
+                        rir: prevEx.sets[0].rir
+                    }];
+                }
+            }
+
+            return [...prev, {
+                exerciseId: exercise.id,
+                sets: initialSets
+            }];
+        });
+    }, [autoFillFromLast, previousExercisesMap]);
 
     const handleRemoveExercise = useCallback((exerciseId: string) => {
         setWorkoutExercises(prev => {
@@ -364,21 +388,7 @@ export const useWorkoutForm = (id?: string) => {
 
         const template = templates.find(t => t.id === templateId);
         if (template?.exercises) {
-            const mappedExercises: WorkoutExercise[] = template.exercises.map(te => ({
-                exerciseId: te.exerciseId,
-                note: te.note,
-                supersetId: te.supersetId,
-                supersetNote: te.supersetNote,
-                sets: te.sets?.map(s => ({
-                    id: crypto.randomUUID(),
-                    weight: s.weight ?? undefined,
-                    reps: s.reps ?? undefined,
-                    rpe: s.rpe ?? undefined,
-                    rir: s.rir ?? undefined,
-                    notes: s.notes ?? ''
-                })) ?? []
-            }));
-            setWorkoutExercises(mappedExercises);
+            setWorkoutExercises(mapTemplateExercisesToWorkout(template.exercises));
         }
     };
 
@@ -388,6 +398,10 @@ export const useWorkoutForm = (id?: string) => {
 
     const handleUnlinkSuperset = useCallback((index: number) => {
         setWorkoutExercises(prev => unlinkFromSuperset(prev, index));
+    }, []);
+
+    const handleUnlinkEntireSuperset = useCallback((supersetId: string) => {
+        setWorkoutExercises(prev => unlinkEntireSuperset(prev, supersetId));
     }, []);
 
     const handleUpdateSupersetNote = useCallback((supersetId: string, note: string) => {
@@ -407,12 +421,17 @@ export const useWorkoutForm = (id?: string) => {
                 sets: se.sets.filter(s => s.weight !== undefined || s.reps !== undefined || s.rpe !== undefined || s.rir !== undefined || (s.notes && s.notes.trim() !== ''))
             }));
 
+            const resolvedLength = length !== ''
+                ? length
+                : (isEditing || !showTimer ? undefined : elapsedMinutes);
+            const resolvedMaxPulse = maxPulse !== '' ? maxPulse : undefined;
+
             const entryData: Omit<Workout, 'id' | 'userId'> = {
                 date,
                 time: time || undefined,
-                length: Number(length) || (isEditing || !showTimer ? undefined : elapsedMinutes),
+                length: resolvedLength,
                 sessionType,
-                maxPulse: Number(maxPulse) || undefined,
+                maxPulse: resolvedMaxPulse,
                 comment: comment.trim(),
                 exerciseIds: filteredExercises.map(se => se.exerciseId),
                 exercises: filteredExercises,
@@ -438,10 +457,9 @@ export const useWorkoutForm = (id?: string) => {
 
             try {
                 localStorage.removeItem(DRAFT_KEY);
-                if (!isEditing) localStorage.removeItem('workout_draft_new');
                 window.dispatchEvent(new Event('draft-updated'));
-            } catch (_err) {
-                // Silently fail
+            } catch {
+                // Silently ignore storage cleanup errors
             }
             void navigate(`/journal/${finalId ?? ''}`);
         } catch (_err) {
@@ -477,6 +495,7 @@ export const useWorkoutForm = (id?: string) => {
         handleMoveExercise,
         handleLinkWithNext,
         handleUnlinkSuperset,
+        handleUnlinkEntireSuperset,
         handleUpdateSupersetNote,
         handleTemplateChange,
         handleSubmit,

@@ -30,7 +30,7 @@ export default function ExerciseForm() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const isEditing = Boolean(id);
-    const { exercises, loading: exercisesLoading } = useExercises();
+    const { exercises, loading: exercisesLoading, refreshExercises } = useExercises();
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -135,6 +135,7 @@ export default function ExerciseForm() {
         try {
             setSubmitting(true);
             await deleteExercise(id);
+            await refreshExercises();
             void navigate('/exercises');
         } catch (_err) {
             setError('Failed to delete exercise');
@@ -158,9 +159,11 @@ export default function ExerciseForm() {
             // Save to firestore
             if (isEditing && id) {
                 await updateExercise(id, finalData);
+                await refreshExercises();
                 await navigate(`/exercises/${id}`);
             } else {
                 const newId = await createExercise(finalData);
+                await refreshExercises();
                 await navigate(`/exercises/${newId}`);
             }
         } catch (_err) {

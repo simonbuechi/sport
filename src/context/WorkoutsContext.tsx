@@ -9,6 +9,8 @@ import {
 import { useAuth } from './AuthContext';
 import type { Workout, TrainingTemplate, Program } from '../types';
 
+const INITIAL_WORKOUT_LIMIT = 100;
+
 interface WorkoutsContextType {
     entries: Workout[];
     templates: TrainingTemplate[];
@@ -16,6 +18,7 @@ interface WorkoutsContextType {
     activeProgram: Program | null;
     loading: boolean;
     programsLoading: boolean;
+    error: string | null;
     loadMore: () => void;
     hasMore: boolean;
     currentLimit: number;
@@ -41,10 +44,10 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
     const [programs, setPrograms] = useState<Program[]>([]);
     const [loading, setLoading] = useState(Boolean(currentUser));
     const [programsLoading, setProgramsLoading] = useState(Boolean(currentUser));
-    const [currentLimit, setCurrentLimit] = useState(10);
+    const [error, setError] = useState<string | null>(null);
+    const [currentLimit, setCurrentLimit] = useState(INITIAL_WORKOUT_LIMIT);
     const [hasMore, setHasMore] = useState(true);
 
-    // Reset state during render if user logs out (React recommended pattern)
     const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
     const currentUid = currentUser?.uid ?? null;
     if (currentUid !== prevUserUid) {
@@ -54,11 +57,13 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
             setPrograms([]);
             setLoading(false);
             setProgramsLoading(false);
-            setCurrentLimit(10);
+            setError(null);
+            setCurrentLimit(INITIAL_WORKOUT_LIMIT);
             setHasMore(true);
         } else {
             setLoading(true);
             setProgramsLoading(true);
+            setError(null);
         }
         setPrevUserUid(currentUid);
     }
@@ -67,15 +72,19 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         const uid = currentUser?.uid;
         if (!uid) return;
 
-        // Subscribe to workouts with dynamic limit
         const unsubscribeEntries = subscribeToWorkouts(
             uid,
             (data) => {
                 setEntries(data);
                 setLoading(false);
+                setError(null);
                 setHasMore(data.length === currentLimit);
             },
-            currentLimit
+            currentLimit,
+            (err) => {
+                setLoading(false);
+                setError(err.message || 'Failed to load workouts');
+            }
         );
 
         return () => {
@@ -87,15 +96,16 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         const uid = currentUser?.uid;
         if (!uid) return;
 
-        // Subscribe to templates
         const unsubscribeTemplates = subscribeToTemplates(
             uid,
             (data) => {
                 setTemplates(data);
+            },
+            (err) => {
+                setError(err.message || 'Failed to load templates');
             }
         );
 
-        // Subscribe to programs
         const unsubscribePrograms = subscribeToPrograms(
             uid,
             (data) => {
@@ -131,7 +141,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
 
     const loadMore = useCallback(() => {
         if (!loading && hasMore) {
-            setCurrentLimit(prev => prev + 50);
+            setCurrentLimit(prev => prev + 100);
         }
     }, [loading, hasMore]);
 
@@ -142,6 +152,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         activeProgram,
         loading,
         programsLoading,
+        error,
         loadMore,
         hasMore,
         currentLimit,
@@ -154,6 +165,7 @@ export const WorkoutsProvider = ({ children }: { children: ReactNode }) => {
         activeProgram,
         loading,
         programsLoading,
+        error,
         loadMore,
         hasMore,
         currentLimit,

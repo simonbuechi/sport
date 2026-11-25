@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import Container from '@mui/material/Container';
+import PageLoader from '../components/common/PageLoader';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
@@ -17,7 +18,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { useUserProfile } from '../context/UserProfileContext';
 import ExerciseHeader from '../components/exercises/ExerciseHeader';
 import ExerciseHistoryCard from '../components/exercises/ExerciseHistoryCard';
 import ExerciseProgressChart from '../components/exercises/ExerciseProgressChart';
@@ -33,7 +34,7 @@ const ExerciseDetails = () => {
     const { exercises, loading: exercisesLoading } = useExercises();
     const { profile, updateExerciseStatus, loading: profileLoading } = useUserProfile();
     const { entries: allEntries, loading: workoutsLoading } = useWorkouts();
-    const [error] = useState('');
+    const [actionError, setActionError] = useState<string | null>(null);
 
     const exercise = useMemo(() => {
         if (!id || exercisesLoading) return null;
@@ -47,45 +48,44 @@ const ExerciseDetails = () => {
 
     const loading = exercisesLoading || profileLoading || workoutsLoading;
 
-
-
     const handleFavoriteToggle = async () => {
         if (!currentUser || !id || !profile) return;
 
         try {
+            setActionError(null);
             const currentValue = profile.markedExercises?.[id]?.favorite ?? false;
             await updateExerciseStatus(id, { favorite: !currentValue });
-        } catch (_err) {
-            // setError('Failed to toggle favorite');
+        } catch {
+            setActionError(t('common.error', { defaultValue: 'Failed to update favorite status' }));
         }
     };
 
-
-
-
-
-
-
-    if (loading) return <Stack sx={{ mt: 8 }}><CircularProgress /></Stack>;
-    if (error || !exercise) return (
-        <Container><Typography color="error" sx={{
-            mt: 4
-        }}>{error || 'Not found'}</Typography></Container>
+    if (loading) return <PageLoader />;
+    if (!exercise) return (
+        <Container>
+            <Alert severity="error">
+                {t('exercises.notFound', { defaultValue: 'Not found' })}
+            </Alert>
+        </Container>
     );
 
     const currentStatus = profile?.markedExercises?.[exercise.id] ?? {};
 
     return (
         <Container maxWidth="lg">
-            <Paper elevation={0} sx={{ p: { xs: 1.5, md: 3 }, bgcolor: 'background.paper', }}>
+            <Paper elevation={0} sx={{ p: { xs: 1.5, md: 3 }, bgcolor: 'background.paper' }}>
+                {actionError && (
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => { setActionError(null); }}>
+                        {actionError}
+                    </Alert>
+                )}
                 <Grid container spacing={{ xs: 2, md: 3 }}>
                     <Grid size={{ xs: 12, md: 8 }}>
-                        <ExerciseHeader 
-                            exercise={exercise} 
+                        <ExerciseHeader
+                            exercise={exercise}
                             isFavorite={currentStatus.favorite ?? false}
-                            onToggleFavorite={handleFavoriteToggle}
+                            onToggleFavorite={() => { void handleFavoriteToggle(); }}
                         />
-
 
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
                             {exercise.description ?? t('exercises.noDescription')}
@@ -106,13 +106,13 @@ const ExerciseDetails = () => {
                                 <List sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
                                     {exercise.links.map((link, index) => (
                                         <Box key={index}>
-                                            <ListItem 
-                                                component="a" 
-                                                href={sanitizeUrl(link.url)} 
-                                                target="_blank" 
+                                            <ListItem
+                                                component="a"
+                                                href={sanitizeUrl(link.url)}
+                                                target="_blank"
                                                 rel="noopener noreferrer"
-                                                sx={{ 
-                                                    textDecoration: 'none', 
+                                                sx={{
+                                                    textDecoration: 'none',
                                                     color: 'inherit',
                                                     '&:hover': { bgcolor: 'action.hover' }
                                                 }}
@@ -120,8 +120,8 @@ const ExerciseDetails = () => {
                                                 <ListItemIcon>
                                                     <LinkIcon color="primary" />
                                                 </ListItemIcon>
-                                                <ListItemText 
-                                                    primary={link.label ?? t('exercises.linkLabel')} 
+                                                <ListItemText
+                                                    primary={link.label ?? t('exercises.linkLabel')}
                                                     secondary={link.url}
                                                     slotProps={{ secondary: { noWrap: true, sx: { maxWidth: '100%' } } }}
                                                 />
@@ -133,22 +133,17 @@ const ExerciseDetails = () => {
                                 </List>
                             </Box>
                         )}
-
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
-                        <Stack direction="column" spacing={3} sx={{ position: "sticky", top: 24 }}>
-
-                                <ExerciseNotes exerciseId={exercise.id} />
-
+                        <Stack direction="column" spacing={3} sx={{ position: 'sticky', top: 24 }}>
+                            <ExerciseNotes exerciseId={exercise.id} />
                             <ExerciseHistoryCard workouts={workouts} exerciseId={exercise.id} />
                         </Stack>
                     </Grid>
                 </Grid>
             </Paper>
-
-
-        </Container >
+        </Container>
     );
 };
 

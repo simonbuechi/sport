@@ -11,13 +11,13 @@ interface MarkerIconsProps {
 }
 
 const MarkerIcons = ({ status, size = 'small', withShadow = false }: MarkerIconsProps) => {
-    const fontSize = size === 'small' ? '1.2rem' : '1.4rem';
+    const fontSize = size === 'small' ? '1.15rem' : '1.35rem';
     const shadowFilter = withShadow ? 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))' : undefined;
 
     if (!status.favorite) return null;
 
     return (
-        <Stack spacing={0.5}>
+        <Stack direction="row" spacing={0.5} sx={{ display: 'inline-flex', alignItems: 'center' }}>
             <Tooltip title="Favorite">
                 <Star sx={{ color: 'warning.main', fontSize, filter: shadowFilter }} />
             </Tooltip>

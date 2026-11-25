@@ -1,40 +1,39 @@
+const DANGEROUS_SCHEME_REGEX = /^(javascript|data|vbscript|file|blob):/i;
+const EXPLICIT_SCHEME_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
+
+const normalizeHttpUrl = (rawUrl: string): string | null => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+
+    if (DANGEROUS_SCHEME_REGEX.test(trimmed)) {
+        return null;
+    }
+
+    const candidate = EXPLICIT_SCHEME_REGEX.test(trimmed)
+        ? trimmed
+        : `https://${trimmed}`;
+
+    try {
+        const parsed = new URL(candidate);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            return null;
+        }
+        if (!parsed.hostname.includes('.') && parsed.hostname !== 'localhost') {
+            return null;
+        }
+        return EXPLICIT_SCHEME_REGEX.test(trimmed) ? trimmed : `https://${trimmed}`;
+    } catch {
+        return null;
+    }
+};
+
 /**
- * Validates and sanitizes URLs to prevent XSS via javascript: protocols.
+ * Validates and sanitizes URLs to prevent XSS via javascript:/data: protocols.
  * Only allows http: and https: protocols.
  */
 export const sanitizeUrl = (url: string | undefined): string => {
     if (!url) return '#';
-    
-    const trimmedUrl = url.trim();
-    
-    try {
-        const lowerUrl = trimmedUrl.toLowerCase();
-        if (lowerUrl.startsWith('javascript:') || lowerUrl.startsWith('data:') || lowerUrl.startsWith('vbscript:')) {
-            return '#';
-        }
-
-        // Attempt to parse the URL
-        const parsed = new URL(trimmedUrl);
-        
-        // Only allow web protocols
-        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-            return trimmedUrl;
-        }
-    } catch {
-        // If it's a relative URL or not a full URL, we should decide if we want to allow it.
-        // For external links in this app, we generally expect full URLs.
-        // If the URL doesn't have a protocol, try adding https://
-        const lowerUrl = trimmedUrl.toLowerCase();
-        if (lowerUrl.startsWith('javascript:') || lowerUrl.startsWith('data:') || lowerUrl.startsWith('vbscript:')) {
-            return '#';
-        }
-
-        if (!trimmedUrl.includes(':') && trimmedUrl.length > 0) {
-            return `https://${trimmedUrl}`;
-        }
-    }
-    
-    return '#';
+    return normalizeHttpUrl(url) ?? '#';
 };
 
 /**
@@ -42,10 +41,5 @@ export const sanitizeUrl = (url: string | undefined): string => {
  */
 export const isValidSafeUrl = (url: string): boolean => {
     if (!url) return false;
-    try {
-        const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-        return false;
-    }
+    return normalizeHttpUrl(url) !== null;
 };

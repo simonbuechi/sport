@@ -2,34 +2,33 @@ import type { Theme } from '@mui/material/styles';
 import type { LineChartProps } from '@mui/x-charts/LineChart';
 
 /**
- * Common chart configuration and standards
+ * Common chart configuration and visual standards
  */
 export const getChartDefaults = (theme: Theme): Partial<LineChartProps> => ({
-    margin: { top: 20, right: 20, bottom: 50, left: 50 },
+    margin: { top: 16, right: 12, bottom: 40, left: 38 },
     slotProps: {
         area: {
-            fillOpacity: 0.15,
+            fillOpacity: 0.16,
         },
     },
-    // Standard color palette based on theme
     colors: [
         theme.palette.primary.main,
         theme.palette.secondary.main,
-        theme.palette.error.main,
-        theme.palette.warning.main,
         theme.palette.info.main,
         theme.palette.success.main,
+        theme.palette.warning.main,
+        theme.palette.error.main,
     ],
     sx: {
         '& .MuiChartsLegend-root': {
             display: 'none',
         },
         '& .MuiAreaElement-root': {
-            opacity: 0.15,
-            fillOpacity: 0.15,
+            opacity: 0.16,
+            fillOpacity: 0.16,
         },
         '& .MuiLineElement-root': {
-            strokeWidth: 1,
+            strokeWidth: 2.5,
         },
         '& .MuiMarkElement-root': {
             display: 'none',

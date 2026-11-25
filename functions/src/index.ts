@@ -4,9 +4,9 @@ import { onRequest } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 
-// Initialize Firebase Admin SDK
-initializeApp();
-const db = getFirestore();
+// Initialize Firebase Admin SDK targeting the shared named 'default' database
+const app = initializeApp();
+const db = getFirestore(app, "default");
 
 /**
  * Health check endpoint for testing deployment and connectivity
@@ -25,7 +25,10 @@ export const healthCheck = onRequest({ cors: true }, (req, res) => {
  * Shared backend event listener for both Web and Android app activities.
  */
 export const onActivityCreated = onDocumentCreated(
-  "users/{userId}/activities/{activityId}",
+  {
+    document: "users/{userId}/activities/{activityId}",
+    database: "default"
+  },
   async (event) => {
     const snapshot = event.data;
     if (!snapshot) {
@@ -34,7 +37,7 @@ export const onActivityCreated = onDocumentCreated(
     }
 
     const { userId, activityId } = event.params;
-    const activityData = snapshot.data();
+    const activityData = snapshot.data() as { date?: string; exercises?: unknown[] };
 
     logger.info(`New activity created: ${activityId} for user: ${userId}`, {
       userId,
@@ -49,7 +52,7 @@ export const onActivityCreated = onDocumentCreated(
       const userRef = db.doc(`users/${userId}`);
       await userRef.set(
         {
-          lastActivityAt: activityData.date || new Date().toISOString(),
+          lastActivityAt: activityData.date ?? new Date().toISOString(),
           updatedAt: new Date().toISOString()
         },
         { merge: true }

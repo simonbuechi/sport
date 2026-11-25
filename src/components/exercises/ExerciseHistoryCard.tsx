@@ -11,8 +11,8 @@ import Stack from '@mui/material/Stack';
 import EventNote from '@mui/icons-material/EventNote';
 import { useTranslation } from 'react-i18next';
 import type { Workout } from '../../types';
-import { calculate1RM } from '../../utils/fitness';
-import { formatWeight, formatCount } from '../../utils/format';
+import { summarizeExerciseSets } from '../../utils/fitness';
+import { formatWeight, formatCount, parseLocalDate } from '../../utils/format';
 
 interface ExerciseHistoryCardProps {
     workouts: Workout[];
@@ -52,7 +52,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                                 <EventNote fontSize="small" color="primary" />
                                 <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                                    {new Date(workout.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    {parseLocalDate(workout.date).toLocaleDateString(i18n.language, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                 </Typography>
                             </Stack>
 
@@ -60,13 +60,7 @@ const ExerciseHistoryCard = ({ workouts, exerciseId }: ExerciseHistoryCardProps)
                                 {exerciseData && (
                                     <Typography variant="body2">
                                         {(() => {
-                                            const totalReps = exerciseData.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
-                                            const totalVolume = exerciseData.sets.reduce((sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), 0);
-                                            const max1RM = exerciseData.sets.reduce((max, s) => {
-                                                const current1RM = calculate1RM(s.weight ?? 0, s.reps ?? 0);
-                                                return current1RM > max ? current1RM : max;
-                                            }, 0);
-
+                                            const { totalReps, totalVolume, max1RM } = summarizeExerciseSets(exerciseData.sets);
                                             return `1RM: ${formatWeight(Math.round(max1RM))}kg, ${t('journal.reps')}: ${formatCount(totalReps)}, ${t('journal.volume')}: ${formatWeight(totalVolume)}kg`;
                                         })()}
                                     </Typography>

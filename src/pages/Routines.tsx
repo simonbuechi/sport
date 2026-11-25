@@ -13,10 +13,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
-import Paper from '@mui/material/Paper';
 import AddIcon from '@mui/icons-material/Add';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import DescriptionIcon from '@mui/icons-material/Description';
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
@@ -27,6 +27,9 @@ import { ActiveProgramCard } from '../components/routines/ActiveProgramCard';
 import { ProgramCard } from '../components/routines/ProgramCard';
 import { ProgramDialog, type ProgramFormData } from '../components/routines/ProgramDialog';
 import TemplatesSection from '../components/journal/TemplatesSection';
+import ProgramLibrarySection from '../components/routines/ProgramLibrarySection';
+import PageHeader from '../components/common/PageHeader';
+import EmptyState from '../components/common/EmptyState';
 
 const Routines: React.FC = () => {
     const { t } = useTranslation();
@@ -45,31 +48,33 @@ const Routines: React.FC = () => {
     } = useWorkouts();
 
     const isTemplatesPath = location.pathname === '/routines/templates' || searchParams.get('tab') === 'templates';
-    const activeTab = isTemplatesPath ? 1 : 0;
+    const isLibraryPath = location.pathname === '/routines/library' || searchParams.get('tab') === 'library';
+    const activeTab = isLibraryPath ? 2 : (isTemplatesPath ? 1 : 0);
 
-    // Dialog state for Program creation/editing
     const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
     const [editingProgram, setEditingProgram] = useState<Program | null>(null);
     const [saving, setSaving] = useState(false);
 
-    // Delete dialog state
     const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    // Clean URL navigation and backwards compatibility for ?tab=...
     useEffect(() => {
         const tabParam = searchParams.get('tab');
         if (tabParam === 'templates') {
             void navigate('/routines/templates', { replace: true });
         } else if (tabParam === 'programs') {
             void navigate('/routines/programs', { replace: true });
+        } else if (tabParam === 'library') {
+            void navigate('/routines/library', { replace: true });
         } else if (location.pathname === '/routines') {
             void navigate('/routines/programs', { replace: true });
         }
     }, [location.pathname, searchParams, navigate]);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-        void navigate(newValue === 1 ? '/routines/templates' : '/routines/programs');
+        if (newValue === 2) void navigate('/routines/library');
+        else if (newValue === 1) void navigate('/routines/templates');
+        else void navigate('/routines/programs');
     };
 
     const handleCreateProgram = () => {
@@ -110,31 +115,28 @@ const Routines: React.FC = () => {
     };
 
     return (
-        <Container maxWidth="lg" sx={{ py: { xs: 1.5, md: 3 } }}>
-            {/* Page Header */}
-            <Box sx={{ mb: { xs: 2, md: 3 } }}>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 800, mb: 1 }}>
-                    {t('routines.title')}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    {t('routines.subtitle')}
-                </Typography>
-            </Box>
+        <Container maxWidth="lg">
+            <PageHeader
+                title={t('routines.title')}
+                subtitle={t('routines.subtitle')}
+            />
 
-            {/* Navigation Tabs */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                <Tabs value={activeTab} onChange={handleTabChange} aria-label="routines tabs">
+                <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto" aria-label="routines tabs">
                     <Tab
                         icon={<CalendarMonthIcon fontSize="small" />}
                         iconPosition="start"
                         label={t('routines.programs')}
-                        sx={{ textTransform: 'none', fontWeight: 600, minHeight: 48 }}
                     />
                     <Tab
                         icon={<DescriptionIcon fontSize="small" />}
                         iconPosition="start"
                         label={t('routines.templates')}
-                        sx={{ textTransform: 'none', fontWeight: 600, minHeight: 48 }}
+                    />
+                    <Tab
+                        icon={<LocalLibraryIcon fontSize="small" />}
+                        iconPosition="start"
+                        label={t('routines.library')}
                     />
                 </Tabs>
             </Box>
@@ -142,7 +144,6 @@ const Routines: React.FC = () => {
             {/* TAB 0: Programs */}
             {activeTab === 0 && (
                 <Box>
-                    {/* Active Program Card at top */}
                     {activeProgram && (
                         <ActiveProgramCard
                             program={activeProgram}
@@ -152,54 +153,60 @@ const Routines: React.FC = () => {
                         />
                     )}
 
-                    {/* Section Header */}
-                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                        <Typography variant="h6">
                             {t('programs.allPrograms')}
                         </Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<AddIcon />}
-                            onClick={handleCreateProgram}
-                            sx={{ textTransform: 'none', fontWeight: 600 }}
-                        >
-                            {t('programs.newProgram')}
-                        </Button>
-                    </Stack>
-
-                    {/* Programs List */}
-                    {programsLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : programs.length === 0 ? (
-                        <Paper
-                            variant="outlined"
-                            sx={{
-                                p: { xs: 3, sm: 5 },
-                                textAlign: 'center',
-                                borderRadius: 3,
-                                bgcolor: 'background.paper',
-                            }}
-                        >
-                            <CalendarMonthIcon sx={{ fontSize: 56, color: 'text.secondary', mb: 1.5, opacity: 0.6 }} />
-                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                                {t('programs.noProgramsYet')}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 460, mx: 'auto' }}>
-                                {t('programs.emptyDescription')}
-                            </Typography>
+                        <Stack direction="row" spacing={1}>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<LocalLibraryIcon />}
+                                onClick={() => { void navigate('/routines/library'); }}
+                            >
+                                {t('programs.browseLibrary', { defaultValue: 'Browse Library' })}
+                            </Button>
                             <Button
                                 variant="contained"
                                 color="primary"
                                 startIcon={<AddIcon />}
                                 onClick={handleCreateProgram}
-                                sx={{ textTransform: 'none', fontWeight: 600 }}
                             >
-                                {t('programs.createFirstProgram')}
+                                {t('programs.newProgram')}
                             </Button>
-                        </Paper>
+                        </Stack>
+                    </Stack>
+
+                    {programsLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : programs.length === 0 ? (
+                        <EmptyState
+                            icon={<CalendarMonthIcon />}
+                            title={t('programs.noProgramsYet')}
+                            description={t('programs.emptyDescription')}
+                            actions={
+                                <>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        startIcon={<AddIcon />}
+                                        onClick={handleCreateProgram}
+                                    >
+                                        {t('programs.createFirstProgram')}
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        color="primary"
+                                        startIcon={<LocalLibraryIcon />}
+                                        onClick={() => { void navigate('/routines/library'); }}
+                                    >
+                                        {t('programs.browseLibrary', { defaultValue: 'Browse Program Library' })}
+                                    </Button>
+                                </>
+                            }
+                        />
                     ) : (
                         <Stack spacing={2}>
                             {programs.map((program) => (
@@ -219,15 +226,21 @@ const Routines: React.FC = () => {
 
             {/* TAB 1: Templates */}
             {activeTab === 1 && (
-                <Box>
-                    <TemplatesSection
-                        userId={currentUser?.uid ?? ''}
-                        exercises={exercises}
-                    />
-                </Box>
+                <TemplatesSection
+                    userId={currentUser?.uid ?? ''}
+                    exercises={exercises}
+                />
             )}
 
-            {/* Program Create/Edit Dialog */}
+            {/* TAB 2: Program Library */}
+            {activeTab === 2 && (
+                <ProgramLibrarySection
+                    onProgramCopied={() => {
+                        void navigate('/routines/programs');
+                    }}
+                />
+            )}
+
             <ProgramDialog
                 open={isProgramDialogOpen}
                 onClose={() => { setIsProgramDialogOpen(false); }}
@@ -237,12 +250,11 @@ const Routines: React.FC = () => {
                 saving={saving}
             />
 
-            {/* Program Delete Confirmation Dialog */}
             <Dialog
                 open={Boolean(programToDelete)}
                 onClose={() => { if (!deleting) setProgramToDelete(null); }}
             >
-                <DialogTitle sx={{ fontWeight: 700 }}>
+                <DialogTitle>
                     {t('programs.deleteProgramTitle')}
                 </DialogTitle>
                 <DialogContent>
@@ -250,7 +262,7 @@ const Routines: React.FC = () => {
                         {t('programs.deleteProgramConfirm', { name: programToDelete?.name ?? '' })}
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions sx={{ px: 3, pb: 2 }}>
+                <DialogActions>
                     <Button onClick={() => { setProgramToDelete(null); }} disabled={deleting} color="inherit">
                         {t('common.cancel')}
                     </Button>

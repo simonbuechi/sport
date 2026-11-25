@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
-import { subscribeToUserProfile, updateUserProfile as dbUpdateUserProfile, addWeightEntry, addMeasurementEntry, updateExerciseStatusInProfile } from '../services/db';
+import {
+    subscribeToUserProfile,
+    updateUserProfile as dbUpdateUserProfile,
+    addWeightEntry,
+    addMeasurementEntry,
+    updateExerciseStatusInProfile
+} from '../services/db';
 import { useAuth } from './AuthContext';
 import type { UserProfile, WeightEntry, MeasurementEntry, MarkedStatus } from '../types';
 import i18n from '../i18n';
@@ -28,16 +34,16 @@ export const useUserProfile = () => {
 export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
     const { currentUser } = useAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(currentUser));
     const [error, setError] = useState<string | null>(null);
 
-    // Reset state during render if user logs out (React recommended pattern)
     const [prevUserUid, setPrevUserUid] = useState<string | null>(currentUser?.uid ?? null);
     const currentUid = currentUser?.uid ?? null;
     if (currentUid !== prevUserUid) {
         if (!currentUser) {
             setProfile(null);
             setLoading(false);
+            setError(null);
         } else {
             setLoading(true);
             setError(null);
@@ -49,30 +55,36 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
         const uid = currentUser?.uid;
         if (!uid) return;
 
-        const unsubscribe = subscribeToUserProfile(uid, (data) => {
-            if (data) {
-                setProfile(data);
-            } else {
-                // Initial default profile if none exists in DB
-                setProfile({
-                    uid: uid,
-                    name: currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Anonymous Athlete',
-                    notes: '',
-                    markedExercises: {},
-                    weights: [],
-                    measurements: [],
-                    settings: {
-                        showTimer: true
-                    }
-                } as UserProfile);
+        const unsubscribe = subscribeToUserProfile(
+            uid,
+            (data) => {
+                if (data) {
+                    setProfile(data);
+                } else {
+                    setProfile({
+                        uid,
+                        name: currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Anonymous Athlete',
+                        notes: '',
+                        markedExercises: {},
+                        weights: [],
+                        measurements: [],
+                        settings: {
+                            showTimer: true
+                        }
+                    } as UserProfile);
+                }
+                setError(null);
+                setLoading(false);
+            },
+            () => {
+                setError('Failed to load profile');
+                setLoading(false);
             }
-            setLoading(false);
-        });
+        );
 
         return () => { unsubscribe(); };
     }, [currentUser?.uid, currentUser?.displayName, currentUser?.email]);
 
-    // Sync language setting from profile
     useEffect(() => {
         const lang = profile?.settings?.language;
         if (lang && i18n.language !== lang) {
@@ -83,13 +95,10 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
 
     const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
         if (!currentUser) return false;
-        
         try {
             await dbUpdateUserProfile(currentUser.uid, updates);
-            // State will be updated via onSnapshot
             return true;
         } catch (_err) {
-            // console.error('Error updating user profile:', _err);
             setError('Failed to update profile');
             throw _err;
         }

@@ -24,7 +24,12 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import GoogleIcon from '@mui/icons-material/Google';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { reauthenticateWithPopup, deleteUser } from 'firebase/auth';
+import {
+    reauthenticateWithPopup,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
+    deleteUser
+} from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 import { googleProvider } from '../firebase/config';
 import { softDeleteUserProfile } from '../services/db';
@@ -39,9 +44,17 @@ const DeleteAccount: React.FC = () => {
     const [isDeleted, setIsDeleted] = useState(false);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [confirmationInput, setConfirmationInput] = useState('');
+    const [passwordInput, setPasswordInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [loginLoading, setLoginLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isPasswordOnlyUser = Boolean(
+        currentUser?.providerData &&
+        currentUser.providerData.length > 0 &&
+        currentUser.providerData.some((p) => p.providerId === 'password') &&
+        !currentUser.providerData.some((p) => p.providerId === 'google.com')
+    );
 
     const handleGoogleLogin = async () => {
         try {
@@ -58,6 +71,7 @@ const DeleteAccount: React.FC = () => {
 
     const handleOpenDialog = () => {
         setConfirmationInput('');
+        setPasswordInput('');
         setError(null);
         setConfirmDialogOpen(true);
     };
@@ -66,10 +80,12 @@ const DeleteAccount: React.FC = () => {
         if (loading) return;
         setConfirmDialogOpen(false);
         setConfirmationInput('');
+        setPasswordInput('');
     };
 
     const handleDeleteAccount = async () => {
         if (!currentUser || confirmationInput.trim() !== 'DELETE') return;
+        if (isPasswordOnlyUser && !passwordInput) return;
 
         setLoading(true);
         setError(null);
@@ -77,8 +93,13 @@ const DeleteAccount: React.FC = () => {
         try {
             const uid = currentUser.uid;
 
-            // 1. Re-authenticate with Google to ensure fresh credentials for deletion
-            await reauthenticateWithPopup(currentUser, googleProvider);
+            // 1. Re-authenticate according to the user's auth provider
+            if (isPasswordOnlyUser && currentUser.email) {
+                const credential = EmailAuthProvider.credential(currentUser.email, passwordInput);
+                await reauthenticateWithCredential(currentUser, credential);
+            } else {
+                await reauthenticateWithPopup(currentUser, googleProvider);
+            }
 
             // 2. Soft delete user profile in Firestore
             await softDeleteUserProfile(uid);
@@ -290,6 +311,20 @@ const DeleteAccount: React.FC = () => {
                         sx={{ mt: 1 }}
                     />
 
+                    {isPasswordOnlyUser && (
+                        <TextField
+                            fullWidth
+                            size="small"
+                            type="password"
+                            label={t('auth.password')}
+                            value={passwordInput}
+                            onChange={(e) => { setPasswordInput(e.target.value); }}
+                            disabled={loading}
+                            required
+                            sx={{ mt: 2 }}
+                        />
+                    )}
+
                     {error && (
                         <Alert severity="error" sx={{ mt: 2 }}>
                             {error}
@@ -303,7 +338,7 @@ const DeleteAccount: React.FC = () => {
                     <Button
                         variant="contained"
                         color="error"
-                        disabled={loading || confirmationInput.trim() !== 'DELETE'}
+                        disabled={loading || confirmationInput.trim() !== 'DELETE' || (isPasswordOnlyUser && !passwordInput)}
                         onClick={() => void handleDeleteAccount()}
                         startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <DeleteForeverIcon />}
                     >

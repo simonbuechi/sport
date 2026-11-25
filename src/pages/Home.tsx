@@ -30,6 +30,7 @@ import TemplatesWidget from '../components/dashboard/widgets/TemplatesWidget';
 import ProjectUpdatesWidget from '../components/dashboard/widgets/ProjectUpdatesWidget';
 import FeedbackWidget from '../components/dashboard/widgets/FeedbackWidget';
 import { ActiveProgramCard } from '../components/routines/ActiveProgramCard';
+import PageHeader from '../components/common/PageHeader';
 import { useTranslation } from 'react-i18next';
 import { useHomeState, WIDGET_TYPES, type WidgetType } from '../hooks/useHomeState';
 
@@ -89,7 +90,7 @@ const Home = () => {
                     direction={{ xs: 'column', sm: 'row' }}
                     spacing={{ xs: 1, sm: 2 }}
                     sx={{
-                        justifyContent: "space-between",
+                        justifyContent: 'space-between',
                         alignItems: { xs: 'stretch', sm: 'center' },
                         mt: { xs: 0.5, md: 2 },
                         mb: { xs: 1.5, md: 4 }
@@ -111,40 +112,30 @@ const Home = () => {
 
     return (
         <Container maxWidth="lg">
-            <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={{ xs: 1, sm: 2 }}
-                sx={{
-                    justifyContent: "space-between",
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    mt: { xs: 0.5, md: 2 },
-                    mb: { xs: 1.5, md: 4 }
-                }}
-            >
-                <Typography variant="h4" component="h1">
-                    {t('home.dashboard')}
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<AddIcon />}
-                        onClick={() => { void navigate('/journal/new'); }}
-                        sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
-                    >
-                        {t('home.workout')}
-                    </Button>
-                    <Tooltip title={t('home.manageWidgets')}>
-                        <IconButton
-                            onClick={() => { setIsManageDialogOpen(true); }}
+            <PageHeader
+                title={t('home.dashboard')}
+                actions={
+                    <>
+                        <Button
+                            variant="contained"
                             color="primary"
-                            aria-label={t('home.manageWidgets')}
+                            startIcon={<AddIcon />}
+                            onClick={() => { void navigate('/journal/new'); }}
                         >
-                            <SettingsIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Stack>
-            </Stack>
+                            {t('home.workout')}
+                        </Button>
+                        <Tooltip title={t('home.manageWidgets')}>
+                            <IconButton
+                                onClick={() => { setIsManageDialogOpen(true); }}
+                                color="primary"
+                                aria-label={t('home.manageWidgets')}
+                            >
+                                <SettingsIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </>
+                }
+            />
 
             {error && <Alert severity="error" sx={{ mb: { xs: 2, md: 4 } }}>{error}</Alert>}
 
@@ -221,10 +212,11 @@ const Home = () => {
                                     label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{t(`widgets.${element}`, { defaultValue: element })}</Typography>}
                                 />
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Tooltip title={t('common.back')} arrow>
+                                    <Tooltip title={t('common.moveUp', { defaultValue: 'Move Up' })} arrow>
                                         <span>
                                             <IconButton
                                                 size="small"
+                                                aria-label={t('common.moveUp', { defaultValue: 'Move Up' })}
                                                 onClick={() => { moveWidget(index, index - 1); }}
                                                 disabled={index === 0}
                                                 sx={{ color: index === 0 ? 'action.disabled' : 'action.active' }}
@@ -233,10 +225,11 @@ const Home = () => {
                                             </IconButton>
                                         </span>
                                     </Tooltip>
-                                    <Tooltip title={t('common.back')} arrow>
+                                    <Tooltip title={t('common.moveDown', { defaultValue: 'Move Down' })} arrow>
                                         <span>
                                             <IconButton
                                                 size="small"
+                                                aria-label={t('common.moveDown', { defaultValue: 'Move Down' })}
                                                 onClick={() => { moveWidget(index, index + 1); }}
                                                 disabled={index === orderedAllWidgets.length - 1}
                                                 sx={{ color: index === orderedAllWidgets.length - 1 ? 'action.disabled' : 'action.active' }}

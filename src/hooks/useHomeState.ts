@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useWorkouts } from '../context/WorkoutsContext';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { useUserProfile } from '../context/UserProfileContext';
 import { updateUserProfile } from '../services/db';
+import { parseLocalDate } from '../utils/format';
 import type { Workout, UserProfile } from '../types';
 
 export const WIDGET_TYPES = {
@@ -37,7 +38,6 @@ export const useHomeState = () => {
     const [orderedAllWidgets, setOrderedAllWidgets] = useState<WidgetType[]>(ALL_DASHBOARD_ELEMENTS);
     const [error, setError] = useState('');
 
-    // Sync state with profile (React recommendation for mirroring state from props/other state)
     const [prevProfileData, setPrevProfileData] = useState<{ widgets: string | null, order: string | null }>({
         widgets: null,
         order: null
@@ -49,13 +49,13 @@ export const useHomeState = () => {
         if (profile.dashboardWidgets) {
             const validWidgets = (profile.dashboardWidgets as WidgetType[]).filter(w => ALL_DASHBOARD_ELEMENTS.includes(w));
             setVisibleWidgets(validWidgets);
-            
+
             const savedOrder = profile.dashboardOrder as WidgetType[] | undefined;
             const activeSet = new Set(validWidgets);
-            
+
             const filteredSavedOrder = savedOrder ? savedOrder.filter(w => ALL_DASHBOARD_ELEMENTS.includes(w)) : [];
             const baseOrder = (filteredSavedOrder.length > 0) ? filteredSavedOrder : ALL_DASHBOARD_ELEMENTS;
-            
+
             const finalOrder = [...baseOrder];
             ALL_DASHBOARD_ELEMENTS.forEach(w => {
                 if (!finalOrder.includes(w)) finalOrder.push(w);
@@ -76,8 +76,6 @@ export const useHomeState = () => {
         setPrevProfileData({ widgets: widgetsJson, order: orderJson });
     }
 
-
-    // Sync error from profile
     const [prevProfileError, setPrevProfileError] = useState<string | null>(null);
     if (profileError && profileError !== prevProfileError) {
         setError(profileError);
@@ -86,10 +84,11 @@ export const useHomeState = () => {
 
     const sessionsInLast7Days = useMemo(() => {
         const sevenDaysAgo = new Date();
+        sevenDaysAgo.setHours(0, 0, 0, 0);
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
         return allEntries.filter((entry: Workout) => {
-            const entryDate = new Date(entry.date);
+            const entryDate = parseLocalDate(entry.date);
             return entryDate >= sevenDaysAgo;
         }).length;
     }, [allEntries]);
@@ -108,8 +107,7 @@ export const useHomeState = () => {
                 setOrderedAllWidgets(newOrder);
             }
             await updateUserProfile(currentUser.uid, updates);
-        } catch (_err) {
-            // console.error('Failed to update dashboard settings:', _err);
+        } catch {
             setError('Failed to save dashboard settings. Your changes were rolled back.');
             setVisibleWidgets(previousWidgets);
             setOrderedAllWidgets(previousOrder);

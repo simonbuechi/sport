@@ -23,14 +23,14 @@ const ExerciseCard = ({ exercise, markerStatus }: ExerciseCardProps) => {
 
     return (
         <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardActionArea 
-                onClick={() => navigate(`/exercises/${exercise.id}`)} 
+            <CardActionArea
+                onClick={() => { void navigate(`/exercises/${exercise.id}`); }}
                 sx={{ flexGrow: 1 }}
                 aria-label={t('exercises.viewDetails', { name: exercise.name })}
             >
                 <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Stack sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}>
-                        <Stack sx={{ flexWrap: "wrap" }} spacing={0.5}>
+                    <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5 }} spacing={0.5}>
                             <Chip
                                 label={t(`exerciseTypes.${exercise.type}`, { defaultValue: exercise.type })}
                                 size="small"
@@ -51,25 +51,20 @@ const ExerciseCard = ({ exercise, markerStatus }: ExerciseCardProps) => {
                                 variant="outlined"
                             />
                         </Stack>
-                        <Stack spacing={0.5} sx={{ color: 'text.secondary' }}>
+                        <Stack direction="row" spacing={0.5} sx={{ color: 'text.secondary' }}>
                             {exercise.links && exercise.links.length > 0 && <LinkIcon fontSize="small" />}
                         </Stack>
                     </Stack>
 
-                    <Stack spacing={2} sx={{ mb: 2 }}>
+                    <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
                         <Avatar
-                            src={exercise.icon_url ?
-                                `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}`
-                                : undefined}
+                            src={exercise.icon_url ? `${import.meta.env.BASE_URL}exercises/${exercise.icon_url}` : undefined}
                             alt={exercise.name}
-                            sx={{
-                                width: 56,
-                                height: 56,
-                            }}
+                            sx={{ width: 52, height: 52 }}
                         >
                             {exercise.name.charAt(0)}
                         </Avatar>
-                        <Typography variant="h5" component="div">
+                        <Typography variant="h6" component="div">
                             {exercise.name}
                         </Typography>
                     </Stack>
@@ -78,20 +73,21 @@ const ExerciseCard = ({ exercise, markerStatus }: ExerciseCardProps) => {
                         <Typography
                             variant="body2"
                             sx={{
-                                color: "text.secondary",
+                                color: 'text.secondary',
                                 display: '-webkit-box',
                                 WebkitLineClamp: 2,
                                 WebkitBoxOrient: 'vertical',
                                 overflow: 'hidden',
                                 flexGrow: 1,
                                 mb: 2
-                            }}>
+                            }}
+                        >
                             {exercise.description}
                         </Typography>
                     )}
 
                     {markerStatus && (
-                        <Stack sx={{ justifyContent: "flex-end" }}>
+                        <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
                             <MarkerIcons status={markerStatus} />
                         </Stack>
                     )}

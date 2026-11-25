@@ -3,7 +3,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
-import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
@@ -46,18 +46,22 @@ const TemplateSetDialog = ({
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-            <DialogTitle>{data?.setIdx !== undefined ? 'Edit Set' : 'Add Set(s)'}</DialogTitle>
+            <DialogTitle>
+                {data?.setIdx !== undefined
+                    ? t('templates.editSet', { defaultValue: 'Edit Set' })
+                    : t('journal.addSet', { defaultValue: 'Add Set(s)' })}
+            </DialogTitle>
             <DialogContent dividers>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 1 }}>
+                <Stack spacing={2.5} sx={{ pt: 0.5 }}>
                     <TextField
-                        label="Weight (kg)"
+                        label={`${t('journal.weight')} (${t('common.unitKg')})`}
                         type="number"
                         fullWidth
                         value={data?.weight ?? ''}
                         onChange={(e) => { setData(prev => prev ? { ...prev, weight: e.target.value === '' ? undefined : Number(e.target.value) } : null); }}
                     />
                     <TextField
-                        label="Reps"
+                        label={t('journal.reps')}
                         type="number"
                         fullWidth
                         value={data?.reps ?? ''}
@@ -86,28 +90,36 @@ const TemplateSetDialog = ({
                     )}
                     {data?.setIdx === undefined && (
                         <TextField
-                            label="Number of Sets"
+                            label={t('journal.totalSets', { defaultValue: 'Number of Sets' })}
                             type="number"
                             fullWidth
                             value={data?.count ?? 1}
-                            onChange={(e) => { setData(prev => prev ? { ...prev, count: Number(e.target.value) } : null); }}
-                            helperText="Adds this set multiple times"
+                            slotProps={{ htmlInput: { min: 1, max: 20 } }}
+                            onChange={(e) => { setData(prev => prev ? { ...prev, count: Math.max(1, Number(e.target.value)) } : null); }}
                         />
                     )}
-                </Box>
+                </Stack>
             </DialogContent>
-            <DialogActions sx={{ p: 2, bgcolor: 'grey.50', justifyContent: data?.setIdx !== undefined ? 'space-between' : 'flex-end' }}>
+            <DialogActions sx={{ justifyContent: data?.setIdx !== undefined ? 'space-between' : 'flex-end' }}>
                 {data?.setIdx !== undefined && (
-                    <Button color="error" startIcon={<DeleteIcon />} onClick={() => { if (data.setIdx !== undefined) { onDelete(data.tid, data.exerciseIdx, data.setIdx); } }}>
-                        Delete
+                    <Button
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => {
+                            if (data.setIdx !== undefined) {
+                                onDelete(data.tid, data.exerciseIdx, data.setIdx);
+                            }
+                        }}
+                    >
+                        {t('common.delete')}
                     </Button>
                 )}
-                <Box>
-                    <Button onClick={onClose}>Cancel</Button>
+                <Stack direction="row" spacing={1}>
+                    <Button onClick={onClose} color="inherit">{t('common.cancel')}</Button>
                     <Button variant="contained" onClick={onSave} color="primary">
-                        {data?.setIdx !== undefined ? 'Save' : 'Add'}
+                        {data?.setIdx !== undefined ? t('common.save') : t('common.add', { defaultValue: 'Add' })}
                     </Button>
-                </Box>
+                </Stack>
             </DialogActions>
         </Dialog>
     );

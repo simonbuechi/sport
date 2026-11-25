@@ -15,7 +15,7 @@ const Layout = () => {
     if (isAuthPage) {
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
-                <Box component="main" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box component="main" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
                     <Suspense fallback={<PageLoader />}>
                         <Outlet />
                     </Suspense>
@@ -26,10 +26,10 @@ const Layout = () => {
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
             <Navbar />
             <OfflineBanner />
-            <Box component="main" sx={{ flexGrow: 1, py: { xs: 1, md: 4 }, pb: { xs: 8, md: 4 } }}>
+            <Box component="main" sx={{ flexGrow: 1, pt: { xs: 1.5, md: 3.5 }, pb: { xs: 'calc(84px + env(safe-area-inset-bottom, 0px))', md: 5 } }}>
                 <Suspense fallback={<PageLoader />}>
                     <Outlet />
                 </Suspense>

@@ -17,22 +17,26 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import { ActiveProgramCard } from '../components/routines/ActiveProgramCard';
-import AddIcon from '@mui/icons-material/Add';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Skeleton from '@mui/material/Skeleton';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import AddIcon from '@mui/icons-material/Add';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExercises } from '../context/ExercisesContext';
 import { useWorkouts } from '../context/WorkoutsContext';
 import { deleteWorkout } from '../services/db';
+import { parseLocalDate } from '../utils/format';
 import type { Workout, Exercise, SessionType } from '../types';
+import { ActiveProgramCard } from '../components/routines/ActiveProgramCard';
 import WorkoutItem from '../components/journal/WorkoutItem';
-import Skeleton from '@mui/material/Skeleton';
+import PageHeader from '../components/common/PageHeader';
+import EmptyState from '../components/common/EmptyState';
 import { useTranslation } from 'react-i18next';
 
 const Journal = () => {
@@ -40,33 +44,42 @@ const Journal = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const { exercises, loading: exercisesLoading } = useExercises();
-    const { entries, templates, activeProgram, advanceActiveDay, activateProgram, loading: sessionsLoading, loadMore, hasMore } = useWorkouts();
+    const {
+        entries,
+        templates,
+        activeProgram,
+        advanceActiveDay,
+        activateProgram,
+        loading: sessionsLoading,
+        error: workoutsError,
+        loadMore,
+        hasMore
+    } = useWorkouts();
 
     const templateMap = useMemo(() => {
-        return templates.reduce<Record<string, string>>((acc, t) => {
-            acc[t.id] = t.name;
+        return templates.reduce<Record<string, string>>((acc, tpl) => {
+            acc[tpl.id] = tpl.name;
             return acc;
         }, {});
     }, [templates]);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
-    // Filter and Sort State
     const [typeFilter, setTypeFilter] = useState<SessionType | 'all'>('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
 
-    // Infinite Scroll State
     const observer = useRef<IntersectionObserver | null>(null);
-
 
     const handleEditClick = useCallback((entry: Workout) => {
         void navigate(`/journal/${entry.id}/edit`);
     }, [navigate]);
 
     const handleDeleteClick = useCallback((id: string) => {
+        setDeleteError(null);
         setEntryToDelete(id);
         setDeleteDialogOpen(true);
     }, []);
@@ -75,50 +88,43 @@ const Journal = () => {
         if (!currentUser || !entryToDelete) return;
 
         try {
+            setDeleteError(null);
             await deleteWorkout(currentUser.uid, entryToDelete);
-            // entries state is managed by WorkoutsContext and will update via onSnapshot
             setDeleteDialogOpen(false);
             setEntryToDelete(null);
         } catch (err) {
             console.error(err);
+            setDeleteError(err instanceof Error ? err.message : 'Failed to delete workout');
         }
     };
 
-    // Filtered and Sorted entries
     const filteredAndSortedEntries = useMemo(() => {
         return entries
             .filter(entry => {
-                // Type filter
                 if (typeFilter !== 'all' && entry.sessionType !== typeFilter) return false;
-
-                // Date filter
                 if (startDate && entry.date < startDate) return false;
                 if (endDate && entry.date > endDate) return false;
-
                 return true;
             })
             .sort((a, b) => {
-                const dateA = new Date(a.date).getTime();
-                const dateB = new Date(b.date).getTime();
+                const dateA = parseLocalDate(a.date).getTime();
+                const dateB = parseLocalDate(b.date).getTime();
                 return sortBy === 'recent' ? dateB - dateA : dateA - dateB;
             });
     }, [entries, typeFilter, startDate, endDate, sortBy]);
 
-    // Infinite Scroll Logic
     const lastElementRef = useCallback((node: HTMLElement | null) => {
         if (sessionsLoading) return;
         if (observer.current) observer.current.disconnect();
- 
+
         observer.current = new IntersectionObserver(obsEntries => {
             if (obsEntries[obsEntries.length - 1].isIntersecting && hasMore) {
                 loadMore();
             }
         });
- 
+
         if (node) observer.current.observe(node);
     }, [sessionsLoading, hasMore, loadMore]);
-
-    const displayedEntries = filteredAndSortedEntries;
 
     const exerciseMap = useMemo(() => {
         return exercises.reduce<Record<string, Exercise | undefined>>((acc, ex) => {
@@ -131,57 +137,46 @@ const Journal = () => {
 
     if (isLoading) return (
         <Container maxWidth="lg">
-            <Stack 
-                direction={{ xs: 'column', sm: 'row' }} 
-                spacing={{ xs: 1, sm: 2 }} 
-                sx={{ 
-                    justifyContent: "space-between", 
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    mt: { xs: 0.5, md: 2 }, 
-                    mb: { xs: 1.5, md: 4 } 
-                }}
-            >
-                <Skeleton variant="text" width={150} height={60} />
-                <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
-                    <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1 }} />
-                </Stack>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Skeleton variant="text" width={160} height={48} />
+                <Skeleton variant="rectangular" width={120} height={38} sx={{ borderRadius: 2 }} />
             </Stack>
-            <Skeleton variant="rectangular" height={56} sx={{ mb: { xs: 2, md: 3 }, borderRadius: 2 }} />
+            <Skeleton variant="rectangular" height={52} sx={{ mb: 3, borderRadius: 2 }} />
             <Stack spacing={2}>
                 {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+                    <Skeleton key={i} variant="rectangular" height={112} sx={{ borderRadius: 3 }} />
                 ))}
             </Stack>
         </Container>
     );
 
+    const hasActiveFilters = typeFilter !== 'all' || Boolean(startDate) || Boolean(endDate);
+
     return (
         <Container maxWidth="lg">
-            <Stack 
-                direction={{ xs: 'column', sm: 'row' }} 
-                spacing={{ xs: 1, sm: 2 }} 
-                sx={{ 
-                    justifyContent: "space-between", 
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    mt: { xs: 0.5, md: 2 }, 
-                    mb: { xs: 1.5, md: 4 } 
-                }}
-            >
-                <Typography variant="h4" component="h1">
-                    {t('journal.title')}
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ justifyContent: { xs: 'space-between', sm: 'flex-end' }, alignItems: 'center' }}>
+            <PageHeader
+                title={t('journal.title')}
+                actions={
                     <Button
                         variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
-                        onClick={() => navigate('/journal/new')}
-                        sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
+                        onClick={() => { void navigate('/journal/new'); }}
                     >
                         {t('journal.workout')}
                     </Button>
-                </Stack>
-            </Stack>
+                }
+            />
+
+            {(workoutsError ?? deleteError) && (
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2.5 }}
+                    onClose={deleteError ? () => { setDeleteError(null); } : undefined}
+                >
+                    {deleteError ?? workoutsError}
+                </Alert>
+            )}
 
             {activeProgram && (
                 <ActiveProgramCard
@@ -194,29 +189,16 @@ const Journal = () => {
             )}
 
             {/* Filter and Sort Bar */}
-            <Accordion
-                elevation={0}
-                sx={{
-                    bgcolor: 'background.default',
-                    mb: { xs: 2, md: 3 },
-                    '&:before': { display: 'none' },
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: '8px !important'
-                }}
-            >
-                <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    sx={{ px: 2 }}
-                >
+            <Accordion sx={{ mb: { xs: 2, md: 3 } }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <FilterListIcon color="primary" fontSize="small" />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{t('journal.filtersAndSorting')}</Typography>
+                        <Typography variant="subtitle2">{t('journal.filtersAndSorting')}</Typography>
                     </Box>
                 </AccordionSummary>
-                <AccordionDetails sx={{ pt: 0, pb: 2, px: 2 }}>
-                    <Stack sx={{ alignItems: { xs: 'stretch', md: 'flex-end' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 } }}>
+                <AccordionDetails sx={{ pt: 0.5, pb: 2.5, px: 2.5 }}>
+                    <Stack sx={{ alignItems: { xs: 'stretch', md: 'center' } }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 160 } }}>
                             <InputLabel id="type-filter-label" htmlFor="type-filter-input">{t('journal.workoutType')}</InputLabel>
                             <Select
                                 labelId="type-filter-label"
@@ -242,7 +224,7 @@ const Journal = () => {
                             size="small"
                             value={startDate}
                             onChange={(e) => { setStartDate(e.target.value); }}
-                            sx={{ minWidth: { xs: '100%', md: 150 } }}
+                            sx={{ minWidth: { xs: '100%', md: 155 } }}
                             slotProps={{ inputLabel: { shrink: true } }}
                         />
 
@@ -253,11 +235,11 @@ const Journal = () => {
                             size="small"
                             value={endDate}
                             onChange={(e) => { setEndDate(e.target.value); }}
-                            sx={{ minWidth: { xs: '100%', md: 150 } }}
+                            sx={{ minWidth: { xs: '100%', md: 155 } }}
                             slotProps={{ inputLabel: { shrink: true } }}
                         />
 
-                        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 150 }, ml: { md: 'auto' } }}>
+                        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 160 }, ml: { md: 'auto' } }}>
                             <InputLabel id="sort-by-label" htmlFor="sort-by-input">{t('journal.sortBy')}</InputLabel>
                             <Select
                                 labelId="sort-by-label"
@@ -277,19 +259,40 @@ const Journal = () => {
 
             {/* Workouts List */}
             <Box>
-
                 {filteredAndSortedEntries.length === 0 ? (
-                    <Alert severity="info" variant="outlined">
-                        {entries.length === 0
-                            ? t('journal.noWorkoutsYet')
-                            : t('journal.noWorkoutsMatch')}
-                    </Alert>
+                    <EmptyState
+                        icon={<FitnessCenterIcon />}
+                        title={entries.length === 0 ? t('journal.noWorkoutsYet') : t('journal.noWorkoutsMatch')}
+                        actions={
+                            entries.length === 0 ? (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => { void navigate('/journal/new'); }}
+                                >
+                                    {t('journal.workout')}
+                                </Button>
+                            ) : hasActiveFilters ? (
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => {
+                                        setTypeFilter('all');
+                                        setStartDate('');
+                                        setEndDate('');
+                                    }}
+                                >
+                                    {t('common.clearFilters', { defaultValue: 'Clear Filters' })}
+                                </Button>
+                            ) : undefined
+                        }
+                    />
                 ) : (
                     <List sx={{ p: 0 }}>
-                        {displayedEntries.map((entry, index) => (
+                        {filteredAndSortedEntries.map((entry, index) => (
                             <WorkoutItem
                                 key={entry.id}
-                                ref={index === displayedEntries.length - 1 ? lastElementRef : null}
+                                ref={index === filteredAndSortedEntries.length - 1 ? lastElementRef : null}
                                 entry={entry}
                                 exerciseMap={exerciseMap}
                                 templateName={entry.templateId ? templateMap[entry.templateId] : undefined}
@@ -305,17 +308,12 @@ const Journal = () => {
                     </Stack>
                 )}
                 {!hasMore && filteredAndSortedEntries.length > 0 && (
-                    <Typography
-                        variant="body2"
-                        align="center"
-                        sx={{
-                            color: "text.secondary",
-                            my: 4
-                        }}>
+                    <Typography variant="body2" align="center" sx={{ color: 'text.secondary', my: 4 }}>
                         {t('journal.endOfJournal')}
                     </Typography>
                 )}
             </Box>
+
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => { setDeleteDialogOpen(false); }}>
                 <DialogTitle>{t('journal.deleteWorkout')}</DialogTitle>
@@ -325,13 +323,12 @@ const Journal = () => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => { setDeleteDialogOpen(false); }}>{t('common.cancel')}</Button>
-                    <Button onClick={confirmDelete} color="error" variant="contained">
+                    <Button onClick={() => { setDeleteDialogOpen(false); }} color="inherit">{t('common.cancel')}</Button>
+                    <Button onClick={() => { void confirmDelete(); }} color="error" variant="contained">
                         {t('common.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>
-
         </Container>
     );
 };

@@ -16,8 +16,10 @@ import Add from '@mui/icons-material/Add';
 import HelpOutlined from '@mui/icons-material/HelpOutlined';
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Alert from '@mui/material/Alert';
 import type { MeasurementEntry } from '../../types';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { parseLocalDate, getDefaultDateTime } from '../../utils/format';
 
 const MEASUREMENT_INFO: Record<string, { how: string }> = {
     waist: {
@@ -113,18 +115,20 @@ export default function MeasurementsSection() {
     const [isAddEditOpen, setIsAddEditOpen] = useState(false);
     const [isExplainOpen, setIsExplainOpen] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
 
     // Form fields
-    const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
+    const [formDate, setFormDate] = useState(() => getDefaultDateTime().date);
     const [formData, setFormData] = useState<Omit<MeasurementEntry, 'id' | 'date'>>({});
 
     if (!profile) return null;
 
     const measurements = profile.measurements ?? [];
-    const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sortedMeasurements = [...measurements].sort((a, b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
 
     const handleOpenAdd = () => {
-        setFormDate(new Date().toISOString().split('T')[0]);
+        setFormError(null);
+        setFormDate(getDefaultDateTime().date);
         // Default to last measurements as starting point
         const initialData = sortedMeasurements.length > 0
             ? (({ id: _id, date: _date, ...rest }) => rest)(sortedMeasurements[0])
@@ -161,7 +165,7 @@ export default function MeasurementsSection() {
             setIsAddEditOpen(false);
         } catch (error) {
             console.error("Failed to save measurement", error);
-            alert("Failed to save measurement entry.");
+            setFormError(error instanceof Error ? error.message : "Failed to save measurement entry.");
         } finally {
             setSaving(false);
         }
@@ -181,8 +185,8 @@ export default function MeasurementsSection() {
     };
 
     return (
-        <Paper sx={{ p: { xs: 2, md: 3 }, }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h5" component="h2">{t('profile.measurements')}</Typography>
                 <Button
                     variant="text"
@@ -194,19 +198,19 @@ export default function MeasurementsSection() {
                 </Button>
             </Box>
 
-            <Box sx={{ mb: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+            <Paper variant="subtle" sx={{ mb: 3, flexGrow: 1 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>{t('profile.latestMeasurement')}</Typography>
                 {latestMeasurement ? (
                     <Box>
-                        <Typography variant="h6" color="primary">
-                            {new Date(latestMeasurement.date).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' })}
+                        <Typography variant="h6" color="primary" sx={{ mb: 0.5 }}>
+                            {parseLocalDate(latestMeasurement.date).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </Typography>
                         <Typography variant="body2">{getMeasurementSummary(latestMeasurement)}</Typography>
                     </Box>
                 ) : (
                     <Typography variant="body2" color="text.secondary">{t('profile.noMeasurements')}</Typography>
                 )}
-            </Box>
+            </Paper>
 
             <Grid container spacing={2}>
                 <Grid size={6}>
@@ -242,7 +246,8 @@ export default function MeasurementsSection() {
             >
                 <DialogTitle>{t('profile.logMeasurements')} (cm)</DialogTitle>
                 <DialogContent dividers>
-                    <Grid container spacing={2} sx={{ pt: 1 }}>
+                    {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
+                    <Grid container spacing={2} sx={{ pt: 0.5 }}>
                         <Grid size={{ xs: 12 }}>
                             <TextField
                                 id="measurement-date"
@@ -319,7 +324,7 @@ export default function MeasurementsSection() {
                     <Box sx={{ mb: 4, textAlign: 'center' }}>
                         <Box 
                             component="img" 
-                            src="/body/measurements.webp" 
+                            src={`${import.meta.env.BASE_URL}body/measurements.webp`} 
                             alt="Body Measurement Guide" 
                             sx={{ 
                                 width: '100%', 

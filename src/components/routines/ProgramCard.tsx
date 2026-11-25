@@ -70,7 +70,7 @@ export const ProgramCard = ({
                 <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }} spacing={1}>
                     <Box sx={{ flexGrow: 1 }}>
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
                                 {program.name}
                             </Typography>
 
@@ -80,7 +80,6 @@ export const ProgramCard = ({
                                     label={t('programs.active')}
                                     color="primary"
                                     size="small"
-                                    sx={{ fontWeight: 700 }}
                                 />
                             )}
 
@@ -124,7 +123,6 @@ export const ProgramCard = ({
                                 startIcon={<PlayArrowIcon />}
                                 disabled={actionLoading}
                                 onClick={() => void onActivate(program.id)}
-                                sx={{ textTransform: 'none', fontWeight: 600 }}
                             >
                                 {t('programs.activate')}
                             </Button>
@@ -151,7 +149,7 @@ export const ProgramCard = ({
                 {/* Collapsible Days list */}
                 <Collapse in={expanded}>
                     <Box sx={{ mt: 2, pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             {t('programs.schedule')}:
                         </Typography>
                         <Stack spacing={0.75}>
@@ -176,7 +174,7 @@ export const ProgramCard = ({
                                             ) : (
                                                 <HotelIcon fontSize="small" color="action" />
                                             )}
-                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                                 {t('programs.day')} {day.dayNumber}:
                                             </Typography>
                                             <Typography variant="body2">
